@@ -5,7 +5,8 @@ export const INITIAL_HERO = {
   headline: 'Handmade with Love, Crafted to Last.',
   subtext: 'Explore our exclusive crochet collections.'
 };
-: Category[] = [
+
+export const INITIAL_CATEGORIES: Category[] = [
   {
     id: 'cat-uncategorized',
     name: 'Uncategorized',
