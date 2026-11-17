@@ -97,9 +97,17 @@ export default function HomePage() {
   const bestsellers = products.filter((p) => p.isBestseller);
   const newArrivals = products.filter((p) => p.isNewArrival);
 
-  // If none explicitly marked, show the latest added products so custom products immediately show on homepage
-  const displayFeatured = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 8);
-  const displayBestsellers = bestsellers.length > 0 ? bestsellers : products.slice(0, 8);
+  // Always show products on the homepage: featured first, then fill with latest products
+  const displayFeatured = products.length > 0
+    ? (featuredProducts.length > 0
+        ? [...featuredProducts, ...products.filter((p) => !p.isFeatured)].slice(0, 8)
+        : products.slice(0, 8))
+    : [];
+  const displayBestsellers = products.length > 0
+    ? (bestsellers.length > 0
+        ? [...bestsellers, ...products.filter((p) => !p.isBestseller)].slice(0, 8)
+        : products.slice(0, 8))
+    : [];
 
   return (
     <div className="space-y-16 sm:space-y-24 pb-20">
