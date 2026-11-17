@@ -128,7 +128,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     careInstructions: 'Spot clean pot with slightly damp cloth. Avoid submerging in water.',
     tags: ['Desk Decor', 'Sunflower', 'Daisy', 'Positive Vibes'],
     status: 'AVAILABLE',
-    isFeatured: true,
+    isFeatured: false,
     isBestseller: false,
     isNewArrival: true,
     variants: [
@@ -226,7 +226,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     careInstructions: 'Wipe metal parts with dry cloth. Spot clean yarn when needed.',
     tags: ['Keychain', 'Strawberry', 'Bag Charm', 'Cute Gift'],
     status: 'AVAILABLE',
-    isFeatured: false,
+    isFeatured: true,
     isBestseller: true,
     isNewArrival: true,
     variants: [
@@ -324,7 +324,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     careInstructions: 'Spot clean only. Keep gown ironed or steamed gently.',
     tags: ['Graduation', 'Keepsake', 'Custom Gift', 'Teddy Bear'],
     status: 'AVAILABLE',
-    isFeatured: true,
+    isFeatured: false,
     isBestseller: false,
     isNewArrival: true,
     variants: [
