@@ -43,6 +43,7 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 // In-memory fallback cache so serverless functions never crash on read/write
 let memoryDatabase: DatabaseSchema | null = null;
+let memoryHeroBanner: any = null;
 
 // Ensure directory and database file exist
 function initializeDatabase(): DatabaseSchema {
@@ -903,6 +904,10 @@ export const db = {
 
   // HERO BANNER CONFIGURATION
   getHeroBanner: () => {
+    if (memoryHeroBanner) {
+      return memoryHeroBanner;
+    }
+
     // In serverless/Vercel environments, /tmp/data/hero.json holds live updates
     const heroFilePath = isServerless
       ? path.join('/tmp', 'hero.json')
@@ -910,7 +915,9 @@ export const db = {
 
     if (fs.existsSync(heroFilePath)) {
       try {
-        return JSON.parse(fs.readFileSync(heroFilePath, 'utf-8'));
+        const loaded = JSON.parse(fs.readFileSync(heroFilePath, 'utf-8'));
+        memoryHeroBanner = loaded;
+        return loaded;
       } catch (err) {
         console.warn('Error reading hero file, falling back:', err);
       }
@@ -920,7 +927,9 @@ export const db = {
     const bundledHero = path.join(process.cwd(), 'data', 'hero.json');
     if (fs.existsSync(bundledHero)) {
       try {
-        return JSON.parse(fs.readFileSync(bundledHero, 'utf-8'));
+        const loaded = JSON.parse(fs.readFileSync(bundledHero, 'utf-8'));
+        memoryHeroBanner = loaded;
+        return loaded;
       } catch {}
     }
 
@@ -940,6 +949,7 @@ export const db = {
     };
   },
   updateHeroBanner: (data: { slides: any[] }) => {
+    memoryHeroBanner = data;
     const heroFilePath = isServerless
       ? path.join('/tmp', 'hero.json')
       : path.join(process.cwd(), 'data', 'hero.json');

@@ -100,14 +100,22 @@ export default function AdminHeroBannerPage() {
         body: JSON.stringify({ slides }),
       });
 
-      const data = await res.json();
-      if (data.success) {
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        throw new Error(text || 'Invalid server response');
+      }
+
+      if (res.ok && data.success) {
         setMessage({ text: 'Hero banner saved & live storefront updated!', isError: false });
       } else {
-        setMessage({ text: data.message || 'Failed to update hero banner', isError: true });
+        setMessage({ text: data.message || `Failed to update hero banner (HTTP ${res.status})`, isError: true });
       }
-    } catch {
-      setMessage({ text: 'Error saving hero banner configuration', isError: true });
+    } catch (err: any) {
+      console.error('Save hero banner error:', err);
+      setMessage({ text: err.message || 'Error saving hero banner configuration', isError: true });
     } finally {
       setSaving(false);
     }

@@ -93,9 +93,13 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  const featuredProducts = products.filter((p) => p.isFeatured).slice(0, 4);
-  const bestsellers = products.filter((p) => p.isBestseller).slice(0, 4);
-  const newArrivals = products.filter((p) => p.isNewArrival).slice(0, 4);
+  const featuredProducts = products.filter((p) => p.isFeatured);
+  const bestsellers = products.filter((p) => p.isBestseller);
+  const newArrivals = products.filter((p) => p.isNewArrival);
+
+  // If none explicitly marked, show the latest added products so custom products immediately show on homepage
+  const displayFeatured = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 8);
+  const displayBestsellers = bestsellers.length > 0 ? bestsellers : products.slice(0, 8);
 
   return (
     <div className="space-y-16 sm:space-y-24 pb-20">
@@ -233,7 +237,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {featuredProducts.map((product) => (
+          {displayFeatured.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
@@ -308,7 +312,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {bestsellers.map((product) => (
+          {displayBestsellers.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

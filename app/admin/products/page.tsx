@@ -39,6 +39,7 @@ export default function AdminProductsPage() {
   const [dimensions, setDimensions] = useState('Handmade Standard');
   const [imageUrl, setImageUrl] = useState('');
   const [status, setStatus] = useState<ProductStatus>('AVAILABLE');
+  const [isFeatured, setIsFeatured] = useState(true);
   const [isBestseller, setIsBestseller] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
 
@@ -77,6 +78,7 @@ export default function AdminProductsPage() {
     setDimensions('Height: 30 cm');
     setImageUrl('https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80');
     setStatus('AVAILABLE');
+    setIsFeatured(true);
     setIsBestseller(false);
     setIsNewArrival(true);
     setIsModalOpen(true);
@@ -95,6 +97,7 @@ export default function AdminProductsPage() {
     setDimensions(p.dimensions);
     setImageUrl(p.images[0] || '');
     setStatus(p.status);
+    setIsFeatured(Boolean(p.isFeatured));
     setIsBestseller(p.isBestseller);
     setIsNewArrival(p.isNewArrival);
     setIsModalOpen(true);
@@ -128,6 +131,7 @@ export default function AdminProductsPage() {
       dimensions,
       images: imageUrl ? [imageUrl] : ['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80'],
       status: Number(stock) === 0 ? 'SOLD_OUT' : status,
+      isFeatured,
       isBestseller,
       isNewArrival,
     };
@@ -475,7 +479,16 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 pt-2">
+              <div className="flex flex-wrap items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer font-medium">
+                  <input
+                    type="checkbox"
+                    checked={isFeatured}
+                    onChange={(e) => setIsFeatured(e.target.checked)}
+                    className="accent-purple-600"
+                  />
+                  <span className="text-purple-700 font-bold">✨ Show on Homepage (Featured Spotlight)</span>
+                </label>
                 <label className="flex items-center gap-2 cursor-pointer font-medium">
                   <input
                     type="checkbox"
