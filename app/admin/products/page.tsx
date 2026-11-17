@@ -70,6 +70,8 @@ export default function AdminProductsPage() {
     setPrice(999);
     setDiscountPrice(undefined);
     setStock(10);
+    // Ensure category is pre-selected from loaded categories or fallback
+    setCategory(categories[0]?.name || 'Crochet Flowers & Bouquets');
     setPrepTimeDays(2);
     setMaterials('100% Premium Milk Cotton Yarn');
     setDimensions('Height: 30 cm');
@@ -100,44 +102,69 @@ export default function AdminProductsPage() {
 
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !price || !category) return;
+    if (!name.trim()) {
+      alert('Product title is required.');
+      return;
+    }
+    if (!price || Number(price) <= 0) {
+      alert('Please enter a valid price.');
+      return;
+    }
+
+    const selectedCategory = category || categories[0]?.name || 'Crochet Flowers & Bouquets';
+    const foundCat = categories.find(c => c.name === selectedCategory);
+    const categoryId = foundCat?.id ?? 'cat-flowers';
 
     const payload = {
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       price: Number(price),
       discountPrice: discountPrice ? Number(discountPrice) : undefined,
-      stock: Number(stock),
-      category,
-      categoryId:
-        categories.find(c => c.name === category)?.id ?? 'cat-uncategorized',
-      prepTimeDays: Number(prepTimeDays),
+      stock: Number(stock || 0),
+      category: selectedCategory,
+      categoryId,
+      prepTimeDays: Number(prepTimeDays || 2),
       materials,
       dimensions,
-      images: imageUrl ? [imageUrl] : [],
+      images: imageUrl ? [imageUrl] : ['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80'],
       status: Number(stock) === 0 ? 'SOLD_OUT' : status,
       isBestseller,
       isNewArrival,
     };
 
-    if (editingProduct) {
-      // Update
-      await fetch('/api/products', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editingProduct.id, ...payload }),
-      });
-    } else {
-      // Create
-      await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-    }
+    try {
+      if (editingProduct) {
+        // Update
+        const res = await fetch('/api/products', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingProduct.id, ...payload }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert(data.message || 'Failed to update product.');
+          return;
+        }
+      } else {
+        // Create
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert(data.message || 'Failed to create product.');
+          return;
+        }
+      }
 
-    setIsModalOpen(false);
-    fetchProducts();
+      setIsModalOpen(false);
+      fetchProducts();
+    } catch (err) {
+      console.error('Error saving product:', err);
+      alert('Network or server error while saving product.');
+    }
   };
 
   const handleStockQuickUpdate = async (id: string, newStock: number) => {

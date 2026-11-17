@@ -36,13 +36,37 @@ interface DatabaseSchema {
   notifications: NotificationItem[];
 }
 
-const DATA_DIR = path.join(process.cwd(), '.data');
+// Resolve database directory in a serverless-friendly way (/tmp on Vercel/AWS Lambda)
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DATA_DIR = isServerless ? path.join('/tmp', '.data') : path.join(process.cwd(), '.data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
+
+// In-memory fallback cache so serverless functions never crash on read/write
+let memoryDatabase: DatabaseSchema | null = null;
 
 // Ensure directory and database file exist
 function initializeDatabase(): DatabaseSchema {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (memoryDatabase) {
+    return memoryDatabase;
+  }
+
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (err) {
+    console.warn('Could not create data dir, using in-memory mode:', err);
+  }
+
+  // Check if seeded db.json already exists in repo root (read-only bundle)
+  const bundledDbPath = path.join(process.cwd(), '.data', 'db.json');
+  if (isServerless && !fs.existsSync(DB_FILE) && fs.existsSync(bundledDbPath)) {
+    try {
+      const bundledRaw = fs.readFileSync(bundledDbPath, 'utf-8');
+      fs.writeFileSync(DB_FILE, bundledRaw, 'utf-8');
+    } catch (e) {
+      console.warn('Could not copy bundled db.json to /tmp:', e);
+    }
   }
 
   if (!fs.existsSync(DB_FILE)) {
@@ -285,15 +309,22 @@ function initializeDatabase(): DatabaseSchema {
       notifications: initialNotifications,
     };
 
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf-8');
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2), 'utf-8');
+    } catch (e) {
+      console.warn('Could not persist initial db file, keeping in memory:', e);
+    }
+    memoryDatabase = initialData;
     return initialData;
   }
 
-  const raw = fs.readFileSync(DB_FILE, 'utf-8');
   try {
-    return JSON.parse(raw) as DatabaseSchema;
+    const raw = fs.readFileSync(DB_FILE, 'utf-8');
+    const parsed = JSON.parse(raw) as DatabaseSchema;
+    memoryDatabase = parsed;
+    return parsed;
   } catch {
-    return {
+    const fallback: DatabaseSchema = {
       users: [INITIAL_ADMIN_USER, INITIAL_SAMPLE_CUSTOMER],
       categories: INITIAL_CATEGORIES,
       products: INITIAL_PRODUCTS,
@@ -305,14 +336,21 @@ function initializeDatabase(): DatabaseSchema {
       restockNotifications: [],
       notifications: [],
     };
+    memoryDatabase = fallback;
+    return fallback;
   }
 }
 
 function saveDatabase(data: DatabaseSchema) {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  memoryDatabase = data;
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Could not write to disk in serverless environment, data preserved in memory:', err);
   }
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 // In-memory session store
@@ -865,36 +903,56 @@ export const db = {
 
   // HERO BANNER CONFIGURATION
   getHeroBanner: () => {
-    const heroFile = path.join(process.cwd(), 'data', 'hero.json');
-    if (!fs.existsSync(heroFile)) {
-      return {
-        slides: [
-          {
-            id: 'slide-1',
-            title: 'Handmade with Love, Crafted to Last.',
-            subtitle: 'Everlasting blooms, cozy artisan totes, and bespoke amigurumi keepsakes stitched with utmost tenderness.',
-            badge: '✨ Artisanal Crochet Collection 2026',
-            ctaText: 'Explore Collection',
-            ctaLink: '/shop',
-            image: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1400&q=85',
-            accentColor: 'from-brand-900/80 via-brand-900/60 to-transparent'
-          }
-        ]
-      };
+    // In serverless/Vercel environments, /tmp/data/hero.json holds live updates
+    const heroFilePath = isServerless
+      ? path.join('/tmp', 'hero.json')
+      : path.join(process.cwd(), 'data', 'hero.json');
+
+    if (fs.existsSync(heroFilePath)) {
+      try {
+        return JSON.parse(fs.readFileSync(heroFilePath, 'utf-8'));
+      } catch (err) {
+        console.warn('Error reading hero file, falling back:', err);
+      }
     }
-    try {
-      return JSON.parse(fs.readFileSync(heroFile, 'utf-8'));
-    } catch {
-      return { slides: [] };
+
+    // Fall back to bundled data/hero.json
+    const bundledHero = path.join(process.cwd(), 'data', 'hero.json');
+    if (fs.existsSync(bundledHero)) {
+      try {
+        return JSON.parse(fs.readFileSync(bundledHero, 'utf-8'));
+      } catch {}
     }
+
+    return {
+      slides: [
+        {
+          id: 'slide-1',
+          title: 'Handmade with Love, Crafted to Last.',
+          subtitle: 'Everlasting blooms, cozy artisan totes, and bespoke amigurumi keepsakes stitched with utmost tenderness.',
+          badge: '✨ Artisanal Crochet Collection 2026',
+          ctaText: 'Explore Collection',
+          ctaLink: '/shop',
+          image: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1400&q=85',
+          accentColor: 'from-brand-900/80 via-brand-900/60 to-transparent'
+        }
+      ]
+    };
   },
   updateHeroBanner: (data: { slides: any[] }) => {
-    const dataDir = path.join(process.cwd(), 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
+    const heroFilePath = isServerless
+      ? path.join('/tmp', 'hero.json')
+      : path.join(process.cwd(), 'data', 'hero.json');
+
+    try {
+      const dir = path.dirname(heroFilePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(heroFilePath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch (e) {
+      console.warn('Could not write hero banner to disk, returning data in-memory:', e);
     }
-    const heroFile = path.join(dataDir, 'hero.json');
-    fs.writeFileSync(heroFile, JSON.stringify(data, null, 2), 'utf-8');
     return data;
   },
 };
