@@ -24,24 +24,7 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  useEffect(() => {
-    fetch('/api/products')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.products) setProducts(data.products);
-      })
-      .catch((err) => console.error('Error fetching products:', err));
-
-    fetch('/api/categories')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.categories) setCategories(data.categories);
-      })
-      .catch((err) => console.error('Error fetching categories:', err));
-  }, []);
-
-  const heroSlides = [
+  const [heroSlides, setHeroSlides] = useState([
     {
       title: 'Handmade with Love, Crafted to Last.',
       subtitle: 'Everlasting blooms, cozy artisan totes, and bespoke amigurumi keepsakes stitched with utmost tenderness.',
@@ -69,7 +52,32 @@ export default function HomePage() {
       image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1400&q=85',
       accentColor: 'from-brand-900/80 via-brand-900/60 to-transparent',
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    fetch('/api/hero')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.hero?.slides && data.hero.slides.length > 0) {
+          setHeroSlides(data.hero.slides);
+        }
+      })
+      .catch((err) => console.error('Error fetching hero banner:', err));
+
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.products) setProducts(data.products);
+      })
+      .catch((err) => console.error('Error fetching products:', err));
+
+    fetch('/api/categories')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.categories) setCategories(data.categories);
+      })
+      .catch((err) => console.error('Error fetching categories:', err));
+  }, []);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroSlides.length);

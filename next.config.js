@@ -17,11 +17,13 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
-      fs: false,
       canvg: false,
       html2canvas: false,
       dompurify: false,
     };
+    if (!isServer) {
+      config.resolve.fallback.fs = false;
+    }
     return config;
   },
 };

@@ -862,4 +862,39 @@ export const db = {
     const data = initializeDatabase();
     return data.users.find((u) => u.id === sess.userId);
   },
+
+  // HERO BANNER CONFIGURATION
+  getHeroBanner: () => {
+    const heroFile = path.join(process.cwd(), 'data', 'hero.json');
+    if (!fs.existsSync(heroFile)) {
+      return {
+        slides: [
+          {
+            id: 'slide-1',
+            title: 'Handmade with Love, Crafted to Last.',
+            subtitle: 'Everlasting blooms, cozy artisan totes, and bespoke amigurumi keepsakes stitched with utmost tenderness.',
+            badge: '✨ Artisanal Crochet Collection 2026',
+            ctaText: 'Explore Collection',
+            ctaLink: '/shop',
+            image: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1400&q=85',
+            accentColor: 'from-brand-900/80 via-brand-900/60 to-transparent'
+          }
+        ]
+      };
+    }
+    try {
+      return JSON.parse(fs.readFileSync(heroFile, 'utf-8'));
+    } catch {
+      return { slides: [] };
+    }
+  },
+  updateHeroBanner: (data: { slides: any[] }) => {
+    const dataDir = path.join(process.cwd(), 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    const heroFile = path.join(dataDir, 'hero.json');
+    fs.writeFileSync(heroFile, JSON.stringify(data, null, 2), 'utf-8');
+    return data;
+  },
 };

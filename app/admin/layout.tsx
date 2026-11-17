@@ -17,6 +17,7 @@ import {
   LogOut,
   ExternalLink,
   Lock,
+  Sparkles,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -63,6 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { label: 'Overview & Analytics', href: '/admin', icon: LayoutDashboard },
+    { label: 'Hero Banners & Theme', href: '/admin/hero', icon: Sparkles },
     { label: 'Product & Stock', href: '/admin/products', icon: Package },
     { label: 'Orders & Fulfillment', href: '/admin/orders', icon: ShoppingBag },
     { label: 'Custom Order Studio', href: '/admin/custom-orders', icon: Wand2 },

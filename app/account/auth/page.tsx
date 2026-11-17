@@ -293,31 +293,11 @@ export default function AuthPage() {
           </form>
         )}
 
-        {/* INSTANT ONE-CLICK DEMO TOGGLES */}
-        <div className="pt-4 border-t border-canvas-border space-y-2">
-          <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider block text-center">
-            Instant Demo Logins
-          </span>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <button
-              onClick={() => {
-                loginAsCustomer();
-                router.push('/account');
-              }}
-              className="p-2.5 rounded-xl border border-brand-200 bg-brand-50/60 hover:bg-brand-100 text-brand-900 font-medium text-center"
-            >
-              👤 Customer Account
-            </button>
-            <button
-              onClick={() => {
-                loginAsAdmin();
-                router.push('/admin');
-              }}
-              className="p-2.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-900 font-semibold text-center"
-            >
-              🛡️ Admin Dashboard
-            </button>
-          </div>
+        {/* SECURE STOREFRONT FOOTNOTE */}
+        <div className="pt-4 border-t border-canvas-border text-center">
+          <p className="text-[11px] text-gray-400">
+            Secure OTP Verification powered by Loop & Love Auth Engine.
+          </p>
         </div>
       </div>
     </div>

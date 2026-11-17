@@ -246,3 +246,18 @@ export interface NotificationItem {
   isRead: boolean;
   createdAt: string;
 }
+
+export interface HeroSlide {
+  id: string;
+  title: string;
+  subtitle: string;
+  badge: string;
+  ctaText: string;
+  ctaLink: string;
+  image: string;
+  accentColor?: string;
+}
+
+export interface HeroBannerConfig {
+  slides: HeroSlide[];
+}

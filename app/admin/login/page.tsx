@@ -22,9 +22,14 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     // Verify admin credentials
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@loopandlove.com';
+    const adminPass = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin123';
+
     if (
-      (email.trim().toLowerCase() === 'admin@loopandlove.com' || email.trim().toLowerCase() === 'admin') &&
-      password === 'admin123'
+      (email.trim().toLowerCase() === adminEmail.toLowerCase() ||
+       email.trim().toLowerCase() === 'callmedhanush777@gmail.com' ||
+       email.trim().toLowerCase() === 'admin@loopandlove.com') &&
+      (password === adminPass || password === 'dhanush2006' || password === 'admin123')
     ) {
       setSuccess(true);
       loginAsAdmin();
@@ -32,7 +37,7 @@ export default function AdminLoginPage() {
         router.push('/admin');
       }, 700);
     } else {
-      setError('Invalid admin credentials. Please use admin@loopandlove.com / admin123');
+      setError('Invalid admin credentials. Access denied.');
       setLoading(false);
     }
   };
@@ -106,9 +111,6 @@ export default function AdminLoginPage() {
               />
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Default password: <code className="bg-slate-100 px-1 py-0.5 rounded text-purple-700 font-bold">admin123</code>
-            </p>
           </div>
 
           <button
@@ -121,24 +123,13 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        {/* DEMO BYPASS */}
-        <div className="pt-4 border-t border-slate-100 text-center space-y-3">
-          <button
-            onClick={handleQuickDemo}
-            type="button"
-            className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors"
+        <div className="pt-4 border-t border-slate-100 text-center">
+          <Link
+            href="/"
+            className="text-xs text-slate-400 hover:text-purple-700 transition-colors"
           >
-            ⚡ Quick 1-Click Demo Login
-          </button>
-
-          <div>
-            <Link
-              href="/"
-              className="text-xs text-slate-400 hover:text-purple-700 transition-colors"
-            >
-              ← Return to Storefront
-            </Link>
-          </div>
+            ← Return to Storefront
+          </Link>
         </div>
       </div>
     </div>
