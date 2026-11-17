@@ -28,9 +28,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (savedUser) {
         setUser(JSON.parse(savedUser));
       } else {
-        // Default to sample customer so user can immediately browse with full profile experience
-        setUser(INITIAL_SAMPLE_CUSTOMER);
-        localStorage.setItem('loop_and_love_user', JSON.stringify(INITIAL_SAMPLE_CUSTOMER));
+        // Do not auto-login as anyone; guest by default
+        setUser(null);
       }
     } catch (e) {
       console.warn('Error loading auth user:', e);

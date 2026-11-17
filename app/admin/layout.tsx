@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -16,16 +16,49 @@ import {
   Bell,
   LogOut,
   ExternalLink,
+  Lock,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAdmin, logout, loginAsAdmin } = useAuth();
+  const { user, isAdmin, isLoading, logout } = useAuth();
 
   // If on login page, render children directly without admin chrome
   if (pathname === '/admin/login') {
     return <>{children}</>;
+  }
+
+  // Redirect unauthenticated / non-admin users to /admin/login
+  useEffect(() => {
+    if (!isLoading && !isAdmin) {
+      router.replace('/admin/login');
+    }
+  }, [isLoading, isAdmin, router]);
+
+  // If loading or not admin, show secure access checkpoint
+  if (isLoading || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-8 text-center space-y-4 text-white shadow-2xl">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-900/60 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <Lock className="w-7 h-7" />
+          </div>
+          <h2 className="text-xl font-bold font-serif">Restricted Admin Area</h2>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Authentication required. This area is restricted to authorized store administrators only.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/admin/login"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition-colors shadow-lg"
+            >
+              <ShieldCheck className="w-4 h-4" /> Go to Admin Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const navItems = [
@@ -42,7 +75,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative w-9 h-9 rounded-full overflow-hidden border border-brand-400">
+            <div className="relative w-9 h-9 rounded-full overflow-hidden border border-purple-400">
               <Image src="/images/loop-and-love-logo.jpg" alt="Logo" fill className="object-cover" />
             </div>
             <div className="flex items-center gap-2">
@@ -59,15 +92,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               target="_blank"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors"
             >
-              <span>View Live Storefront</span>
+              <span>View Storefront</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
 
             <div className="flex items-center gap-2 pl-3 border-l border-slate-800">
               <div className="w-7 h-7 rounded-full bg-purple-700 text-white font-bold flex items-center justify-center text-xs">
-                {user?.name.charAt(0) || 'A'}
+                {user?.name?.charAt(0) || 'A'}
               </div>
-              <span className="hidden sm:inline font-medium text-slate-200">{user?.name || 'Administrator'}</span>
+              <span className="hidden sm:inline font-medium text-slate-200">{user?.name || 'Admin'}</span>
+              <button
+                onClick={() => {
+                  logout();
+                  router.push('/admin/login');
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors ml-1"
+                title="Log Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -99,27 +142,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* MAIN ADMIN CONTENT */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!isAdmin && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between text-xs text-amber-900">
-            <span>
-              ⚠️ You are viewing as a guest or customer. Click to switch to Super Admin mode for full editing privileges:
-            </span>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/admin/login"
-                className="px-3 py-1.5 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl"
-              >
-                Admin Login
-              </Link>
-              <button
-                onClick={loginAsAdmin}
-                className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl"
-              >
-                Quick Enable
-              </button>
-            </div>
-          </div>
-        )}
         {children}
       </main>
     </div>
