@@ -103,34 +103,18 @@ export default function AdminProductsPage() {
     if (!name || !price || !category) return;
 
     const payload = {
-  name,
-  description,
-  price: Number(price),
-  discountPrice: discountPrice ? Number(discountPrice) : undefined,
-  stock: Number(stock),
-  category,
-  // Guarantee a valid categoryId
-  categoryId:
-    categories.find(c => c.name === category)?.id ?? 'cat-uncategorized',
-  prepTimeDays: Number(prepTimeDays),
-  materials,
-  dimensions,
-  images: imageUrl ? [imageUrl] : [],
-  status: Number(stock) === 0 ? 'SOLD_OUT' : status,
-  isBestseller,
-  isNewArrival,
-};
       name,
       description,
       price: Number(price),
       discountPrice: discountPrice ? Number(discountPrice) : undefined,
       stock: Number(stock),
       category,
-      categoryId: categories.find((c) => c.name === category)?.id || 'cat-custom',
+      categoryId:
+        categories.find(c => c.name === category)?.id ?? 'cat-uncategorized',
       prepTimeDays: Number(prepTimeDays),
       materials,
       dimensions,
-      images: imageUrl ? [imageUrl] : ['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80'],
+      images: imageUrl ? [imageUrl] : [],
       status: Number(stock) === 0 ? 'SOLD_OUT' : status,
       isBestseller,
       isNewArrival,

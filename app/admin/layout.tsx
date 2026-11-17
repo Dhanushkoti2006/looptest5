@@ -23,6 +23,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { user, isAdmin, logout, loginAsAdmin } = useAuth();
 
+  // If on login page, render children directly without admin chrome
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
   const navItems = [
     { label: 'Overview & Analytics', href: '/admin', icon: LayoutDashboard },
     { label: 'Product & Stock', href: '/admin/products', icon: Package },
@@ -99,12 +104,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span>
               ⚠️ You are viewing as a guest or customer. Click to switch to Super Admin mode for full editing privileges:
             </span>
-            <button
-              onClick={loginAsAdmin}
-              className="px-4 py-1.5 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl"
-            >
-              Enable Admin Mode
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin/login"
+                className="px-3 py-1.5 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl"
+              >
+                Admin Login
+              </Link>
+              <button
+                onClick={loginAsAdmin}
+                className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl"
+              >
+                Quick Enable
+              </button>
+            </div>
           </div>
         )}
         {children}
