@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const noCacheHeaders = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store',
+};
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -62,12 +71,12 @@ export async function GET(req: Request) {
       );
     }
 
-    return NextResponse.json({ success: true, count: products.length, products });
+    return NextResponse.json({ success: true, count: products.length, products }, { headers: noCacheHeaders });
   } catch (error) {
     console.error('Products API GET error:', error);
     return NextResponse.json(
       { success: false, message: 'Failed to retrieve products' },
-      { status: 500 }
+      { status: 500, headers: noCacheHeaders }
     );
   }
 }

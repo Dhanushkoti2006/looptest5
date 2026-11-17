@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 
-// In-memory hero banner store that survives across requests within the same lambda
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+// In-memory cache for the serverless container
 let heroCache: any = null;
 
 const DEFAULT_HERO = {
@@ -41,13 +44,11 @@ const DEFAULT_HERO = {
 function getHeroData() {
   if (heroCache) return heroCache;
 
-  // Try reading from filesystem (works locally, may fail on serverless)
   try {
     const fs = require('fs');
     const path = require('path');
     const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
-    // Check /tmp first on serverless
     if (isServerless) {
       const tmpPath = path.join('/tmp', 'hero.json');
       if (fs.existsSync(tmpPath)) {
@@ -57,7 +58,6 @@ function getHeroData() {
       }
     }
 
-    // Check bundled data/hero.json
     const bundledPath = path.join(process.cwd(), 'data', 'hero.json');
     if (fs.existsSync(bundledPath)) {
       const raw = fs.readFileSync(bundledPath, 'utf-8');
@@ -93,51 +93,71 @@ function saveHeroData(data: any) {
   }
 }
 
+const noCacheHeaders = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store',
+};
+
 export async function GET() {
   try {
     const heroData = getHeroData();
-    return NextResponse.json({ success: true, hero: heroData });
+    return NextResponse.json(
+      { success: true, hero: heroData },
+      { headers: noCacheHeaders }
+    );
   } catch (error: any) {
     console.error('Failed to get hero banner:', error);
     return NextResponse.json(
       { success: false, message: error?.message || 'Failed to retrieve hero banner configuration' },
-      { status: 500 }
+      { status: 500, headers: noCacheHeaders }
     );
   }
 }
 
-export async function PUT(req: Request) {
+async function handleSaveHero(req: Request) {
   try {
     let body: any;
     try {
       body = await req.json();
-    } catch (parseErr) {
+    } catch {
       return NextResponse.json(
         { success: false, message: 'Invalid JSON in request body' },
-        { status: 400 }
+        { status: 400, headers: noCacheHeaders }
       );
     }
 
     if (!body || !Array.isArray(body.slides) || body.slides.length === 0) {
       return NextResponse.json(
         { success: false, message: 'At least one slide is required in hero banner' },
-        { status: 400 }
+        { status: 400, headers: noCacheHeaders }
       );
     }
 
     const data = { slides: body.slides };
     saveHeroData(data);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Hero banner updated successfully',
-      hero: data,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Hero banner updated successfully',
+        hero: data,
+      },
+      { headers: noCacheHeaders }
+    );
   } catch (error: any) {
     console.error('Failed to update hero banner:', error);
     return NextResponse.json(
       { success: false, message: error?.message || 'Failed to update hero banner configuration' },
-      { status: 500 }
+      { status: 500, headers: noCacheHeaders }
     );
   }
+}
+
+export async function POST(req: Request) {
+  return handleSaveHero(req);
+}
+
+export async function PUT(req: Request) {
+  return handleSaveHero(req);
 }

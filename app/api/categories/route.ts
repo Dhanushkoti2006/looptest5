@@ -1,14 +1,23 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const noCacheHeaders = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store',
+};
+
 export async function GET() {
   try {
     const categories = db.getCategories();
-    return NextResponse.json({ success: true, categories });
+    return NextResponse.json({ success: true, categories }, { headers: noCacheHeaders });
   } catch (error) {
     return NextResponse.json(
       { success: false, message: 'Failed to retrieve categories' },
-      { status: 500 }
+      { status: 500, headers: noCacheHeaders }
     );
   }
 }

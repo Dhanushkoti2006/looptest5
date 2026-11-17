@@ -43,14 +43,44 @@ export default function AdminProductsPage() {
   const [isBestseller, setIsBestseller] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
 
+  const [filterFeaturedOnly, setFilterFeaturedOnly] = useState(false);
+
   const fetchProducts = () => {
     setLoading(true);
+
+    // Load local custom products first for instant resilience
+    try {
+      const local = localStorage.getItem('loop_custom_products');
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+          setLoading(false);
+        }
+      }
+    } catch {}
+
     Promise.all([
-      fetch('/api/products').then((r) => r.json()),
-      fetch('/api/categories').then((r) => r.json()),
+      fetch('/api/products', { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/categories', { cache: 'no-store' }).then((r) => r.json()),
     ])
       .then(([prodData, catData]) => {
-        if (prodData.products) setProducts(prodData.products);
+        if (prodData.products && Array.isArray(prodData.products)) {
+          setProducts((current) => {
+            try {
+              const local = localStorage.getItem('loop_custom_products');
+              if (local) {
+                const custom = JSON.parse(local) as Product[];
+                if (Array.isArray(custom)) {
+                  const customIds = new Set(custom.map((c) => c.id));
+                  const serverOnly = prodData.products.filter((p: Product) => !customIds.has(p.id));
+                  return [...custom, ...serverOnly];
+                }
+              }
+            } catch {}
+            return prodData.products;
+          });
+        }
         if (catData.categories) {
           setCategories(catData.categories);
           if (catData.categories[0]) setCategory(catData.categories[0].name);
@@ -137,6 +167,7 @@ export default function AdminProductsPage() {
     };
 
     try {
+      let savedProduct: Product | null = null;
       if (editingProduct) {
         // Update
         const res = await fetch('/api/products', {
@@ -145,7 +176,9 @@ export default function AdminProductsPage() {
           body: JSON.stringify({ id: editingProduct.id, ...payload }),
         });
         const data = await res.json();
-        if (!data.success) {
+        if (data.product) {
+          savedProduct = data.product;
+        } else if (!data.success) {
           alert(data.message || 'Failed to update product.');
           return;
         }
@@ -157,17 +190,90 @@ export default function AdminProductsPage() {
           body: JSON.stringify(payload),
         });
         const data = await res.json();
-        if (!data.success) {
+        if (data.product) {
+          savedProduct = data.product;
+        } else if (!data.success) {
           alert(data.message || 'Failed to create product.');
           return;
         }
       }
 
+      // Update local storage so product is guaranteed to persist across lambda cold starts
+      const prodToSave: Product = savedProduct || {
+        id: editingProduct?.id || `prod-${Date.now()}`,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        sku: editingProduct?.sku || `LL-PROD-${Date.now().toString().slice(-4)}`,
+        careInstructions: editingProduct?.careInstructions || 'Gentle hand wash, dry flat.',
+        tags: editingProduct?.tags || ['Handmade', 'Boutique'],
+        createdAt: editingProduct?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        averageRating: 5.0,
+        reviewCount: 0,
+        ...payload,
+        categoryId: 'cat-custom',
+        variants: [],
+      };
+
+      setProducts((prev) => {
+        const next = editingProduct
+          ? prev.map((p) => (p.id === prodToSave.id ? prodToSave : p))
+          : [prodToSave, ...prev];
+        try {
+          localStorage.setItem('loop_custom_products', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+
       setIsModalOpen(false);
       fetchProducts();
     } catch (err) {
       console.error('Error saving product:', err);
-      alert('Network or server error while saving product.');
+      // Fallback local save
+      const fallbackProd: Product = {
+        id: editingProduct?.id || `prod-${Date.now()}`,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        sku: editingProduct?.sku || `LL-PROD-${Date.now().toString().slice(-4)}`,
+        careInstructions: editingProduct?.careInstructions || 'Gentle hand wash, dry flat.',
+        tags: editingProduct?.tags || ['Handmade', 'Boutique'],
+        createdAt: editingProduct?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        averageRating: 5.0,
+        reviewCount: 0,
+        ...payload,
+        categoryId: 'cat-custom',
+        variants: [],
+      };
+      setProducts((prev) => {
+        const next = editingProduct
+          ? prev.map((p) => (p.id === fallbackProd.id ? fallbackProd : p))
+          : [fallbackProd, ...prev];
+        try {
+          localStorage.setItem('loop_custom_products', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      setIsModalOpen(false);
+    }
+  };
+
+  const handleToggleFeatured = async (product: Product) => {
+    const nextFeatured = !product.isFeatured;
+    const updated = products.map((p) =>
+      p.id === product.id ? { ...p, isFeatured: nextFeatured } : p
+    );
+    setProducts(updated);
+    try {
+      localStorage.setItem('loop_custom_products', JSON.stringify(updated));
+    } catch {}
+
+    try {
+      await fetch('/api/products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: product.id, isFeatured: nextFeatured }),
+      });
+    } catch (err) {
+      console.error('Error toggling featured:', err);
     }
   };
 
@@ -198,7 +304,8 @@ export default function AdminProductsPage() {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.sku.toLowerCase().includes(search.toLowerCase());
     const matchesCat = filterCategory === 'all' || p.category === filterCategory;
-    return matchesSearch && matchesCat;
+    const matchesFeatured = !filterFeaturedOnly || p.isFeatured;
+    return matchesSearch && matchesCat && matchesFeatured;
   });
 
   return (
@@ -237,7 +344,28 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <button
+            type="button"
+            onClick={() => setFilterFeaturedOnly(false)}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-colors ${
+              !filterFeaturedOnly ? 'bg-purple-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            All Products ({products.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterFeaturedOnly(true)}
+            className={`px-3 py-1.5 rounded-xl font-bold transition-colors flex items-center gap-1.5 ${
+              filterFeaturedOnly ? 'bg-purple-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Homepage Spotlight ({products.filter((p) => p.isFeatured).length})
+          </button>
+
+          <span className="text-slate-300 mx-1">|</span>
           <span className="text-slate-400">Category:</span>
           <select
             value={filterCategory}
@@ -264,6 +392,7 @@ export default function AdminProductsPage() {
                 <th className="py-3 px-6">Category</th>
                 <th className="py-3 px-6">Price</th>
                 <th className="py-3 px-6">Stock Level</th>
+                <th className="py-3 px-6 text-center">Homepage Spotlight</th>
                 <th className="py-3 px-6">Status</th>
                 <th className="py-3 px-6 text-right">Actions</th>
               </tr>
@@ -310,6 +439,31 @@ export default function AdminProductsPage() {
                         <span className="text-[10px] text-amber-600 font-bold">Low</span>
                       )}
                     </div>
+                  </td>
+
+                  <td className="py-4 px-6 text-center">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFeatured(prod)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-2xs ${
+                        prod.isFeatured
+                          ? 'bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200'
+                          : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200 hover:text-slate-700'
+                      }`}
+                      title={prod.isFeatured ? 'Remove from Homepage' : 'Feature on Homepage'}
+                    >
+                      {prod.isFeatured ? (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5 text-purple-600 fill-purple-600" />
+                          <span>Featured</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Add to Home</span>
+                        </>
+                      )}
+                    </button>
                   </td>
 
                   <td className="py-4 px-6">

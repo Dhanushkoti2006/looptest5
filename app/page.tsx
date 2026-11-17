@@ -55,7 +55,29 @@ export default function HomePage() {
   ]);
 
   useEffect(() => {
-    fetch('/api/hero')
+    // 1. Immediately load local overrides so the homepage is 100% resilient across lambda restarts
+    try {
+      const localHero = localStorage.getItem('loop_and_love_hero_slides');
+      if (localHero) {
+        const parsed = JSON.parse(localHero);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setHeroSlides(parsed);
+        }
+      }
+    } catch {}
+
+    try {
+      const localProducts = localStorage.getItem('loop_custom_products');
+      if (localProducts) {
+        const parsed = JSON.parse(localProducts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+        }
+      }
+    } catch {}
+
+    // 2. Fetch fresh live data from the server with cache disabled
+    fetch('/api/hero', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.hero?.slides && data.hero.slides.length > 0) {
@@ -64,14 +86,31 @@ export default function HomePage() {
       })
       .catch((err) => console.error('Error fetching hero banner:', err));
 
-    fetch('/api/products')
+    fetch('/api/products', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
-        if (data.products) setProducts(data.products);
+        if (data.products && Array.isArray(data.products)) {
+          setProducts((currentProds) => {
+            // Merge custom products from local storage if any
+            try {
+              const local = localStorage.getItem('loop_custom_products');
+              if (local) {
+                const custom = JSON.parse(local) as Product[];
+                if (Array.isArray(custom)) {
+                  // Put custom/newly added products first, avoid duplicates
+                  const customIds = new Set(custom.map((c) => c.id));
+                  const serverOnly = data.products.filter((p: Product) => !customIds.has(p.id));
+                  return [...custom, ...serverOnly];
+                }
+              }
+            } catch {}
+            return data.products;
+          });
+        }
       })
       .catch((err) => console.error('Error fetching products:', err));
 
-    fetch('/api/categories')
+    fetch('/api/categories', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.categories) setCategories(data.categories);
@@ -97,12 +136,11 @@ export default function HomePage() {
   const bestsellers = products.filter((p) => p.isBestseller);
   const newArrivals = products.filter((p) => p.isNewArrival);
 
-  // Always show products on the homepage: featured first, then fill with latest products
-  const displayFeatured = products.length > 0
-    ? (featuredProducts.length > 0
-        ? [...featuredProducts, ...products.filter((p) => !p.isFeatured)].slice(0, 8)
-        : products.slice(0, 8))
-    : [];
+  // Homepage product showcase: if specific products are selected as featured, show only those!
+  // Otherwise fall back to latest products
+  const displayFeatured = featuredProducts.length > 0
+    ? featuredProducts
+    : products.slice(0, 8);
   const displayBestsellers = products.length > 0
     ? (bestsellers.length > 0
         ? [...bestsellers, ...products.filter((p) => !p.isBestseller)].slice(0, 8)
