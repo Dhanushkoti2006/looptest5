@@ -112,36 +112,44 @@ export default function CheckoutPage() {
       }
 
       const razorpayConfig = orderData.razorpay;
+      const rzpKey = razorpayConfig?.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_U24YNvPzHAbE40';
 
       // 2. TRIGGER RAZORPAY CHECKOUT
-      // If Razorpay SDK is loaded on window and keys are configured:
-      if (typeof window !== 'undefined' && window.Razorpay && process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+      // If Razorpay SDK is loaded on window and key is available:
+      if (typeof window !== 'undefined' && window.Razorpay && rzpKey) {
         const options = {
-          key: razorpayConfig.key,
-          amount: razorpayConfig.amount,
-          currency: razorpayConfig.currency,
+          key: rzpKey,
+          amount: razorpayConfig?.amount || Math.round(createdOrder.totalAmount * 100),
+          currency: razorpayConfig?.currency || 'INR',
           name: 'Loop & Love Crochet',
           description: `Order #${createdOrder.orderNumber} Payment`,
           image: '/images/loop-and-love-logo.jpg',
-          order_id: razorpayConfig.orderId,
+          order_id: razorpayConfig?.orderId,
           handler: async function (response: any) {
-            // Verify payment on server
-            const verifyRes = await fetch('/api/payments/razorpay/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderId: createdOrder.id,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
-              }),
-            });
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              clearCart();
-              router.push(`/order-success?orderId=${createdOrder.id}`);
-            } else {
-              setErrorMessage('Payment verification failed. Please contact support.');
+            try {
+              // Verify payment on server
+              const verifyRes = await fetch('/api/payments/razorpay/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: createdOrder.id,
+                  order: createdOrder,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                }),
+              });
+              const verifyData = await verifyRes.json();
+              if (verifyData.success) {
+                clearCart();
+                router.push(`/order-success?orderId=${createdOrder.id}`);
+              } else {
+                setErrorMessage(verifyData.message || 'Payment verification failed. Please contact support.');
+                setIsProcessing(false);
+              }
+            } catch (verr) {
+              console.error('Verification error:', verr);
+              setErrorMessage('Payment verification request failed. Please check connection.');
               setIsProcessing(false);
             }
           },
@@ -172,7 +180,8 @@ export default function CheckoutPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             orderId: createdOrder.id,
-            razorpayOrderId: razorpayConfig.orderId,
+            order: createdOrder,
+            razorpayOrderId: razorpayConfig?.orderId || `ord_${Date.now()}`,
             razorpayPaymentId: simulatedPaymentId,
             razorpaySignature: simulatedSignature,
           }),

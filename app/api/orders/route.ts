@@ -197,7 +197,7 @@ export async function POST(req: Request) {
           orderId: rzpOrderId,
           amount: rzpAmount,
           currency: 'INR',
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_LoopAndLove2026',
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_U24YNvPzHAbE40',
         },
     });
   } catch (error) {
