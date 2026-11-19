@@ -132,7 +132,7 @@ export default function CartPage() {
                   <Image src={item.image} alt={item.productName} fill className="object-cover" />
                 </div>
                 <div>
-                  <Link href={`/product/${item.productSlug}`}>
+                  <Link href={`/product/${item.productSlug || item.productId}`}>
                     <h3 className="font-serif font-semibold text-base text-brand-900 hover:text-brand-600 transition-colors line-clamp-1">
                       {item.productName}
                     </h3>

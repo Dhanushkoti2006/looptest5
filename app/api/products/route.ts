@@ -101,11 +101,12 @@ if (!categoryId) {
 
 
     const slug =
-      body.slug ||
-      body.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
+      body.slug && body.slug.trim().length > 0
+        ? body.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+        : body.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
 
     const newProduct = db.createProduct({
       name: body.name,
@@ -129,7 +130,7 @@ if (!categoryId) {
       isFeatured: Boolean(body.isFeatured),
       isBestseller: Boolean(body.isBestseller),
       isNewArrival: Boolean(body.isNewArrival),
-      variants: body.variants || [
+      variants: body.variants && body.variants.length > 0 ? body.variants : [
         {
           id: `v-${Date.now()}`,
           productId: '',
@@ -141,6 +142,8 @@ if (!categoryId) {
           sku: `LL-VAR-${Date.now().toString().slice(-4)}`,
         },
       ],
+      highlights: body.highlights || [],
+      customNotice: body.customNotice || '',
       averageRating: 5.0,
       reviewCount: 0,
     });
@@ -163,6 +166,17 @@ export async function PUT(req: Request) {
     if (!id) {
       return NextResponse.json({ success: false, message: 'Product ID is required' }, { status: 400 });
     }
+
+    if (updates.slug && updates.slug.trim().length > 0) {
+      updates.slug = updates.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    } else if (updates.name && (!updates.slug || updates.slug.trim().length === 0)) {
+      updates.slug = updates.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    }
+
+    if (updates.price !== undefined) updates.price = Number(updates.price);
+    if (updates.discountPrice !== undefined) updates.discountPrice = updates.discountPrice ? Number(updates.discountPrice) : undefined;
+    if (updates.stock !== undefined) updates.stock = Number(updates.stock);
+    if (updates.prepTimeDays !== undefined) updates.prepTimeDays = Number(updates.prepTimeDays);
 
     const updated = db.updateProduct(id, updates);
     if (!updated) {

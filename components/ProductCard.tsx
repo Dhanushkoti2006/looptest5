@@ -20,6 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const isSoldOut = product.status === 'SOLD_OUT' || product.stock <= 0;
   const isWishlisted = isInWishlist(product.id);
+  const productHref = `/product/${product.slug || product.id}`;
 
   const currentPrice = product.discountPrice || product.price;
   const originalPrice = product.price;
@@ -45,7 +46,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="group relative bg-white rounded-3xl border border-canvas-border hover:border-brand-200 shadow-cozy hover:shadow-cozy-lg transition-all duration-300 flex flex-col overflow-hidden">
       {/* IMAGE CONTAINER */}
-      <Link href={`/product/${product.slug}`} className="relative block aspect-square overflow-hidden bg-brand-50">
+      <Link href={productHref} className="relative block aspect-square overflow-hidden bg-brand-50">
         <Image
           src={activeImage}
           alt={product.name}
@@ -120,7 +121,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Title */}
-          <Link href={`/product/${product.slug}`} className="block">
+          <Link href={productHref} className="block">
             <h3 className="font-serif text-base font-semibold text-brand-900 line-clamp-2 hover:text-brand-600 transition-colors leading-snug">
               {product.name}
             </h3>
@@ -165,7 +166,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {isSoldOut ? (
             <Link
-              href={`/product/${product.slug}`}
+              href={productHref}
               className="text-xs font-semibold px-3.5 py-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-brand-50 hover:text-brand-700 transition-colors"
             >
               Notify Me

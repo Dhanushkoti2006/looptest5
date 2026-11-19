@@ -72,6 +72,8 @@ export interface Product {
   isBestseller: boolean;
   isNewArrival: boolean;
   variants: ProductVariant[];
+  highlights?: string[];
+  customNotice?: string;
   averageRating: number;
   reviewCount: number;
   createdAt: string;
