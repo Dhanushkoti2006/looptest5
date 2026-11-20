@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product, Category, ProductStatus, ProductVariant } from '@/lib/types';
@@ -19,6 +19,9 @@ import {
   FileText,
   Sliders,
   CheckCircle2,
+  UploadCloud,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
 export default function AdminProductsPage() {
@@ -52,6 +55,10 @@ export default function AdminProductsPage() {
   // Form Fields - Images
   const [images, setImages] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
 
   // Form Fields - Variants
   const [variants, setVariants] = useState<ProductVariant[]>([]);
@@ -225,6 +232,100 @@ export default function AdminProductsPage() {
     const selected = images[index];
     const rest = images.filter((_, i) => i !== index);
     setImages([selected, ...rest]);
+  };
+
+  const compressAndProcessImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new (window as any).Image();
+        img.onload = () => {
+          const maxDimension = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          resolve(dataUrl);
+        };
+        img.onerror = () => resolve(e.target?.result as string);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCover = false) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImage(true);
+    setUploadError('');
+
+    try {
+      const newUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) continue;
+
+        let url = '';
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            url = data.url;
+          }
+        } catch {
+          // fallback to client compression
+        }
+
+        if (!url) {
+          url = await compressAndProcessImage(file);
+        }
+
+        if (url) {
+          newUrls.push(url);
+        }
+      }
+
+      if (newUrls.length > 0) {
+        if (isCover) {
+          setImages((prev) => [newUrls[0], ...prev.filter((_, i) => i !== 0)]);
+        } else {
+          setImages((prev) => [...prev, ...newUrls]);
+        }
+      }
+    } catch (err: any) {
+      console.error('Image upload error:', err);
+      setUploadError('Failed to process image file. Please try again.');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
   };
 
   const handleAddVariant = () => {
@@ -769,6 +870,50 @@ export default function AdminProductsPage() {
                     </p>
                   </div>
 
+                  {/* COVER PHOTO PREVIEW IN CORE DETAILS */}
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-200 bg-white shrink-0">
+                        <Image
+                          src={images[0] || '/images/loop-and-love-logo.jpg'}
+                          alt="Cover"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-800 text-xs">Product Cover Photo</p>
+                        <p className="text-[11px] text-slate-500">
+                          Primary image displayed on storefront & friend mobiles ({images.length} photo{images.length !== 1 ? 's' : ''} in gallery).
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={coverFileInputRef}
+                        onChange={(e) => handleFileUpload(e, true)}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => coverFileInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold flex items-center gap-1.5 text-xs transition-colors shrink-0"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>Upload Photo</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('images')}
+                        className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors shrink-0"
+                      >
+                        Manage All
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Description *</label>
                     <textarea
@@ -891,23 +1036,87 @@ export default function AdminProductsPage() {
 
               {/* TAB 2: GALLERY IMAGES */}
               {activeTab === 'images' && (
-                <div className="space-y-4 animate-in fade-in">
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                    <label className="font-bold text-slate-800 block">Add Image to Gallery</label>
+                <div className="space-y-5 animate-in fade-in">
+                  {/* UPLOAD ERROR ALERT */}
+                  {uploadError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{uploadError}</span>
+                      </div>
+                      <button type="button" onClick={() => setUploadError('')} className="text-red-500 hover:text-red-700 font-bold">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* DIRECT FILE UPLOAD ZONE */}
+                  <div className="bg-purple-50/60 p-5 rounded-2xl border-2 border-dashed border-purple-300 hover:border-purple-500 transition-colors">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={(e) => handleFileUpload(e, false)}
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                    />
+
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="w-14 h-14 rounded-2xl bg-white shadow-xs flex items-center justify-center mb-3 text-purple-700 border border-purple-100">
+                        {uploadingImage ? (
+                          <Loader2 className="w-7 h-7 animate-spin" />
+                        ) : (
+                          <UploadCloud className="w-7 h-7" />
+                        )}
+                      </div>
+
+                      <h4 className="font-bold text-slate-900 text-sm mb-1">
+                        {uploadingImage ? 'Uploading & Optimizing Images...' : 'Upload Product Photos from Device'}
+                      </h4>
+                      <p className="text-xs text-slate-500 max-w-md mb-4">
+                        Select one or multiple photos directly from your phone gallery or computer (JPG, PNG, WEBP, GIF).
+                      </p>
+
+                      <button
+                        type="button"
+                        disabled={uploadingImage}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-6 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 disabled:bg-purple-400 text-white font-bold flex items-center gap-2 shadow-xs transition-all"
+                      >
+                        {uploadingImage ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-4 h-4" />
+                            <span>Browse Device / Mobile Gallery</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* OR PASTE WEB URL */}
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <label className="font-bold text-slate-700 block text-xs">
+                      Or Add Image via Web URL
+                    </label>
                     <div className="flex gap-2">
                       <input
                         type="url"
                         placeholder="Paste image URL (https://...)"
                         value={newImageUrl}
                         onChange={(e) => setNewImageUrl(e.target.value)}
-                        className="flex-1 p-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600"
+                        className="flex-1 p-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 text-xs"
                       />
                       <button
                         type="button"
                         onClick={handleAddImage}
-                        className="px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold flex items-center gap-1.5 shrink-0"
+                        className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold flex items-center gap-1.5 shrink-0 text-xs"
                       >
-                        <Plus className="w-4 h-4" /> Add Image
+                        <Plus className="w-3.5 h-3.5" /> Add URL
                       </button>
                     </div>
                   </div>

@@ -38,7 +38,7 @@ interface DatabaseSchema {
 
 // Resolve database directory in a serverless-friendly way (/tmp on Vercel/AWS Lambda)
 const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
-const DATA_DIR = isServerless ? path.join('/tmp', '.data') : path.join(process.cwd(), '.data');
+const DATA_DIR = isServerless ? path.join('/tmp', 'data') : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 // In-memory fallback cache so serverless functions never crash on read/write
@@ -60,7 +60,7 @@ function initializeDatabase(): DatabaseSchema {
   }
 
   // Check if seeded db.json already exists in repo root (read-only bundle)
-  const bundledDbPath = path.join(process.cwd(), '.data', 'db.json');
+  const bundledDbPath = path.join(process.cwd(), 'data', 'db.json');
   if (isServerless && !fs.existsSync(DB_FILE) && fs.existsSync(bundledDbPath)) {
     try {
       const bundledRaw = fs.readFileSync(bundledDbPath, 'utf-8');
@@ -70,7 +70,29 @@ function initializeDatabase(): DatabaseSchema {
     }
   }
 
-  if (!fs.existsSync(DB_FILE)) {
+  if (fs.existsSync(DB_FILE)) {
+    try {
+      const raw = fs.readFileSync(DB_FILE, 'utf-8');
+      const parsed = JSON.parse(raw) as DatabaseSchema;
+      memoryDatabase = parsed;
+      return parsed;
+    } catch (err) {
+      console.warn('Could not parse DB_FILE, checking bundled fallback:', err);
+    }
+  }
+
+  if (fs.existsSync(bundledDbPath)) {
+    try {
+      const raw = fs.readFileSync(bundledDbPath, 'utf-8');
+      const parsed = JSON.parse(raw) as DatabaseSchema;
+      memoryDatabase = parsed;
+      return parsed;
+    } catch (err) {
+      console.warn('Could not parse bundledDbPath:', err);
+    }
+  }
+
+  // Seed initial database if neither DB_FILE nor bundledDbPath could be loaded
     // Seed initial orders to provide immediate rich analytics
     const initialOrders: Order[] = [
       {
@@ -317,29 +339,6 @@ function initializeDatabase(): DatabaseSchema {
     }
     memoryDatabase = initialData;
     return initialData;
-  }
-
-  try {
-    const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    const parsed = JSON.parse(raw) as DatabaseSchema;
-    memoryDatabase = parsed;
-    return parsed;
-  } catch {
-    const fallback: DatabaseSchema = {
-      users: [INITIAL_ADMIN_USER, INITIAL_SAMPLE_CUSTOMER],
-      categories: INITIAL_CATEGORIES,
-      products: INITIAL_PRODUCTS,
-      orders: [],
-      customOrders: [],
-      coupons: INITIAL_COUPONS,
-      otpRecords: [],
-      reviews: [],
-      restockNotifications: [],
-      notifications: [],
-    };
-    memoryDatabase = fallback;
-    return fallback;
-  }
 }
 
 function saveDatabase(data: DatabaseSchema) {
@@ -349,6 +348,12 @@ function saveDatabase(data: DatabaseSchema) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    if (!isServerless) {
+      const repoDbPath = path.join(process.cwd(), 'data', 'db.json');
+      if (repoDbPath !== DB_FILE) {
+        fs.writeFileSync(repoDbPath, JSON.stringify(data, null, 2), 'utf-8');
+      }
+    }
   } catch (err) {
     console.warn('Could not write to disk in serverless environment, data preserved in memory:', err);
   }

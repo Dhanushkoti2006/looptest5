@@ -4,6 +4,13 @@ import { createRazorpayOrder } from '@/lib/razorpay';
 import { OrderStatus } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const noCacheHeaders = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store',
+};
 
 export async function GET(req: Request) {
   try {
@@ -14,21 +21,33 @@ export async function GET(req: Request) {
     if (orderNumber) {
       const order = db.getOrderById(orderNumber);
       if (!order) {
-        return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+        return NextResponse.json(
+          { success: false, message: 'Order not found' },
+          { status: 404, headers: noCacheHeaders }
+        );
       }
-      return NextResponse.json({ success: true, order });
+      return NextResponse.json({ success: true, order }, { headers: noCacheHeaders });
     }
 
     if (userId) {
       const orders = db.getOrdersByUserId(userId);
-      return NextResponse.json({ success: true, count: orders.length, orders });
+      return NextResponse.json(
+        { success: true, count: orders.length, orders },
+        { headers: noCacheHeaders }
+      );
     }
 
     const orders = db.getOrders();
-    return NextResponse.json({ success: true, count: orders.length, orders });
+    return NextResponse.json(
+      { success: true, count: orders.length, orders },
+      { headers: noCacheHeaders }
+    );
   } catch (error) {
     console.error('Orders API GET error:', error);
-    return NextResponse.json({ success: false, message: 'Failed to fetch orders' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch orders' },
+      { status: 500, headers: noCacheHeaders }
+    );
   }
 }
 

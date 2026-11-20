@@ -46,7 +46,7 @@ export default function AdminOrdersPage() {
 
   const fetchOrders = () => {
     setLoading(true);
-    fetch('/api/orders')
+    fetch('/api/orders', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.orders) setOrders(data.orders);

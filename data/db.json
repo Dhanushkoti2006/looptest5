@@ -1,0 +1,3345 @@
+{
+  "users": [
+    {
+      "id": "usr-admin-1",
+      "name": "Akash (Loop & Love Founder)",
+      "email": "admin@loopandlove.com",
+      "phone": "+91 98765 43210",
+      "role": "SUPER_ADMIN",
+      "isEmailVerified": true,
+      "isPhoneVerified": true,
+      "createdAt": "2026-09-01T00:00:00Z",
+      "updatedAt": "2026-11-01T00:00:00Z"
+    },
+    {
+      "id": "usr-cust-1",
+      "name": "Priya Sharma",
+      "email": "priya@example.com",
+      "phone": "+91 91234 56789",
+      "role": "CUSTOMER",
+      "isEmailVerified": true,
+      "isPhoneVerified": true,
+      "createdAt": "2026-10-01T00:00:00Z",
+      "updatedAt": "2026-11-01T00:00:00Z"
+    },
+    {
+      "name": "ram",
+      "email": "9025283958@loopandlove.customer",
+      "phone": "9025283958",
+      "role": "CUSTOMER",
+      "isEmailVerified": false,
+      "isPhoneVerified": true,
+      "id": "usr-1794642288600-4oyxh",
+      "createdAt": "2026-11-14T07:44:48.600Z",
+      "updatedAt": "2026-11-14T07:44:48.600Z"
+    },
+    {
+      "name": "bhava",
+      "email": "bhava123@gmail.com",
+      "phone": "+91 99999 00000",
+      "role": "CUSTOMER",
+      "isEmailVerified": true,
+      "isPhoneVerified": false,
+      "id": "usr-1794925485905-59lts",
+      "createdAt": "2026-11-17T14:24:45.905Z",
+      "updatedAt": "2026-11-17T14:24:45.905Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-flowers",
+      "name": "Crochet Flowers & Bouquets",
+      "slug": "flowers-and-bouquets",
+      "description": "Everlasting blooms handcrafted with love that never fade.",
+      "imageUrl": "https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80",
+      "displayOrder": 1,
+      "productCount": 4
+    },
+    {
+      "id": "cat-bags",
+      "name": "Crochet Bags & Totes",
+      "slug": "bags-and-totes",
+      "description": "Chic, sturdy, and sustainable woven totes, crossbodies, and clutches.",
+      "imageUrl": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
+      "displayOrder": 2,
+      "productCount": 3
+    },
+    {
+      "id": "cat-toys",
+      "name": "Soft Toys & Amigurumi",
+      "slug": "soft-toys-amigurumi",
+      "description": "Lovingly stitched plush companions for babies, kids, and collectors.",
+      "imageUrl": "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80",
+      "displayOrder": 3,
+      "productCount": 3
+    },
+    {
+      "id": "cat-keychains",
+      "name": "Keychains & Bag Charms",
+      "slug": "keychains-and-charms",
+      "description": "Adorably tiny crochet accents to bring joy to your keys and handbags.",
+      "imageUrl": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80",
+      "displayOrder": 4,
+      "productCount": 4
+    },
+    {
+      "id": "cat-accessories",
+      "name": "Crochet Accessories",
+      "slug": "crochet-accessories",
+      "description": "Hair scrunchies, headbands, berets, and floral brooches.",
+      "imageUrl": "https://images.unsplash.com/photo-1576053139778-7e32f2ae3cfd?auto=format&fit=crop&w=800&q=80",
+      "displayOrder": 5,
+      "productCount": 2
+    },
+    {
+      "id": "cat-home-decor",
+      "name": "Home Decor & Coasters",
+      "slug": "home-decor-coasters",
+      "description": "Cozy artisanal coasters, mug cozies, wall hangings, and basket trays.",
+      "imageUrl": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+      "displayOrder": 6,
+      "productCount": 2
+    }
+  ],
+  "products": [
+    {
+      "name": "batman",
+      "slug": "batman",
+      "description": "Handmade Batman crochet amigurumi superhero keychain. Stitched with durable dark charcoal and yellow milk cotton yarn, complete with bat cowl and sturdy metal key ring.",
+      "price": 999,
+      "discountPrice": 800,
+      "category": "Keychains & Bag Charms",
+      "categoryId": "cat-keychains",
+      "images": [
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8blEikMyOjaBH4MhGcGqPy-8ocKBBzOnAym9wFWCviq4OWT7IQLWsMJIb&s=10"
+      ],
+      "materials": "100% Milk Cotton Yarn, Fiberfill, Stainless Steel Keyring",
+      "dimensions": "Height: 9 cm | Width: 6 cm",
+      "stock": 8,
+      "sku": "LL-PROD-8673",
+      "prepTimeDays": 2,
+      "careInstructions": "Spot clean only with a slightly damp cloth.",
+      "tags": [
+        "Batman",
+        "Keychain",
+        "Superhero",
+        "Charm",
+        "Handmade"
+      ],
+      "status": "AVAILABLE",
+      "isFeatured": false,
+      "isBestseller": true,
+      "isNewArrival": true,
+      "variants": [
+        {
+          "id": "v-batman-1",
+          "productId": "prod-1794922878678-hq6n",
+          "colorName": "Midnight Black & Yellow",
+          "colorHex": "#111827",
+          "sizeName": "Standard Charm (9 cm)",
+          "priceModifier": 0,
+          "stock": 8,
+          "sku": "LL-BAT-01"
+        }
+      ],
+      "averageRating": 5,
+      "reviewCount": 0,
+      "id": "prod-1794922878678-hq6n",
+      "createdAt": "2026-11-17T13:41:18.678Z",
+      "updatedAt": "2026-11-17T13:42:43.027Z"
+    },
+    {
+      "id": "prod-custom-graduation-teddy",
+      "name": "spiderman toy",
+      "slug": "spiderman-toy",
+      "description": "Handcrafted Spiderman superhero crochet plush amigurumi. Stitched with vibrant red and royal blue premium milk cotton yarn, featuring signature web pattern and embroidered expressive eyes.",
+      "price": 2199,
+      "discountPrice": 1899,
+      "category": "Soft Toys & Amigurumi",
+      "categoryId": "cat-toys",
+      "images": [
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s"
+      ],
+      "materials": "100% Premium Milk Cotton Yarn, Polyester Fiberfill, Embroidered Felt Accents",
+      "dimensions": "Height: 25 cm",
+      "stock": 12,
+      "sku": "LL-TOY-002",
+      "prepTimeDays": 2,
+      "careInstructions": "Spot clean with mild soapy water or gentle hand wash. Lay flat to dry.",
+      "tags": [
+        "Spiderman",
+        "Superhero",
+        "Amigurumi",
+        "Marvel",
+        "Handmade",
+        "Plushie"
+      ],
+      "status": "AVAILABLE",
+      "isFeatured": true,
+      "isBestseller": false,
+      "isNewArrival": true,
+      "variants": [
+        {
+          "id": "v-spidey-1",
+          "productId": "prod-custom-graduation-teddy",
+          "colorName": "Classic Red & Blue",
+          "colorHex": "#D32F2F",
+          "sizeName": "Standard (25 cm)",
+          "priceModifier": 0,
+          "stock": 8,
+          "sku": "LL-SPIDEY-01"
+        },
+        {
+          "id": "v-spidey-2",
+          "productId": "prod-custom-graduation-teddy",
+          "colorName": "Symbiote Black Suit",
+          "colorHex": "#1F2937",
+          "sizeName": "Standard (25 cm)",
+          "priceModifier": 100,
+          "stock": 4,
+          "sku": "LL-SPIDEY-BLK"
+        }
+      ],
+      "averageRating": 5,
+      "reviewCount": 17,
+      "createdAt": "2026-10-28T10:00:00Z",
+      "updatedAt": "2026-11-14T07:23:03.867Z"
+    },
+    {
+      "id": "prod-silk-ribbon-crochet-scrunchie",
+      "name": "Lilac Cloud Ruffle Crochet Hair Scrunchie",
+      "slug": "lilac-cloud-ruffle-crochet-hair-scrunchie",
+      "description": "Voluminous, snag-free crochet scrunchie crafted around a durable elastic band. Protects hair from friction and breakage while adding romantic elegance to any updo or wrist.",
+      "price": 349,
+      "discountPrice": 279,
+      "category": "Crochet Accessories",
+      "categoryId": "cat-accessories",
+      "images": [
+        "https://images.unsplash.com/photo-1576053139778-7e32f2ae3cfd?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80"
+      ],
+      "materials": "Ultra-soft mercerized cotton yarn, High-stretch seamless elastic core",
+      "dimensions": "Outer Diameter: 13 cm",
+      "stock": 22,
+      "sku": "LL-ACC-001",
+      "prepTimeDays": 1,
+      "careInstructions": "Hand wash with shampoo or gentle soap, air dry.",
+      "tags": [
+        "Scrunchie",
+        "Hair Accessories",
+        "Lilac",
+        "Self Care"
+      ],
+      "status": "AVAILABLE",
+      "isFeatured": false,
+      "isBestseller": false,
+      "isNewArrival": true,
+      "variants": [
+        {
+          "id": "v12",
+          "productId": "prod-silk-ribbon-crochet-scrunchie",
+          "colorName": "Lilac Mist",
+          "colorHex": "#9D7BB0",
+          "sizeName": "One Size",
+          "priceModifier": 0,
+          "stock": 12,
+          "sku": "LL-ACC-001-LIL"
+        },
+        {
+          "id": "v13",
+          "productId": "prod-silk-ribbon-crochet-scrunchie",
+          "colorName": "Buttercream Glow",
+          "colorHex": "#FBF5E5",
+          "sizeName": "One Size",
+          "priceModifier": 0,
+          "stock": 10,
+          "sku": "LL-ACC-001-BUT"
+        }
+      ],
+      "averageRating": 4.75,
+      "reviewCount": 29,
+      "createdAt": "2026-10-25T10:00:00Z",
+      "updatedAt": "2026-11-12T10:00:00Z"
+    },
+    {
+      "id": "prod-daisy-sunflower-pot",
+      "name": "Sunflower boquet",
+      "slug": "sunflower-boquet",
+      "description": "Vibrant handcrafted crochet sunflower bouquet with cheery golden blossoms and sweet mini daisies. Wrapped in rustic kraft paper with a luxury satin bow that never wilts.",
+      "price": 999,
+      "discountPrice": 799,
+      "category": "Crochet Flowers & Bouquets",
+      "categoryId": "cat-flowers",
+      "images": [
+        "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090"
+      ],
+      "materials": "100% Hypoallergenic Milk Cotton Yarn, Floral Stems, Satin Ribbon, Kraft Wrap",
+      "dimensions": "Height: 32 cm | Width: 20 cm",
+      "stock": 15,
+      "sku": "LL-FLW-002",
+      "prepTimeDays": 1,
+      "careInstructions": "Dust lightly with a soft brush or hair dryer on cool setting. Keep in a dry spot.",
+      "tags": [
+        "Sunflower",
+        "Bouquet",
+        "Flowers",
+        "Everlasting",
+        "Gifting",
+        "Decor"
+      ],
+      "status": "AVAILABLE",
+      "isFeatured": true,
+      "isBestseller": false,
+      "isNewArrival": true,
+      "variants": [
+        {
+          "id": "v-sun-1",
+          "productId": "prod-daisy-sunflower-pot",
+          "colorName": "Sunny Golden Yellow",
+          "colorHex": "#F59E0B",
+          "sizeName": "Standard Bouquet (5 stems)",
+          "priceModifier": 0,
+          "stock": 10,
+          "sku": "LL-SUN-STD"
+        },
+        {
+          "id": "v-sun-2",
+          "productId": "prod-daisy-sunflower-pot",
+          "colorName": "Grand Sunburst (9 stems)",
+          "colorHex": "#D97706",
+          "sizeName": "Deluxe Bouquet (9 stems)",
+          "priceModifier": 400,
+          "stock": 5,
+          "sku": "LL-SUN-DLX"
+        }
+      ],
+      "averageRating": 4.8,
+      "reviewCount": 19,
+      "createdAt": "2026-10-20T10:00:00Z",
+      "updatedAt": "2026-11-17T13:47:00.664Z"
+    },
+    {
+      "id": "prod-cozy-granny-square-tote",
+      "name": "Artisan Pastel Granny Square Shoulder Tote Bag",
+      "slug": "artisan-pastel-granny-square-shoulder-tote-bag",
+      "description": "Hand-stitched vintage-modern granny square shoulder bag in our signature palette of lilac, dusty rose, sage, and buttercream. Lined with sturdy natural canvas with an inner pocket for your phone and lip balm.",
+      "price": 2499,
+      "discountPrice": 2199,
+      "category": "Crochet Bags & Totes",
+      "categoryId": "cat-bags",
+      "images": [
+        "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+      ],
+      "materials": "High-density Milk Cotton Yarn, 100% Unbleached Cotton Canvas Lining, Reinforced Straps",
+      "dimensions": "Width: 35 cm | Height: 33 cm | Strap Drop: 28 cm",
+      "stock": 5,
+      "sku": "LL-BAG-001",
+      "prepTimeDays": 4,
+      "careInstructions": "Hand wash gently in cool water. Reshape while damp and dry flat on a clean towel.",
+      "tags": [
+        "Bags",
+        "Granny Square",
+        "Boutique",
+        "Trending",
+        "Eco-friendly"
+      ],
+      "status": "AVAILABLE",
+      "isFeatured": true,
+      "isBestseller": true,
+      "isNewArrival": true,
+      "variants": [
+        {
+          "id": "v5",
+          "productId": "prod-cozy-granny-square-tote",
+          "colorName": "Lilac Bloom Harmony",
+          "colorHex": "#9D7BB0",
+          "sizeName": "Medium (Everyday)",
+          "priceModifier": 0,
+          "stock": 3,
+          "sku": "LL-BAG-001-MED"
+        },
+        {
+          "id": "v6",
+          "productId": "prod-cozy-granny-square-tote",
+          "colorName": "Rose & Warm Cream",
+          "colorHex": "#C98B9E",
+          "sizeName": "Large (Laptop friendly)",
+          "priceModifier": 400,
+          "stock": 2,
+          "sku": "LL-BAG-001-LRG"
+        }
+      ],
+      "averageRating": 5,
+      "reviewCount": 42,
+      "createdAt": "2026-10-18T10:00:00Z",
+      "updatedAt": "2026-11-08T10:00:00Z"
+    },
+    {
+      "id": "prod-lavender-tulip-bouquet",
+      "name": "Everlasting Lavender & Buttercream Tulip Bouquet",
+      "slug": "everlasting-lavender-buttercream-tulip-bouquet",
+      "description": "An enchanting hand-tied bouquet featuring 5 blooming tulips, 2 stems of sweet lavender, and fragrant eucalyptus leaves. Wrapped in textured craft paper and tied with a luxury satin ribbon. Perfect for birthdays, anniversaries, graduations, or a cozy bedside display.",
+      "price": 1899,
+      "discountPrice": 1599,
+      "category": "Crochet Flowers & Bouquets",
+      "categoryId": "cat-flowers",
+      "images": [
+        "https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80"
+      ],
+      "materials": "Premium 100% Milk Cotton Yarn, Floral wire stems, Satin ribbon, Kraft packaging",
+      "dimensions": "Height: 38 cm | Width: 24 cm approx.",
+      "stock": 12,
+      "sku": "LL-FLW-001",
+      "prepTimeDays": 2,
+      "careInstructions": "Lightly dust with a soft makeup brush or blow on cool hairdryer setting. Keep away from direct dampness.",
+      "tags": [
+        "Bestseller",
+        "Flowers",
+        "Gifting",
+        "Bouquet",
+        "Lilac"
+      ],
+      "status": "AVAILABLE",
+      "isFeatured": true,
+      "isBestseller": true,
+      "isNewArrival": false,
+      "variants": [
+        {
+          "id": "v1",
+          "productId": "prod-lavender-tulip-bouquet",
+          "colorName": "Lilac & Buttercream",
+          "colorHex": "#9D7BB0",
+          "sizeName": "Standard (7 stems)",
+          "priceModifier": 0,
+          "stock": 8,
+          "sku": "LL-FLW-001-LB-STD"
+        },
+        {
+          "id": "v2",
+          "productId": "prod-lavender-tulip-bouquet",
+          "colorName": "Dusty Rose & Cream",
+          "colorHex": "#C98B9E",
+          "sizeName": "Standard (7 stems)",
+          "priceModifier": 0,
+          "stock": 4,
+          "sku": "LL-FLW-001-DR-STD"
+        },
+        {
+          "id": "v3",
+          "productId": "prod-lavender-tulip-bouquet",
+          "colorName": "Grand Deluxe (12 stems)",
+          "colorHex": "#9D7BB0",
+          "sizeName": "Deluxe",
+          "priceModifier": 600,
+          "stock": 3,
+          "sku": "LL-FLW-001-DLX"
+        }
+      ],
+      "averageRating": 4.9,
+      "reviewCount": 38,
+      "createdAt": "2026-10-15T10:00:00Z",
+      "updatedAt": "2026-11-01T10:00:00Z"
+    },
+    {
+      "id": "prod-strawberry-keychain-charm",
+      "name": "Strawberry & Daisy Heart Amigurumi Bag Charm",
+      "slug": "strawberry-daisy-heart-amigurumi-bag-charm",
+      "description": "The sweetest little accessory for your tote or backpack! Includes a plump hand-crocheted strawberry with seeds, a petite daisy blossom, and a golden lobster clasp with heart bell.",
+      "price": 399,
+      "discountPrice": 349,
+      "category": "Keychains & Bag Charms",
+      "categoryId": "cat-keychains",
+      "images": [
+        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80"
+      ],
+      "materials": "Milk Cotton Yarn, Anti-tarnish brass gold lobster clip & swivel keyring",
+      "dimensions": "Length: 11 cm total",
+      "stock": 24,
+      "sku": "LL-KEY-001",
+      "prepTimeDays": 1,
+      "careInstructions": "Wipe metal parts with dry cloth. Spot clean yarn when needed.",
+      "tags": [
+        "Keychain",
+        "Strawberry",
+        "Bag Charm",
+        "Cute Gift"
+      ],
+      "status": "AVAILABLE",
+      "isFeatured": false,
+      "isBestseller": true,
+      "isNewArrival": true,
+      "variants": [
+        {
+          "id": "v9",
+          "productId": "prod-strawberry-keychain-charm",
+          "colorName": "Ruby Berry",
+          "colorHex": "#C94B5E",
+          "sizeName": "Standard",
+          "priceModifier": 0,
+          "stock": 14,
+          "sku": "LL-KEY-001-RED"
+        },
+        {
+          "id": "v10",
+          "productId": "prod-strawberry-keychain-charm",
+          "colorName": "Sweet Lilac Berry",
+          "colorHex": "#9D7BB0",
+          "sizeName": "Standard",
+          "priceModifier": 0,
+          "stock": 10,
+          "sku": "LL-KEY-001-LAV"
+        }
+      ],
+      "averageRating": 4.85,
+      "reviewCount": 64,
+      "createdAt": "2026-10-01T10:00:00Z",
+      "updatedAt": "2026-11-10T10:00:00Z"
+    },
+    {
+      "id": "prod-sleepy-bunny-amigurumi",
+      "name": "Cuddle Bunny Amigurumi Soft Toy with Knit Overalls",
+      "slug": "cuddle-bunny-amigurumi-soft-toy-with-knit-overalls",
+      "description": "An endearing handmade floppy-eared bunny dressed in sweet removable pastel overalls. Crafted with safety embroidered eyes and super-soft baby-friendly cotton yarn.",
+      "price": 1499,
+      "discountPrice": 1299,
+      "category": "Soft Toys & Amigurumi",
+      "categoryId": "cat-toys",
+      "images": [
+        "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80"
+      ],
+      "materials": "OEKO-TEX Certified Organic Cotton Yarn, Anti-microbial polyfill, Embroidered details (Baby safe)",
+      "dimensions": "Height: 30 cm from tip of ears to toes",
+      "stock": 9,
+      "sku": "LL-TOY-001",
+      "prepTimeDays": 3,
+      "careInstructions": "Machine washable in a laundry mesh bag on delicate cycle or gentle hand wash. Air dry.",
+      "tags": [
+        "Amigurumi",
+        "Bunny",
+        "Baby Gift",
+        "Nursery Decor"
+      ],
+      "status": "AVAILABLE",
+      "isFeatured": true,
+      "isBestseller": true,
+      "isNewArrival": false,
+      "variants": [
+        {
+          "id": "v7",
+          "productId": "prod-sleepy-bunny-amigurumi",
+          "colorName": "Lavender Overalls",
+          "colorHex": "#9D7BB0",
+          "sizeName": "30 cm",
+          "priceModifier": 0,
+          "stock": 5,
+          "sku": "LL-TOY-001-LAV"
+        },
+        {
+          "id": "v8",
+          "productId": "prod-sleepy-bunny-amigurumi",
+          "colorName": "Sage Green Overalls",
+          "colorHex": "#8FA382",
+          "sizeName": "30 cm",
+          "priceModifier": 0,
+          "stock": 4,
+          "sku": "LL-TOY-001-SGE"
+        }
+      ],
+      "averageRating": 4.95,
+      "reviewCount": 51,
+      "createdAt": "2026-09-30T10:00:00Z",
+      "updatedAt": "2026-11-02T10:00:00Z"
+    },
+    {
+      "id": "prod-blush-flower-coasters-set",
+      "name": "Blooming Blossom Crochet Coasters (Set of 4)",
+      "slug": "blooming-blossom-crochet-coasters-set-of-4",
+      "description": "Protect your coffee table in aesthetic style. Set of 4 layered petal floral coasters accompanied by a handcrafted mini leaf organizer basket.",
+      "price": 799,
+      "discountPrice": 649,
+      "category": "Home Decor & Coasters",
+      "categoryId": "cat-home-decor",
+      "images": [
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80"
+      ],
+      "materials": "Thick absorbant 100% natural cotton cord and yarn",
+      "dimensions": "Coaster diameter: 12 cm each",
+      "stock": 0,
+      "sku": "LL-DEC-001",
+      "prepTimeDays": 2,
+      "careInstructions": "Machine washable in cold gentle cycle. Lay flat to preserve floral shape.",
+      "tags": [
+        "Coasters",
+        "Home Decor",
+        "Tableware",
+        "Floral"
+      ],
+      "status": "SOLD_OUT",
+      "isFeatured": false,
+      "isBestseller": false,
+      "isNewArrival": false,
+      "variants": [
+        {
+          "id": "v11",
+          "productId": "prod-blush-flower-coasters-set",
+          "colorName": "Pastel Garden Quartet",
+          "colorHex": "#DCCCE8",
+          "sizeName": "Set of 4",
+          "priceModifier": 0,
+          "stock": 0,
+          "sku": "LL-DEC-001-S4"
+        }
+      ],
+      "averageRating": 4.9,
+      "reviewCount": 22,
+      "createdAt": "2026-09-15T10:00:00Z",
+      "updatedAt": "2026-11-09T10:00:00Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-1001",
+      "orderNumber": "LL-2026-1001",
+      "userId": "usr-cust-1",
+      "customerName": "Priya Sharma",
+      "customerEmail": "priya@example.com",
+      "customerPhone": "+91 91234 56789",
+      "items": [
+        {
+          "id": "item-1",
+          "productId": "prod-lavender-tulip-bouquet",
+          "productName": "Everlasting Lavender & Buttercream Tulip Bouquet",
+          "image": "https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80",
+          "color": "Lilac & Buttercream",
+          "size": "Standard (7 stems)",
+          "unitPrice": 1599,
+          "quantity": 1,
+          "totalPrice": 1599
+        },
+        {
+          "id": "item-2",
+          "productId": "prod-strawberry-keychain-charm",
+          "productName": "Strawberry & Daisy Heart Amigurumi Bag Charm",
+          "image": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80",
+          "color": "Sweet Lilac Berry",
+          "size": "Standard",
+          "unitPrice": 349,
+          "quantity": 1,
+          "totalPrice": 349
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1",
+        "userId": "usr-cust-1",
+        "name": "Priya Sharma",
+        "phone": "+91 91234 56789",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-10-01T00:00:00Z"
+      },
+      "subtotal": 1948,
+      "shippingCharge": 0,
+      "taxAmount": 97.4,
+      "discountAmount": 194.8,
+      "couponCode": "WELCOME10",
+      "totalAmount": 1850.6,
+      "paymentStatus": "SUCCESS",
+      "paymentMethod": "Razorpay UPI (Google Pay)",
+      "razorpayOrderId": "order_mock_test_1001",
+      "razorpayPaymentId": "pay_mock_test_1001",
+      "razorpaySignature": "sig_mock_verified_1001",
+      "orderStatus": "Making Your Crochet Product",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-10T09:30:00Z",
+          "note": "Customer placed order via UPI"
+        },
+        {
+          "status": "Payment Verified",
+          "timestamp": "2026-11-10T09:31:00Z",
+          "note": "Razorpay payment ID pay_mock_test_1001 confirmed"
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-10T10:00:00Z",
+          "note": "Order accepted into artisan crafting queue"
+        },
+        {
+          "status": "Making Your Crochet Product",
+          "timestamp": "2026-11-11T11:00:00Z",
+          "note": "Petals and leaves are being hand-stitched"
+        }
+      ],
+      "estimatedDeliveryDate": "2026-11-18",
+      "specialInstructions": "Please include a birthday message card: \"Happy Birthday Ananya!\"",
+      "createdAt": "2026-11-10T09:30:00Z",
+      "updatedAt": "2026-11-11T11:00:00Z"
+    },
+    {
+      "id": "ord-1002",
+      "orderNumber": "LL-2026-1002",
+      "userId": "usr-cust-2",
+      "customerName": "Rohan Mehra",
+      "customerEmail": "rohan.m@example.com",
+      "customerPhone": "+91 98450 12345",
+      "items": [
+        {
+          "id": "item-3",
+          "productId": "prod-cozy-granny-square-tote",
+          "productName": "Artisan Pastel Granny Square Shoulder Tote Bag",
+          "image": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
+          "color": "Lilac Bloom Harmony",
+          "size": "Medium (Everyday)",
+          "unitPrice": 2199,
+          "quantity": 1,
+          "totalPrice": 2199
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-2",
+        "userId": "usr-cust-2",
+        "name": "Rohan Mehra",
+        "phone": "+91 98450 12345",
+        "street": "12B, Sea Face Enclave, Bandra West",
+        "city": "Mumbai",
+        "state": "Maharashtra",
+        "pincode": "400050",
+        "isDefault": true,
+        "createdAt": "2026-11-05T00:00:00Z"
+      },
+      "subtotal": 2199,
+      "shippingCharge": 0,
+      "taxAmount": 110,
+      "discountAmount": 200,
+      "couponCode": "LOVELOOP",
+      "totalAmount": 2109,
+      "paymentStatus": "SUCCESS",
+      "paymentMethod": "Razorpay NetBanking (HDFC Bank)",
+      "razorpayOrderId": "order_mock_test_1002",
+      "razorpayPaymentId": "pay_mock_test_1002",
+      "orderStatus": "Delivered",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-05T14:20:00Z"
+        },
+        {
+          "status": "Payment Verified",
+          "timestamp": "2026-11-05T14:21:00Z"
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-05T16:00:00Z"
+        },
+        {
+          "status": "Making Your Crochet Product",
+          "timestamp": "2026-11-06T09:00:00Z"
+        },
+        {
+          "status": "Quality Check",
+          "timestamp": "2026-11-08T15:00:00Z"
+        },
+        {
+          "status": "Packed",
+          "timestamp": "2026-11-08T18:00:00Z"
+        },
+        {
+          "status": "Shipped",
+          "timestamp": "2026-11-09T10:00:00Z",
+          "note": "Shipped via BlueDart AWB: BD90284712IN"
+        },
+        {
+          "status": "Out for Delivery",
+          "timestamp": "2026-11-12T08:30:00Z"
+        },
+        {
+          "status": "Delivered",
+          "timestamp": "2026-11-12T13:45:00Z",
+          "note": "Handed to customer directly"
+        }
+      ],
+      "trackingNumber": "BD90284712IN",
+      "courierPartner": "BlueDart Express",
+      "estimatedDeliveryDate": "2026-11-12",
+      "createdAt": "2026-11-05T14:20:00Z",
+      "updatedAt": "2026-11-12T13:45:00Z"
+    },
+    {
+      "userId": "usr-cust-1",
+      "customerName": "Priya Sharma",
+      "customerEmail": "priya@example.com",
+      "customerPhone": "+91 91234 56789",
+      "items": [
+        {
+          "id": "oi-1794640568466-9bjf",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "Personalized Graduate Bear with Custom Robe & Diploma",
+          "image": "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80",
+          "color": "Black & Gold Robe",
+          "size": "Medium",
+          "unitPrice": 1899,
+          "quantity": 1,
+          "totalPrice": 1899
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794640568049",
+        "userId": "usr-cust-1",
+        "name": "Priya Sharma",
+        "phone": "+91 91234 56789",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-14T07:16:08.049Z"
+      },
+      "subtotal": 1899,
+      "shippingCharge": 0,
+      "taxAmount": 94.95,
+      "discountAmount": 0,
+      "totalAmount": 1993.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1794640568633_97hhumh",
+      "orderStatus": "Packed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-14T07:16:08.633Z",
+          "note": "Order initiated, awaiting verified payment."
+        },
+        {
+          "status": "Packed",
+          "timestamp": "2026-11-14T07:22:51.500Z"
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794640568635",
+      "orderNumber": "LL-2026-1003",
+      "createdAt": "2026-11-14T07:16:08.635Z",
+      "updatedAt": "2026-11-14T07:22:51.500Z",
+      "courierPartner": "BlueDart Express"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1794640906630-un5v",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Black & Gold Robe",
+          "size": "Medium",
+          "unitPrice": 1899,
+          "quantity": 1,
+          "totalPrice": 1899
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794640906259",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-14T07:21:46.259Z"
+      },
+      "subtotal": 1899,
+      "shippingCharge": 0,
+      "taxAmount": 94.95,
+      "discountAmount": 0,
+      "totalAmount": 1993.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1794640906824_loqhym7",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-14T07:21:46.824Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794640906827",
+      "orderNumber": "LL-2026-1004",
+      "createdAt": "2026-11-14T07:21:46.827Z",
+      "updatedAt": "2026-11-14T07:21:46.827Z"
+    },
+    {
+      "userId": "usr-1794642288600-4oyxh",
+      "customerName": "ram",
+      "customerEmail": "9025283958@loopandlove.customer",
+      "customerPhone": "9025283958",
+      "items": [
+        {
+          "id": "oi-1794642346501-v2kx",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Black & Gold Robe",
+          "size": "Medium",
+          "unitPrice": 1899,
+          "quantity": 1,
+          "totalPrice": 1899
+        },
+        {
+          "id": "oi-1794642346504-563k",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Potted Sunny Sunflower & Daisy Desk Companion",
+          "image": "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=800&q=80",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794642346476",
+        "userId": "usr-1794642288600-4oyxh",
+        "name": "ram",
+        "phone": "9025283958",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-14T07:45:46.476Z"
+      },
+      "subtotal": 2698,
+      "shippingCharge": 0,
+      "taxAmount": 134.9,
+      "discountAmount": 0,
+      "totalAmount": 2832.9,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1794642346918_p4y3am8",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-14T07:45:46.918Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794642346921",
+      "orderNumber": "LL-2026-1005",
+      "createdAt": "2026-11-14T07:45:46.921Z",
+      "updatedAt": "2026-11-14T07:45:46.921Z"
+    },
+    {
+      "userId": "usr-1794642288600-4oyxh",
+      "customerName": "ram",
+      "customerEmail": "9025283958@loopandlove.customer",
+      "customerPhone": "9025283958",
+      "items": [
+        {
+          "id": "oi-1794642515782-z14g",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Black & Gold Robe",
+          "size": "Medium",
+          "unitPrice": 1899,
+          "quantity": 2,
+          "totalPrice": 3798
+        },
+        {
+          "id": "oi-1794642515785-9dap",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Potted Sunny Sunflower & Daisy Desk Companion",
+          "image": "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=800&q=80",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794642515768",
+        "userId": "usr-1794642288600-4oyxh",
+        "name": "ram",
+        "phone": "9025283958",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-14T07:48:35.768Z"
+      },
+      "subtotal": 4597,
+      "shippingCharge": 0,
+      "taxAmount": 229.85,
+      "discountAmount": 0,
+      "totalAmount": 4826.85,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1794642515874_jmpxvv1",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-14T07:48:35.874Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794642515877",
+      "orderNumber": "LL-2026-1006",
+      "createdAt": "2026-11-14T07:48:35.877Z",
+      "updatedAt": "2026-11-14T07:48:35.877Z"
+    },
+    {
+      "userId": "usr-1794642288600-4oyxh",
+      "customerName": "ram",
+      "customerEmail": "9025283958@loopandlove.customer",
+      "customerPhone": "9025283958",
+      "items": [
+        {
+          "id": "oi-1794642564213-2dzl",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Potted Sunny Sunflower & Daisy Desk Companion",
+          "image": "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=800&q=80",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794642564201",
+        "userId": "usr-1794642288600-4oyxh",
+        "name": "ram",
+        "phone": "9025283958",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-14T07:49:24.201Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1794642564305_mvubm1j",
+      "orderStatus": "Quality Check",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-14T07:49:24.305Z",
+          "note": "Order initiated, awaiting verified payment."
+        },
+        {
+          "status": "Quality Check",
+          "timestamp": "2026-11-17T14:28:42.497Z"
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794642564308",
+      "orderNumber": "LL-2026-1007",
+      "createdAt": "2026-11-14T07:49:24.308Z",
+      "updatedAt": "2026-11-17T14:28:42.497Z",
+      "courierPartner": "BlueDart Express"
+    },
+    {
+      "userId": "usr-cust-1",
+      "customerName": "Priya Sharma",
+      "customerEmail": "priya@example.com",
+      "customerPhone": "+91 91234 56789",
+      "items": [
+        {
+          "id": "oi-1794642925784-grec",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Black & Gold Robe",
+          "size": "Medium",
+          "unitPrice": 1899,
+          "quantity": 2,
+          "totalPrice": 3798
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794642925769",
+        "userId": "usr-cust-1",
+        "name": "Priya Sharma",
+        "phone": "+91 91234 56789",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-14T07:55:25.769Z"
+      },
+      "subtotal": 3798,
+      "shippingCharge": 0,
+      "taxAmount": 189.9,
+      "discountAmount": 0,
+      "totalAmount": 3987.9,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1794642926107_4nobsrq",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-14T07:55:26.107Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794642926110",
+      "orderNumber": "LL-2026-1008",
+      "createdAt": "2026-11-14T07:55:26.110Z",
+      "updatedAt": "2026-11-14T07:55:26.110Z"
+    },
+    {
+      "userId": "usr-cust-1",
+      "customerName": "rohith",
+      "customerEmail": "rohit@example.com",
+      "customerPhone": "+91 91234 56789",
+      "items": [
+        {
+          "id": "oi-1794835912437-rnuj",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Black & Gold Robe",
+          "size": "Medium",
+          "unitPrice": 1899,
+          "quantity": 2,
+          "totalPrice": 3798
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794835912413",
+        "userId": "usr-cust-1",
+        "name": "rohith",
+        "phone": "+91 91234 56789",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-16T13:31:52.413Z"
+      },
+      "subtotal": 3798,
+      "shippingCharge": 0,
+      "taxAmount": 189.9,
+      "discountAmount": 0,
+      "totalAmount": 3987.9,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Cash on Delivery (COD)",
+      "razorpayOrderId": "cod_1794835912437",
+      "orderStatus": "Order Confirmed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-16T13:31:52.437Z",
+          "note": "Order placed via Cash on Delivery (COD)."
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-16T13:31:52.437Z",
+          "note": "Cash on Delivery order confirmed! Inventory reserved for crafting."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794835912441",
+      "orderNumber": "LL-2026-1009",
+      "createdAt": "2026-11-16T13:31:52.441Z",
+      "updatedAt": "2026-11-16T13:31:52.441Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1794923380027-zp26",
+          "productId": "prod-1794922878678-hq6n",
+          "productName": "batman",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8blEikMyOjaBH4MhGcGqPy-8ocKBBzOnAym9wFWCviq4OWT7IQLWsMJIb&s=10",
+          "color": "Standard",
+          "size": "Standard",
+          "unitPrice": 800,
+          "quantity": 1,
+          "totalPrice": 800
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794923379410",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "mangadu",
+        "state": "tamilnadu",
+        "pincode": "60122",
+        "isDefault": true,
+        "createdAt": "2026-11-17T13:49:39.410Z"
+      },
+      "subtotal": 800,
+      "shippingCharge": 99,
+      "taxAmount": 40,
+      "discountAmount": 0,
+      "totalAmount": 939,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Cash on Delivery (COD)",
+      "razorpayOrderId": "cod_1794923380028",
+      "orderStatus": "Cancelled",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-17T13:49:40.028Z",
+          "note": "Order placed via Cash on Delivery (COD)."
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-17T13:49:40.028Z",
+          "note": "Cash on Delivery order confirmed! Inventory reserved for crafting."
+        },
+        {
+          "status": "Cancelled",
+          "timestamp": "2026-11-17T14:28:30.871Z"
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794923380031",
+      "orderNumber": "LL-2026-1010",
+      "createdAt": "2026-11-17T13:49:40.031Z",
+      "updatedAt": "2026-11-17T14:28:30.871Z",
+      "courierPartner": "BlueDart Express"
+    },
+    {
+      "userId": "usr-1794925485905-59lts",
+      "customerName": "bhava",
+      "customerEmail": "bhava123@gmail.com",
+      "customerPhone": "+91 99999 00000",
+      "items": [
+        {
+          "id": "oi-1794925549459-4suk",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794925549410",
+        "userId": "usr-1794925485905-59lts",
+        "name": "bhava",
+        "phone": "+91 99999 00000",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "chennai",
+        "state": "tamilnadu",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-17T14:25:49.410Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1794925549604_kdp9jb6",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-17T14:25:49.604Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794925549607",
+      "orderNumber": "LL-2026-1011",
+      "createdAt": "2026-11-17T14:25:49.607Z",
+      "updatedAt": "2026-11-17T14:25:49.607Z"
+    },
+    {
+      "userId": "usr-1794925485905-59lts",
+      "customerName": "bhava",
+      "customerEmail": "bhava123@gmail.com",
+      "customerPhone": "+91 99999 00000",
+      "items": [
+        {
+          "id": "oi-1794925619691-7p5q",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1794925619645",
+        "userId": "usr-1794925485905-59lts",
+        "name": "bhava",
+        "phone": "+91 99999 00000",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-17T14:26:59.645Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Cash on Delivery (COD)",
+      "razorpayOrderId": "cod_1794925619691",
+      "orderStatus": "Packed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-17T14:26:59.691Z",
+          "note": "Order placed via Cash on Delivery (COD)."
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-17T14:26:59.691Z",
+          "note": "Cash on Delivery order confirmed! Inventory reserved for crafting."
+        },
+        {
+          "status": "Packed",
+          "timestamp": "2026-11-17T14:29:06.238Z"
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1794925619694",
+      "orderNumber": "LL-2026-1012",
+      "createdAt": "2026-11-17T14:26:59.694Z",
+      "updatedAt": "2026-11-17T14:29:06.238Z",
+      "courierPartner": "BlueDart Express"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104679055-627j",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104678484",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:18.484Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795104679056_4tnvvpn",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:19.056Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104679056",
+      "orderNumber": "LL-2026-1013",
+      "createdAt": "2026-11-19T16:11:19.056Z",
+      "updatedAt": "2026-11-19T16:11:19.056Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104686924-3sie",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104686860",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:26.860Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795104686924_3ns63f5",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:26.924Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104686924",
+      "orderNumber": "LL-2026-1014",
+      "createdAt": "2026-11-19T16:11:26.924Z",
+      "updatedAt": "2026-11-19T16:11:26.924Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104691086-uxta",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104691016",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:31.016Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1795104691087_7fz0enn",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:31.087Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104691087",
+      "orderNumber": "LL-2026-1015",
+      "createdAt": "2026-11-19T16:11:31.087Z",
+      "updatedAt": "2026-11-19T16:11:31.087Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104692065-5bnk",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104692012",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:32.012Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1795104692065_4rum9fn",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:32.065Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104692065",
+      "orderNumber": "LL-2026-1016",
+      "createdAt": "2026-11-19T16:11:32.065Z",
+      "updatedAt": "2026-11-19T16:11:32.065Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104692482-6dg7",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104692406",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:32.406Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1795104692482_42v6hok",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:32.482Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104692482",
+      "orderNumber": "LL-2026-1017",
+      "createdAt": "2026-11-19T16:11:32.482Z",
+      "updatedAt": "2026-11-19T16:11:32.482Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104692687-a4rq",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104692589",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:32.589Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1795104692687_ibumbuj",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:32.687Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104692688",
+      "orderNumber": "LL-2026-1018",
+      "createdAt": "2026-11-19T16:11:32.688Z",
+      "updatedAt": "2026-11-19T16:11:32.688Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104692936-hbo8",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104692870",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:32.870Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1795104692936_0z7tp14",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:32.936Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104692936",
+      "orderNumber": "LL-2026-1019",
+      "createdAt": "2026-11-19T16:11:32.936Z",
+      "updatedAt": "2026-11-19T16:11:32.936Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104693140-owkz",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104693091",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:33.091Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1795104693140_12dbypd",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:33.140Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104693140",
+      "orderNumber": "LL-2026-1020",
+      "createdAt": "2026-11-19T16:11:33.140Z",
+      "updatedAt": "2026-11-19T16:11:33.140Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795104696966-tm2v",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795104696916",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:11:36.916Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_NETBANKING)",
+      "razorpayOrderId": "order_1795104696966_9mtv9of",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:11:36.966Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795104696966",
+      "orderNumber": "LL-2026-1021",
+      "createdAt": "2026-11-19T16:11:36.966Z",
+      "updatedAt": "2026-11-19T16:11:36.966Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105872322-827z",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105871956",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:11.956Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795105872322_qfz3r3g",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:12.322Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105872322",
+      "orderNumber": "LL-2026-1022",
+      "createdAt": "2026-11-19T16:31:12.322Z",
+      "updatedAt": "2026-11-19T16:31:12.322Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105885060-mn8t",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105885022",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:25.022Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795105885061_uvp4t1m",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:25.061Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105885061",
+      "orderNumber": "LL-2026-1023",
+      "createdAt": "2026-11-19T16:31:25.061Z",
+      "updatedAt": "2026-11-19T16:31:25.061Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105890349-3pg6",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105890300",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:30.301Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1795105890349_1ck7beh",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:30.349Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105890350",
+      "orderNumber": "LL-2026-1024",
+      "createdAt": "2026-11-19T16:31:30.350Z",
+      "updatedAt": "2026-11-19T16:31:30.350Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105891860-uerg",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105891829",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:31.829Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_CARD)",
+      "razorpayOrderId": "order_1795105891860_jae3ysv",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:31.860Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105891860",
+      "orderNumber": "LL-2026-1025",
+      "createdAt": "2026-11-19T16:31:31.860Z",
+      "updatedAt": "2026-11-19T16:31:31.860Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105897902-93nv",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105897871",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:37.871Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_NETBANKING)",
+      "razorpayOrderId": "order_1795105897902_fpj1ltv",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:37.902Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105897902",
+      "orderNumber": "LL-2026-1026",
+      "createdAt": "2026-11-19T16:31:37.902Z",
+      "updatedAt": "2026-11-19T16:31:37.902Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105898806-v6xp",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105898776",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:38.776Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_NETBANKING)",
+      "razorpayOrderId": "order_1795105898806_8f5dkay",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:38.806Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105898806",
+      "orderNumber": "LL-2026-1027",
+      "createdAt": "2026-11-19T16:31:38.806Z",
+      "updatedAt": "2026-11-19T16:31:38.806Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105914380-5txw",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105914348",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:54.348Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795105914381_s9ocydk",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:54.381Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105914381",
+      "orderNumber": "LL-2026-1028",
+      "createdAt": "2026-11-19T16:31:54.381Z",
+      "updatedAt": "2026-11-19T16:31:54.381Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105915872-xq4f",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105915841",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:55.841Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795105915872_t12vhp0",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:55.872Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105915872",
+      "orderNumber": "LL-2026-1029",
+      "createdAt": "2026-11-19T16:31:55.872Z",
+      "updatedAt": "2026-11-19T16:31:55.872Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105916751-thzy",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105916723",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:56.723Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795105916751_cj3w9w7",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:56.751Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105916751",
+      "orderNumber": "LL-2026-1030",
+      "createdAt": "2026-11-19T16:31:56.751Z",
+      "updatedAt": "2026-11-19T16:31:56.751Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105917307-ym8x",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105917280",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:57.280Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795105917307_4xjm02g",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:57.307Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105917307",
+      "orderNumber": "LL-2026-1031",
+      "createdAt": "2026-11-19T16:31:57.307Z",
+      "updatedAt": "2026-11-19T16:31:57.307Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795105917532-0jex",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795105917500",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:31:57.500Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795105917532_6si9gs6",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:31:57.532Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795105917532",
+      "orderNumber": "LL-2026-1032",
+      "createdAt": "2026-11-19T16:31:57.532Z",
+      "updatedAt": "2026-11-19T16:31:57.532Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795106795628-a07p",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795106795389",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:46:35.389Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795106795628_zli7khx",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:46:35.628Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795106795628",
+      "orderNumber": "LL-2026-1033",
+      "createdAt": "2026-11-19T16:46:35.628Z",
+      "updatedAt": "2026-11-19T16:46:35.628Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795106800647-7gwx",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795106800519",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:46:40.519Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795106800647_e7xhu6o",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:46:40.647Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795106800647",
+      "orderNumber": "LL-2026-1034",
+      "createdAt": "2026-11-19T16:46:40.647Z",
+      "updatedAt": "2026-11-19T16:46:40.647Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795106804838-9712",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795106804777",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:46:44.777Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795106804838_80i5qjo",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:46:44.838Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795106804838",
+      "orderNumber": "LL-2026-1035",
+      "createdAt": "2026-11-19T16:46:44.838Z",
+      "updatedAt": "2026-11-19T16:46:44.838Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795106807506-tv2z",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795106807427",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:46:47.427Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795106807506_2qy6b07",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:46:47.506Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795106807506",
+      "orderNumber": "LL-2026-1036",
+      "createdAt": "2026-11-19T16:46:47.506Z",
+      "updatedAt": "2026-11-19T16:46:47.506Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795106808718-i2cm",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Gold & White",
+          "size": "Standard Pot",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795106808613",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:46:48.613Z"
+      },
+      "subtotal": 799,
+      "shippingCharge": 99,
+      "taxAmount": 39.95,
+      "discountAmount": 0,
+      "totalAmount": 937.95,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_1795106808718_n72bzsi",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:46:48.718Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795106808718",
+      "orderNumber": "LL-2026-1037",
+      "createdAt": "2026-11-19T16:46:48.718Z",
+      "updatedAt": "2026-11-19T16:46:48.718Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795107102976-6vg7",
+          "productId": "prod-1794922878678-hq6n",
+          "productName": "batman",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8blEikMyOjaBH4MhGcGqPy-8ocKBBzOnAym9wFWCviq4OWT7IQLWsMJIb&s=10",
+          "color": "Standard",
+          "size": "Standard",
+          "unitPrice": 800,
+          "quantity": 1,
+          "totalPrice": 800
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795107101976",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T16:51:41.976Z"
+      },
+      "subtotal": 800,
+      "shippingCharge": 99,
+      "taxAmount": 40,
+      "discountAmount": 0,
+      "totalAmount": 939,
+      "paymentStatus": "SUCCESS",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_U26eVJBRBcuPVi",
+      "orderStatus": "Order Confirmed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T16:51:44.378Z",
+          "note": "Order initiated, awaiting verified payment."
+        },
+        {
+          "status": "Payment Verified",
+          "timestamp": "2026-11-19T16:52:53.970Z",
+          "note": "Payment of Rs. 939 successfully verified via Razorpay ID: pay_U26f40FuVs0aYY"
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-19T16:52:53.970Z",
+          "note": "Order confirmed and queued for artisan crafting."
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-19T16:52:53.974Z",
+          "note": "Payment verified and inventory reserved."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795107104379",
+      "orderNumber": "LL-2026-1038",
+      "createdAt": "2026-11-19T16:51:44.379Z",
+      "updatedAt": "2026-11-19T16:52:53.974Z",
+      "razorpayPaymentId": "pay_U26f40FuVs0aYY",
+      "razorpaySignature": "4b20be2dff96475ff3b82aadc64dc4433de934c7f9f4391904fc9f32119535e2"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "admin@loopandlove.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795110038920-cisp",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Classic Red & Blue",
+          "size": "Standard (25 cm)",
+          "unitPrice": 1899,
+          "quantity": 3,
+          "totalPrice": 5697
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795110038297",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-19T17:40:38.297Z"
+      },
+      "subtotal": 5697,
+      "shippingCharge": 0,
+      "taxAmount": 284.85,
+      "discountAmount": 0,
+      "totalAmount": 5981.85,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_U27UAor94Ub5CG",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-19T17:40:39.207Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795110039207",
+      "orderNumber": "LL-2026-1039",
+      "createdAt": "2026-11-19T17:40:39.207Z",
+      "updatedAt": "2026-11-19T17:40:39.207Z"
+    }
+  ],
+  "customOrders": [
+    {
+      "id": "cor-101",
+      "requestNumber": "COR-2026-101",
+      "userId": "usr-cust-1",
+      "customerName": "Priya Sharma",
+      "email": "priya@example.com",
+      "phone": "+91 91234 56789",
+      "productType": "Custom Wedding Couple Amigurumi",
+      "description": "I would like a pair of wedding couple bears (bride with white lace veil and groom in beige sherwani). Incorporate pastel lilac details matching our wedding invite!",
+      "preferredColors": "Ivory, Soft Lilac, Buttercream Gold",
+      "preferredSize": "22 cm height each",
+      "quantity": 1,
+      "budgetRange": "Rs. 3000 - 4500",
+      "requiredDeliveryDate": "2026-12-05",
+      "referenceImages": [
+        "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80"
+      ],
+      "additionalNotes": "Please ensure packaging is gift-ready as it is a wedding keepsake.",
+      "status": "QUOTED",
+      "quotation": {
+        "quoteAmount": 3499,
+        "estimatedPrepDays": 7,
+        "breakdown": "Handmade bride bear with veil (Rs. 1800) + groom bear in sherwani (Rs. 1699), includes luxury keepsake box and personalization tag.",
+        "validUntil": "2026-11-25",
+        "quotedAt": "2026-11-12T14:00:00Z"
+      },
+      "createdAt": "2026-11-11T12:00:00Z",
+      "updatedAt": "2026-11-12T14:00:00Z"
+    },
+    {
+      "userId": "usr-1794642288600-4oyxh",
+      "customerName": "sam",
+      "email": "9025283958@loopandlove.customer",
+      "phone": "4434232342",
+      "productType": "Custom Bouquet & Flowers",
+      "description": "i need a custom order of batman",
+      "preferredColors": "Lilac, Cream & Dusty Rose",
+      "preferredSize": "Standard (approx 30 cm)",
+      "quantity": 1,
+      "budgetRange": "₹1,500 - ₹2,500",
+      "requiredDeliveryDate": "2026-11-28",
+      "referenceImages": [],
+      "additionalNotes": "",
+      "id": "cor-1794642670880",
+      "requestNumber": "COR-2026-102",
+      "status": "PENDING_REVIEW",
+      "createdAt": "2026-11-14T07:51:10.880Z",
+      "updatedAt": "2026-11-14T07:51:10.880Z"
+    }
+  ],
+  "coupons": [
+    {
+      "id": "coup-1",
+      "code": "WELCOME10",
+      "discountType": "PERCENTAGE",
+      "discountValue": 10,
+      "minOrderValue": 999,
+      "maxDiscount": 300,
+      "expiryDate": "2026-12-31T23:59:59Z",
+      "isActive": true,
+      "usageCount": 145
+    },
+    {
+      "id": "coup-2",
+      "code": "LOVELOOP",
+      "discountType": "FLAT",
+      "discountValue": 200,
+      "minOrderValue": 1499,
+      "expiryDate": "2026-12-31T23:59:59Z",
+      "isActive": true,
+      "usageCount": 88
+    },
+    {
+      "id": "coup-3",
+      "code": "FESTIVE15",
+      "discountType": "PERCENTAGE",
+      "discountValue": 15,
+      "minOrderValue": 2499,
+      "maxDiscount": 600,
+      "expiryDate": "2026-12-31T23:59:59Z",
+      "isActive": true,
+      "usageCount": 52
+    }
+  ],
+  "otpRecords": [
+    {
+      "id": "otp-1794642270282",
+      "target": "9025283958",
+      "code": "763468",
+      "type": "REGISTRATION",
+      "expiresAt": "2026-11-14T07:54:30.282Z",
+      "attempts": 1,
+      "isUsed": true,
+      "createdAt": "2026-11-14T07:44:30.282Z"
+    },
+    {
+      "id": "otp-1794642845584",
+      "target": "9025283958",
+      "code": "861327",
+      "type": "LOGIN",
+      "expiresAt": "2026-11-14T08:04:05.583Z",
+      "attempts": 1,
+      "isUsed": true,
+      "createdAt": "2026-11-14T07:54:05.584Z"
+    },
+    {
+      "id": "otp-1794923421917",
+      "target": "9025283958",
+      "code": "945555",
+      "type": "LOGIN",
+      "expiresAt": "2026-11-17T14:00:21.917Z",
+      "attempts": 1,
+      "isUsed": true,
+      "createdAt": "2026-11-17T13:50:21.917Z"
+    },
+    {
+      "id": "otp-1794925480039",
+      "target": "bhava123@gmail.com",
+      "code": "661092",
+      "type": "REGISTRATION",
+      "expiresAt": "2026-11-17T14:34:40.039Z",
+      "attempts": 1,
+      "isUsed": true,
+      "createdAt": "2026-11-17T14:24:40.039Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev-1",
+      "productId": "prod-lavender-tulip-bouquet",
+      "userId": "usr-cust-1",
+      "userName": "Aanya K.",
+      "rating": 5,
+      "comment": "Absolutely breathtaking! The lilac and buttercream tones look even more magical in person. The craftsmanship is flawless and smells wonderful!",
+      "isVerifiedPurchase": true,
+      "createdAt": "2026-11-08T10:00:00Z"
+    },
+    {
+      "id": "rev-2",
+      "productId": "prod-lavender-tulip-bouquet",
+      "userId": "usr-2",
+      "userName": "Sneha Rao",
+      "rating": 5,
+      "comment": "Bought this as an anniversary gift for my sister. She cried tears of joy! Never having to throw away dried flowers is the best thing ever.",
+      "isVerifiedPurchase": true,
+      "createdAt": "2026-11-02T10:00:00Z"
+    },
+    {
+      "id": "rev-3",
+      "productId": "prod-cozy-granny-square-tote",
+      "userId": "usr-3",
+      "userName": "Pooja V.",
+      "rating": 5,
+      "comment": "The canvas lining is so sturdy! Fits my Kindle, wallet, and water bottle easily. Received countless compliments at my college.",
+      "isVerifiedPurchase": true,
+      "createdAt": "2026-11-10T12:00:00Z"
+    }
+  ],
+  "restockNotifications": [],
+  "notifications": [
+    {
+      "id": "notif-1",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1001 for Rs. 1,850.60 placed by Priya Sharma.",
+      "link": "/admin/orders?id=ord-1001",
+      "isRead": false,
+      "createdAt": "2026-11-10T09:30:00Z"
+    },
+    {
+      "id": "notif-2",
+      "type": "CUSTOM_ORDER",
+      "title": "Custom Crochet Request",
+      "message": "New customization request #COR-2026-101 from Priya Sharma: Custom Wedding Couple Amigurumi.",
+      "link": "/admin/custom-orders?id=cor-101",
+      "isRead": false,
+      "createdAt": "2026-11-11T12:00:00Z"
+    },
+    {
+      "id": "notif-3",
+      "type": "STOCK_ALERT",
+      "title": "Product Sold Out",
+      "message": "Blooming Blossom Crochet Coasters (Set of 4) is now out of stock!",
+      "link": "/admin/inventory",
+      "isRead": true,
+      "createdAt": "2026-11-09T10:00:00Z"
+    },
+    {
+      "id": "notif-1794640568635",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1003 for Rs. 1,993.95 placed by Priya Sharma.",
+      "link": "/admin/orders?id=ord-1794640568635",
+      "isRead": false,
+      "createdAt": "2026-11-14T07:16:08.730Z"
+    },
+    {
+      "id": "notif-1794640906827",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1004 for Rs. 1,993.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1794640906827",
+      "isRead": false,
+      "createdAt": "2026-11-14T07:21:46.829Z"
+    },
+    {
+      "id": "notif-1794642346921",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1005 for Rs. 2,832.9 placed by ram.",
+      "link": "/admin/orders?id=ord-1794642346921",
+      "isRead": false,
+      "createdAt": "2026-11-14T07:45:47.029Z"
+    },
+    {
+      "id": "notif-1794642515877",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1006 for Rs. 4,826.85 placed by ram.",
+      "link": "/admin/orders?id=ord-1794642515877",
+      "isRead": false,
+      "createdAt": "2026-11-14T07:48:35.877Z"
+    },
+    {
+      "id": "notif-1794642564308",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1007 for Rs. 937.95 placed by ram.",
+      "link": "/admin/orders?id=ord-1794642564308",
+      "isRead": false,
+      "createdAt": "2026-11-14T07:49:24.308Z"
+    },
+    {
+      "id": "notif-1794642670880",
+      "type": "CUSTOM_ORDER",
+      "title": "New Custom Order Request",
+      "message": "Request #COR-2026-102 from sam: Custom Bouquet & Flowers",
+      "link": "/admin/custom-orders?id=cor-1794642670880",
+      "isRead": false,
+      "createdAt": "2026-11-14T07:51:10.880Z"
+    },
+    {
+      "id": "notif-1794642926110",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1008 for Rs. 3,987.9 placed by Priya Sharma.",
+      "link": "/admin/orders?id=ord-1794642926110",
+      "isRead": false,
+      "createdAt": "2026-11-14T07:55:26.110Z"
+    },
+    {
+      "id": "notif-1794835912441",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1009 for Rs. 3,987.9 placed by rohith.",
+      "link": "/admin/orders?id=ord-1794835912441",
+      "isRead": false,
+      "createdAt": "2026-11-16T13:31:52.544Z"
+    },
+    {
+      "id": "notif-1794923380031",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1010 for Rs. 939 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1794923380031",
+      "isRead": false,
+      "createdAt": "2026-11-17T13:49:40.152Z"
+    },
+    {
+      "id": "notif-1794925549607",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1011 for Rs. 937.95 placed by bhava.",
+      "link": "/admin/orders?id=ord-1794925549607",
+      "isRead": false,
+      "createdAt": "2026-11-17T14:25:49.835Z"
+    },
+    {
+      "id": "notif-1794925619694",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1012 for Rs. 937.95 placed by bhava.",
+      "link": "/admin/orders?id=ord-1794925619694",
+      "isRead": false,
+      "createdAt": "2026-11-17T14:26:59.694Z"
+    },
+    {
+      "id": "notif-1795104679056",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1013 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104679056",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:19.186Z"
+    },
+    {
+      "id": "notif-1795104686924",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1014 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104686924",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:26.925Z"
+    },
+    {
+      "id": "notif-1795104691087",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1015 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104691087",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:31.087Z"
+    },
+    {
+      "id": "notif-1795104692065",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1016 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104692065",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:32.066Z"
+    },
+    {
+      "id": "notif-1795104692482",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1017 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104692482",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:32.483Z"
+    },
+    {
+      "id": "notif-1795104692688",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1018 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104692688",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:32.688Z"
+    },
+    {
+      "id": "notif-1795104692936",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1019 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104692936",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:32.937Z"
+    },
+    {
+      "id": "notif-1795104693140",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1020 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104693140",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:33.140Z"
+    },
+    {
+      "id": "notif-1795104696966",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1021 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795104696966",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:11:36.967Z"
+    },
+    {
+      "id": "notif-1795105872322",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1022 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105872322",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:12.331Z"
+    },
+    {
+      "id": "notif-1795105885061",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1023 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105885061",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:25.061Z"
+    },
+    {
+      "id": "notif-1795105890350",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1024 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105890350",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:30.350Z"
+    },
+    {
+      "id": "notif-1795105891860",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1025 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105891860",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:31.860Z"
+    },
+    {
+      "id": "notif-1795105897902",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1026 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105897902",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:37.902Z"
+    },
+    {
+      "id": "notif-1795105898806",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1027 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105898806",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:38.806Z"
+    },
+    {
+      "id": "notif-1795105914381",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1028 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105914381",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:54.381Z"
+    },
+    {
+      "id": "notif-1795105915872",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1029 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105915872",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:55.872Z"
+    },
+    {
+      "id": "notif-1795105916751",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1030 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105916751",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:56.751Z"
+    },
+    {
+      "id": "notif-1795105917307",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1031 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105917307",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:57.307Z"
+    },
+    {
+      "id": "notif-1795105917532",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1032 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795105917532",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:31:57.533Z"
+    },
+    {
+      "id": "notif-1795106795628",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1033 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795106795628",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:46:35.685Z"
+    },
+    {
+      "id": "notif-1795106800647",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1034 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795106800647",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:46:40.647Z"
+    },
+    {
+      "id": "notif-1795106804838",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1035 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795106804838",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:46:44.838Z"
+    },
+    {
+      "id": "notif-1795106807506",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1036 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795106807506",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:46:47.506Z"
+    },
+    {
+      "id": "notif-1795106808718",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1037 for Rs. 937.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795106808718",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:46:48.718Z"
+    },
+    {
+      "id": "notif-1795107104379",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1038 for Rs. 939 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795107104379",
+      "isRead": false,
+      "createdAt": "2026-11-19T16:51:44.379Z"
+    },
+    {
+      "id": "notif-1795110039207",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1039 for Rs. 5,981.85 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795110039207",
+      "isRead": false,
+      "createdAt": "2026-11-19T17:40:39.318Z"
+    }
+  ]
+}
