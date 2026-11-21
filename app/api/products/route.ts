@@ -142,16 +142,27 @@ export async function POST(req: Request) {
     const imageUrls: string[] = Array.isArray(body.images) ? body.images : body.image ? [body.image] : [];
 
     const adminSupabase = createAdminClient();
+    const serverSupabase = await createClient();
+    const { data: { user } } = await serverSupabase.auth.getUser();
 
     // 1. Resolve category ID
     let categoryId: string | null = null;
     if (body.category || body.categoryId) {
       const catSearch = body.categoryId || body.category;
-      const { data: catData } = await (adminSupabase.from('categories') as any)
+      let { data: catData } = await (adminSupabase.from('categories') as any)
         .select('id')
         .or(`slug.eq.${catSearch},name.ilike.%${catSearch}%`)
         .limit(1)
         .maybeSingle();
+
+      if (!catData && user) {
+        const { data: userCat } = await (serverSupabase.from('categories') as any)
+          .select('id')
+          .or(`slug.eq.${catSearch},name.ilike.%${catSearch}%`)
+          .limit(1)
+          .maybeSingle();
+        catData = userCat;
+      }
 
       if (catData) {
         categoryId = catData.id;
@@ -159,27 +170,45 @@ export async function POST(req: Request) {
     }
 
     // 2. Insert into products table
-    const { data: newProd, error: prodError } = await (adminSupabase.from('products') as any)
-      .insert({
-        name,
-        slug,
-        description,
-        price,
-        stock,
-        category_id: categoryId,
-        is_active: true,
-        is_featured: isFeatured,
-        materials,
-        dimensions,
-        prep_time_days: prepTimeDays,
-        care_instructions: careInstructions,
-      })
+    const productPayload = {
+      name,
+      slug,
+      description,
+      price,
+      stock,
+      category_id: categoryId,
+      is_active: true,
+      is_featured: isFeatured,
+      materials,
+      dimensions,
+      prep_time_days: prepTimeDays,
+      care_instructions: careInstructions,
+    };
+
+    let { data: newProd, error: prodError } = await (adminSupabase.from('products') as any)
+      .insert(productPayload)
       .select()
       .single();
 
+    // If adminSupabase encountered a permission error and user has active session, retry with session client
+    if (prodError && prodError.code === '42501' && user) {
+      const retryRes = await (serverSupabase.from('products') as any)
+        .insert(productPayload)
+        .select()
+        .single();
+      if (!retryRes.error) {
+        newProd = retryRes.data;
+        prodError = null;
+      }
+    }
+
     if (prodError || !newProd) {
       console.error('Product insertion error:', prodError);
-      return NextResponse.json({ success: false, message: prodError?.message || 'Failed to insert product' }, { status: 500 });
+      const friendlyMsg =
+        prodError?.code === '42501'
+          ? 'Database permission denied for table "products". Please run the updated supabase_schema.sql in Supabase SQL Editor (which includes the GRANT permissions) and configure SUPABASE_SERVICE_ROLE_KEY in .env.local.'
+          : prodError?.message || 'Failed to insert product';
+      return NextResponse.json({ success: false, message: friendlyMsg }, { status: 500 });
     }
 
     // 3. Insert images into product_images table
@@ -191,7 +220,10 @@ export async function POST(req: Request) {
         display_order: idx,
       }));
 
-      await (adminSupabase.from('product_images') as any).insert(imageRecords);
+      const imgInsertRes = await (adminSupabase.from('product_images') as any).insert(imageRecords);
+      if (imgInsertRes.error && imgInsertRes.error.code === '42501' && user) {
+        await (serverSupabase.from('product_images') as any).insert(imageRecords);
+      }
     }
 
     // 4. Instant revalidation of storefront pages
@@ -224,6 +256,8 @@ export async function PUT(req: Request) {
     }
 
     const adminSupabase = createAdminClient();
+    const serverSupabase = await createClient();
+    const { data: { user } } = await serverSupabase.auth.getUser();
 
     const updateFields: any = {
       updated_at: new Date().toISOString(),
@@ -237,14 +271,30 @@ export async function PUT(req: Request) {
     if (body.materials !== undefined) updateFields.materials = body.materials;
     if (body.dimensions !== undefined) updateFields.dimensions = body.dimensions;
 
-    const { data: updated, error: updateError } = await (adminSupabase.from('products') as any)
+    let { data: updated, error: updateError } = await (adminSupabase.from('products') as any)
       .update(updateFields)
       .eq('id', body.id)
       .select()
       .single();
 
+    if (updateError && updateError.code === '42501' && user) {
+      const retryRes = await (serverSupabase.from('products') as any)
+        .update(updateFields)
+        .eq('id', body.id)
+        .select()
+        .single();
+      if (!retryRes.error) {
+        updated = retryRes.data;
+        updateError = null;
+      }
+    }
+
     if (updateError || !updated) {
-      return NextResponse.json({ success: false, message: updateError?.message || 'Failed to update product' }, { status: 500 });
+      const friendlyMsg =
+        updateError?.code === '42501'
+          ? 'Database permission denied for updating products. Please execute the updated supabase_schema.sql in Supabase SQL Editor.'
+          : updateError?.message || 'Failed to update product';
+      return NextResponse.json({ success: false, message: friendlyMsg }, { status: 500 });
     }
 
     // If new images provided, sync product_images
@@ -280,20 +330,40 @@ export async function DELETE(req: Request) {
     }
 
     const adminSupabase = createAdminClient();
+    const serverSupabase = await createClient();
+    const { data: { user } } = await serverSupabase.auth.getUser();
 
     // Soft delete: set is_active = false and deleted_at
-    const { data: softDeleted, error } = await (adminSupabase.from('products') as any)
-      .update({
-        is_active: false,
-        deleted_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+    const deletePayload = {
+      is_active: false,
+      deleted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    let { data: softDeleted, error } = await (adminSupabase.from('products') as any)
+      .update(deletePayload)
       .eq('id', id)
       .select('slug')
       .single();
 
+    if (error && error.code === '42501' && user) {
+      const retryRes = await (serverSupabase.from('products') as any)
+        .update(deletePayload)
+        .eq('id', id)
+        .select('slug')
+        .single();
+      if (!retryRes.error) {
+        softDeleted = retryRes.data;
+        error = null;
+      }
+    }
+
     if (error) {
-      return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+      const friendlyMsg =
+        error.code === '42501'
+          ? 'Database permission denied for deleting products. Please execute the updated supabase_schema.sql in Supabase SQL Editor.'
+          : error.message || 'Failed to delete product.';
+      return NextResponse.json({ success: false, message: friendlyMsg }, { status: 500 });
     }
 
     revalidatePath('/');

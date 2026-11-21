@@ -55,21 +55,41 @@ export async function POST(req: Request) {
     const displayOrder = Number(body.displayOrder) || 0;
 
     const adminSupabase = createAdminClient();
-    const { data: newCat, error } = await (adminSupabase.from('categories') as any)
-      .insert({
-        name,
-        slug,
-        description,
-        image_url: imageUrl,
-        display_order: displayOrder,
-        is_active: true,
-      })
+    const serverSupabase = await createClient();
+    const { data: { user } } = await serverSupabase.auth.getUser();
+
+    const catPayload = {
+      name,
+      slug,
+      description,
+      image_url: imageUrl,
+      display_order: displayOrder,
+      is_active: true,
+    };
+
+    let { data: newCat, error } = await (adminSupabase.from('categories') as any)
+      .insert(catPayload)
       .select()
       .single();
 
+    if (error && error.code === '42501' && user) {
+      const retryRes = await (serverSupabase.from('categories') as any)
+        .insert(catPayload)
+        .select()
+        .single();
+      if (!retryRes.error) {
+        newCat = retryRes.data;
+        error = null;
+      }
+    }
+
     if (error) {
       console.error('Category insert error:', error);
-      return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+      const friendlyMsg =
+        error.code === '42501'
+          ? 'Database permission denied for categories. Please run the updated supabase_schema.sql in Supabase SQL Editor.'
+          : error.message;
+      return NextResponse.json({ success: false, message: friendlyMsg }, { status: 500 });
     }
 
     // Instant storefront revalidation
