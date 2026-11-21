@@ -66,12 +66,12 @@ export async function GET(req: Request) {
         o.status === 'making'
           ? 'Making Your Crochet Product'
           : o.status === 'out_for_delivery'
-          ? 'Out for Delivery'
-          : o.status === 'paid'
-          ? 'Order Confirmed'
-          : o.status
-          ? o.status.charAt(0).toUpperCase() + o.status.slice(1)
-          : 'Order Confirmed',
+            ? 'Out for Delivery'
+            : o.status === 'paid'
+              ? 'Order Confirmed'
+              : o.status
+                ? o.status.charAt(0).toUpperCase() + o.status.slice(1)
+                : 'Order Confirmed',
       status: o.status,
       customerNote: o.customer_note || '',
       deliveryMethod: o.delivery_method,

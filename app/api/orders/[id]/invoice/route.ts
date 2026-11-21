@@ -16,14 +16,19 @@ export async function GET(
     }
 
     const adminSupabase = createAdminClient();
-    const { data: dbOrder, error } = await (adminSupabase.from('orders') as any)
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    let orderQuery = (adminSupabase.from('orders') as any)
       .select(`
         *,
         order_items (*),
         order_status_history (*)
-      `)
-      .or(`id.eq.${id},order_number.eq.${id}`)
-      .maybeSingle();
+      `);
+
+    orderQuery = isUuid
+      ? orderQuery.or(`id.eq.${id},order_number.eq.${id}`)
+      : orderQuery.eq('order_number', id);
+
+    const { data: dbOrder, error } = await orderQuery.maybeSingle();
 
     if (error || !dbOrder) {
       return NextResponse.json({ success: false, message: 'Order not found in database' }, { status: 404 });

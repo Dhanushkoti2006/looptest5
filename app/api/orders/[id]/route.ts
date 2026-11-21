@@ -12,20 +12,29 @@ export async function GET(
     const supabase = await createClient();
     const idParam = params.id;
 
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idParam);
+
     // Try customer query first
-    let { data: order, error } = await (supabase.from('orders') as any)
-      .select('*, order_items(*), order_status_history(*)')
-      .or(`id.eq.${idParam},order_number.eq.${idParam}`)
-      .maybeSingle();
+    let customerQuery = (supabase.from('orders') as any)
+      .select('*, order_items(*), order_status_history(*)');
+
+    customerQuery = isUuid
+      ? customerQuery.or(`id.eq.${idParam},order_number.eq.${idParam}`)
+      : customerQuery.eq('order_number', idParam);
+
+    let { data: order, error } = await customerQuery.maybeSingle();
 
     // If customer query returned nothing (e.g. unauthenticated or admin lookup), try admin client
     if (!order) {
       const adminSupabase = createAdminClient();
-      const { data: adminOrder } = await (adminSupabase.from('orders') as any)
-        .select('*, order_items(*), order_status_history(*)')
-        .or(`id.eq.${idParam},order_number.eq.${idParam}`)
-        .maybeSingle();
+      let adminQuery = (adminSupabase.from('orders') as any)
+        .select('*, order_items(*), order_status_history(*)');
 
+      adminQuery = isUuid
+        ? adminQuery.or(`id.eq.${idParam},order_number.eq.${idParam}`)
+        : adminQuery.eq('order_number', idParam);
+
+      const { data: adminOrder } = await adminQuery.maybeSingle();
       order = adminOrder;
     }
 

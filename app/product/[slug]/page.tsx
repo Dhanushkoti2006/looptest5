@@ -9,7 +9,9 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const product = await getProductBySlug(params.slug);
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
+  const product = slug ? await getProductBySlug(slug) : null;
   if (!product) {
     return {
       title: 'Product Not Found | Loop & Love',
@@ -31,8 +33,10 @@ export default async function ProductDetailPage({
 }: {
   params: { slug: string };
 }) {
+  const resolvedParams = await Promise.resolve(params);
+  const slug = resolvedParams?.slug;
   const [product, relatedProducts] = await Promise.all([
-    getProductBySlug(params.slug),
+    slug ? getProductBySlug(slug) : null,
     getActiveProducts({ limit: 4 }),
   ]);
 

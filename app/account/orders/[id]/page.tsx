@@ -111,14 +111,19 @@ export default function OrderDetailPage() {
     setErrorMsg('');
 
     try {
-      const { data, error } = await (supabase.from('orders') as any)
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+      let query = (supabase.from('orders') as any)
         .select(`
           *,
           order_items (*),
           order_status_history (*)
-        `)
-        .or(`id.eq.${orderId},order_number.eq.${orderId}`)
-        .maybeSingle();
+        `);
+
+      query = isUuid
+        ? query.or(`id.eq.${orderId},order_number.eq.${orderId}`)
+        : query.eq('order_number', orderId);
+
+      const { data, error } = await query.maybeSingle();
 
       if (error || !data) {
         setErrorMsg('Order not found. It may have been deleted or the ID is incorrect.');

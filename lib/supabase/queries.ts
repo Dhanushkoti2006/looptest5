@@ -135,18 +135,48 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
     const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
     const supabase = await createClient();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
 
-    const { data: p, error } = await (supabase.from('products') as any)
+    let query = (supabase.from('products') as any)
       .select(`
         *,
         product_images (url, image_url, sort_order, display_order),
         categories (id, name, slug)
       `)
-      .eq('is_active', true)
-      .or(`slug.eq.${cleanSlug},id.eq.${cleanSlug}`)
-      .maybeSingle();
+      .eq('is_active', true);
 
-    if (error || !p) {
+    if (isUuid) {
+      query = query.or(`slug.eq.${cleanSlug},id.eq.${cleanSlug}`);
+    } else {
+      query = query.eq('slug', cleanSlug);
+    }
+
+    let { data: p, error } = await query.maybeSingle();
+
+    if (error) {
+      console.error('Error fetching product by slug:', error);
+    }
+
+    // Fallback: in case product is accessed by case-insensitive slug or without is_active filter
+    if (!p) {
+      const fallbackQuery = (supabase.from('products') as any)
+        .select(`
+          *,
+          product_images (url, image_url, sort_order, display_order),
+          categories (id, name, slug)
+        `);
+
+      const { data: fallbackProduct } = isUuid
+        ? await fallbackQuery.eq('id', cleanSlug).maybeSingle()
+        : await fallbackQuery.ilike('slug', cleanSlug).maybeSingle();
+
+      if (!fallbackProduct) {
+        return null;
+      }
+      p = fallbackProduct;
+    }
+
+    if (!p) {
       return null;
     }
 
