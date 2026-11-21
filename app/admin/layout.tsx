@@ -41,17 +41,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     checkedAuth ||
     user?.email?.toLowerCase() === 'callmedhanush777@gmail.com';
 
+  // Redirect unauthenticated / non-admin users to /admin/login (only if not already on /admin/login)
+  React.useEffect(() => {
+    if (pathname === '/admin/login') return;
+    if (!isLoading && !isAuthorized) {
+      router.replace('/admin/login');
+    }
+  }, [pathname, isLoading, isAuthorized, router]);
+
   // If on login page, render children directly without admin chrome
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
-
-  // Redirect unauthenticated / non-admin users to /admin/login
-  React.useEffect(() => {
-    if (!isLoading && !isAuthorized) {
-      router.replace('/admin/login');
-    }
-  }, [isLoading, isAuthorized, router]);
 
   // If loading or not admin, show secure access checkpoint
   if (isLoading && !isAuthorized) {
@@ -161,11 +162,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 ${
-                  isActive
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all shrink-0 ${isActive
                     ? 'bg-purple-700 text-white shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
+                  }`}
               >
                 <Icon className="w-4 h-4" />
                 <span>{item.label}</span>

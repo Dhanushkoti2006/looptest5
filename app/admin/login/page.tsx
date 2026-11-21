@@ -34,21 +34,6 @@ export default function AdminLoginPage() {
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
-  // If already authenticated, redirect straight to /admin
-  useEffect(() => {
-    if (!isLoading) {
-      const isAuth =
-        isAdmin ||
-        (typeof window !== 'undefined' &&
-          (localStorage.getItem('loop_admin_auth') === 'true' ||
-            document.cookie.includes('loop_admin_auth=true')));
-
-      if (isAuth) {
-        window.location.href = '/admin';
-      }
-    }
-  }, [isAdmin, isLoading]);
-
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setInterval(() => {
