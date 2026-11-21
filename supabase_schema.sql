@@ -19,17 +19,26 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Trigger to auto-create profile row on user registration via Supabase Auth
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+    assigned_role TEXT := 'customer';
+    default_name TEXT := '';
 BEGIN
+    IF LOWER(COALESCE(NEW.email, '')) = 'callmedhanush777@gmail.com' THEN
+        assigned_role := 'admin';
+        default_name := 'Admin Dhanush';
+    END IF;
+
     INSERT INTO public.profiles (id, full_name, phone, role)
     VALUES (
         NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''),
+        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', default_name),
         COALESCE(NEW.raw_user_meta_data->>'phone', ''),
-        'customer'
+        assigned_role
     )
     ON CONFLICT (id) DO UPDATE
     SET 
-        full_name = EXCLUDED.full_name,
+        full_name = CASE WHEN LOWER(COALESCE(NEW.email, '')) = 'callmedhanush777@gmail.com' AND (public.profiles.full_name IS NULL OR public.profiles.full_name = '') THEN 'Admin Dhanush' ELSE EXCLUDED.full_name END,
+        role = CASE WHEN LOWER(COALESCE(NEW.email, '')) = 'callmedhanush777@gmail.com' THEN 'admin' ELSE public.profiles.role END,
         phone = COALESCE(NULLIF(EXCLUDED.phone, ''), public.profiles.phone),
         updated_at = NOW();
     RETURN NEW;
@@ -472,3 +481,12 @@ DROP POLICY IF EXISTS "Admins can delete product images" ON storage.objects;
 CREATE POLICY "Admins can delete product images"
     ON storage.objects FOR DELETE
     USING (bucket_id = 'product-images' AND public.is_admin());
+
+-- ====================================================================
+-- 11. PROMOTE MASTER ADMIN
+-- ====================================================================
+UPDATE public.profiles
+SET role = 'admin', full_name = 'Admin Dhanush', updated_at = NOW()
+WHERE id IN (
+    SELECT id FROM auth.users WHERE LOWER(email) = 'callmedhanush777@gmail.com'
+);

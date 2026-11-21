@@ -57,10 +57,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Error fetching profile from Supabase:', error);
       }
 
-      const email = authEmail || '';
-      const name = profile?.full_name || email.split('@')[0] || 'Handmade Lover';
+      const email = (authEmail || '').toLowerCase();
+      const isAdminEmail = email === 'callmedhanush777@gmail.com';
+      const role = (isAdminEmail || profile?.role === 'admin' ? 'admin' : 'customer') as 'customer' | 'admin';
+      const name = profile?.full_name || (isAdminEmail ? 'Admin Dhanush' : email.split('@')[0] || 'Handmade Lover');
       const phone = profile?.phone || '';
-      const role = (profile?.role === 'admin' ? 'admin' : 'customer') as 'customer' | 'admin';
+
+      // If this is the designated admin email and profile doesn't have role='admin' yet, auto-sync it
+      if (isAdminEmail && profile?.role !== 'admin') {
+        try {
+          await (supabase.from('profiles') as any).upsert({
+            id: authUserId,
+            full_name: name,
+            phone,
+            role: 'admin',
+            updated_at: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.warn('Auto-admin sync warning:', e);
+        }
+      }
 
       const userObj: User = {
         id: authUserId,
@@ -192,22 +208,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: 'Invalid or expired login code. Please try again.' };
       }
 
-      // If fullName or phone was provided during signup, guarantee it in public.profiles
-      const candidateName = extraData?.fullName || (data.user.user_metadata?.full_name as string);
-      const candidatePhone = extraData?.phone || (data.user.user_metadata?.phone as string);
+      // Guarantee profile in public.profiles with correct role
+      const isAdminEmail = cleanEmail === 'callmedhanush777@gmail.com';
+      const candidateName = extraData?.fullName || (data.user.user_metadata?.full_name as string) || (isAdminEmail ? 'Admin Dhanush' : cleanEmail.split('@')[0]);
+      const candidatePhone = extraData?.phone || (data.user.user_metadata?.phone as string) || '';
+      const assignedRole = isAdminEmail ? 'admin' : 'customer';
 
-      if (candidateName || candidatePhone) {
-        try {
-          await (supabase.from('profiles') as any).upsert({
-            id: data.user.id,
-            full_name: candidateName || cleanEmail.split('@')[0],
-            phone: candidatePhone || '',
-            role: 'customer',
-            updated_at: new Date().toISOString(),
-          });
-        } catch (e) {
-          console.warn('Profile upsert warning:', e);
-        }
+      try {
+        await (supabase.from('profiles') as any).upsert({
+          id: data.user.id,
+          full_name: candidateName,
+          phone: candidatePhone,
+          role: assignedRole,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.warn('Profile upsert warning:', e);
       }
 
       const userProfile = await fetchProfile(data.user.id, data.user.email);

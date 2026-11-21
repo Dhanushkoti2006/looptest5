@@ -17,8 +17,7 @@ import {
   Wand2,
 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60; // ISR cache revalidation every 60s
 
 export default async function HomePage() {
   const [categories, allProducts, featuredProducts] = await Promise.all([
