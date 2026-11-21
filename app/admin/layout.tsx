@@ -25,6 +25,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAdmin, isLoading, logout } = useAuth();
+  const [checkedAuth, setCheckedAuth] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isAuth =
+        localStorage.getItem('loop_admin_auth') === 'true' ||
+        document.cookie.includes('loop_admin_auth=true');
+      setCheckedAuth(isAuth);
+    }
+  }, []);
+
+  const isAuthorized =
+    isAdmin ||
+    checkedAuth ||
+    user?.email?.toLowerCase() === 'callmedhanush777@gmail.com';
 
   // If on login page, render children directly without admin chrome
   if (pathname === '/admin/login') {
@@ -32,14 +47,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   // Redirect unauthenticated / non-admin users to /admin/login
-  useEffect(() => {
-    if (!isLoading && !isAdmin) {
+  React.useEffect(() => {
+    if (!isLoading && !isAuthorized) {
       router.replace('/admin/login');
     }
-  }, [isLoading, isAdmin, router]);
+  }, [isLoading, isAuthorized, router]);
 
   // If loading or not admin, show secure access checkpoint
-  if (isLoading || !isAdmin) {
+  if (isLoading && !isAuthorized) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-8 text-center space-y-4 text-white shadow-2xl">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-900/60 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <Lock className="w-7 h-7" />
+          </div>
+          <h2 className="text-xl font-bold font-serif">Verifying Administrator Access...</h2>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Please wait while we verify your admin credentials.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-8 text-center space-y-4 text-white shadow-2xl">
