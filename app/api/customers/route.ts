@@ -8,35 +8,37 @@ export const revalidate = 0;
 
 export async function GET(req: Request) {
   try {
-    const cookieStore = cookies();
-    const adminCookie = cookieStore.get('loop_admin_auth')?.value;
+    let isAuthorized = false;
 
-    let isAuthorized = adminCookie === 'true';
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!isAuthorized) {
-      try {
-        const supabase = await createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+      if (user) {
+        if (user.email?.toLowerCase() === 'callmedhanush777@gmail.com') {
+          isAuthorized = true;
+        } else {
+          const { data: profile } = await (supabase.from('profiles') as any)
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle();
 
-        if (user) {
-          if (user.email?.toLowerCase() === 'callmedhanush777@gmail.com') {
+          if (profile?.role === 'admin') {
             isAuthorized = true;
-          } else {
-            const { data: profile } = await (supabase.from('profiles') as any)
-              .select('role')
-              .eq('id', user.id)
-              .maybeSingle();
-
-            if (profile?.role === 'admin') {
-              isAuthorized = true;
-            }
           }
         }
-      } catch (authErr) {
-        console.warn('Customer API auth check warning:', authErr);
+      } else {
+        // Only if no Supabase customer session is active, allow master admin password cookie
+        const cookieStore = cookies();
+        const adminCookie = cookieStore.get('loop_admin_auth')?.value;
+        if (adminCookie === 'true') {
+          isAuthorized = true;
+        }
       }
+    } catch (authErr) {
+      console.warn('Customer API auth check warning:', authErr);
     }
 
     if (!isAuthorized) {

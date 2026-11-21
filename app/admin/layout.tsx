@@ -44,10 +44,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, []);
 
-  const isAuthorized =
-    isAdmin ||
-    checkedAuth ||
-    user?.email?.toLowerCase() === 'callmedhanush777@gmail.com';
+  // Strict authorization:
+  // If a user session is active, they MUST be the master admin or have role='admin'.
+  // If NO user is logged in, allow the master password admin session (checkedAuth).
+  const isAuthorized = user
+    ? user.role === 'admin' || user.email?.toLowerCase() === 'callmedhanush777@gmail.com'
+    : checkedAuth;
 
   // Redirect unauthenticated / non-admin users to /admin/login (only if not already on /admin/login)
   React.useEffect(() => {

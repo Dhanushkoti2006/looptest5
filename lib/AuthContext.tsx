@@ -110,6 +110,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: profile?.updated_at || new Date().toISOString(),
       };
 
+      if (typeof window !== 'undefined') {
+        if (role === 'admin') {
+          localStorage.setItem('loop_admin_auth', 'true');
+          document.cookie = 'loop_admin_auth=true; path=/; max-age=604800; SameSite=Lax';
+          setLocalAdminAuth(true);
+        } else {
+          // If user is a customer, actively purge any leftover admin credentials
+          localStorage.removeItem('loop_admin_auth');
+          document.cookie = 'loop_admin_auth=; path=/; max-age=0; SameSite=Lax';
+          setLocalAdminAuth(false);
+        }
+      }
+
       setUser(userObj);
       return userObj;
     } catch (e) {
@@ -306,12 +319,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!error && data?.user) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('loop_admin_auth', 'true');
-          document.cookie = 'loop_admin_auth=true; path=/; max-age=604800; SameSite=Lax';
-          setLocalAdminAuth(true);
-        }
         const profile = await fetchProfile(data.user.id, data.user.email);
+        const isUserAdmin =
+          profile?.role === 'admin' ||
+          data.user.email?.toLowerCase() === 'callmedhanush777@gmail.com';
+
+        if (typeof window !== 'undefined') {
+          if (isUserAdmin) {
+            localStorage.setItem('loop_admin_auth', 'true');
+            document.cookie = 'loop_admin_auth=true; path=/; max-age=604800; SameSite=Lax';
+            setLocalAdminAuth(true);
+          } else {
+            localStorage.removeItem('loop_admin_auth');
+            document.cookie = 'loop_admin_auth=; path=/; max-age=0; SameSite=Lax';
+            setLocalAdminAuth(false);
+          }
+        }
         return {
           success: true,
           message: 'Signed in successfully!',
@@ -401,10 +424,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.warn('Sandbox auth is disabled. Please sign in with your email OTP.');
   };
 
-  const isAdmin =
-    user?.role === 'admin' ||
-    user?.email?.toLowerCase() === 'callmedhanush777@gmail.com' ||
-    localAdminAuth;
+  // Strictly guard administrator authority:
+  // If a user is logged in, their role/email strictly dictates admin status.
+  // A customer MUST NEVER be marked as admin via leftover local cookies or localStorage.
+  const isAdmin = user
+    ? user.role === 'admin' || user.email?.toLowerCase() === 'callmedhanush777@gmail.com'
+    : localAdminAuth;
 
   return (
     <AuthContext.Provider

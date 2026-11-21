@@ -58,20 +58,13 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login');
 
   if (isAdminRoute) {
-    // 1. Allow if master admin cookie is verified
-    const adminCookie = request.cookies.get('loop_admin_auth')?.value;
-    if (adminCookie === 'true') {
-      return supabaseResponse;
-    }
-
-    // 2. Allow if logged-in user is designated admin email
-    const userEmail = (user?.email || '').toLowerCase();
-    if (userEmail === 'callmedhanush777@gmail.com') {
-      return supabaseResponse;
-    }
-
-    // 3. Allow if user has admin role in profiles
+    // 1. If a user is logged in via Supabase, strictly verify their admin authorization
     if (user) {
+      const userEmail = (user.email || '').toLowerCase();
+      if (userEmail === 'callmedhanush777@gmail.com') {
+        return supabaseResponse;
+      }
+
       try {
         const { data: profile } = await supabase
           .from('profiles')
@@ -85,9 +78,24 @@ export async function middleware(request: NextRequest) {
       } catch (err) {
         console.error('Middleware profile check error:', err);
       }
+
+      // Logged in user is a customer, NOT an admin!
+      // Deny access, wipe any lingering admin cookie, and redirect to login
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = '/admin/login';
+      redirectUrl.searchParams.set('error', 'customer_access_denied');
+      const deniedResponse = NextResponse.redirect(redirectUrl);
+      deniedResponse.cookies.delete('loop_admin_auth');
+      return deniedResponse;
     }
 
-    // Not authorized - redirect to admin login
+    // 2. If NO Supabase user is logged in, allow standalone master password admin session
+    const adminCookie = request.cookies.get('loop_admin_auth')?.value;
+    if (adminCookie === 'true') {
+      return supabaseResponse;
+    }
+
+    // 3. Not authorized - redirect to admin login
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/admin/login';
     redirectUrl.searchParams.set('redirect', pathname);

@@ -112,7 +112,44 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, count: orders?.length || 0, orders: (orders || []).map(formatOrder) }, { headers: noCacheHeaders });
     }
 
-    // Admin query
+    // Admin query - strictly verify administrator privileges
+    let isAuthorized = false;
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        if (user.email?.toLowerCase() === 'callmedhanush777@gmail.com') {
+          isAuthorized = true;
+        } else {
+          const { data: profile } = await (supabase.from('profiles') as any)
+            .select('role')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (profile?.role === 'admin') {
+            isAuthorized = true;
+          }
+        }
+      } else {
+        const { cookies } = await import('next/headers');
+        const adminCookie = cookies().get('loop_admin_auth')?.value;
+        if (adminCookie === 'true') {
+          isAuthorized = true;
+        }
+      }
+    } catch (e) {
+      console.warn('Orders admin auth check warning:', e);
+    }
+
+    if (!isAuthorized) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized. Store admin credentials required.' },
+        { status: 403, headers: noCacheHeaders }
+      );
+    }
+
     const adminSupabase = createAdminClient();
     const { data: allOrders, error } = await (adminSupabase.from('orders') as any)
       .select('*, order_items(*)')
