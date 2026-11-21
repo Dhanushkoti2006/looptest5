@@ -419,6 +419,11 @@ CREATE POLICY "Customers can read own orders"
     ON public.orders FOR SELECT
     USING (auth.uid() = user_id OR public.is_admin());
 
+DROP POLICY IF EXISTS "Enable insert for orders" ON public.orders;
+CREATE POLICY "Enable insert for orders"
+    ON public.orders FOR INSERT
+    WITH CHECK (true);
+
 DROP POLICY IF EXISTS "Admins can update orders" ON public.orders;
 CREATE POLICY "Admins can update orders"
     ON public.orders FOR UPDATE
@@ -437,6 +442,11 @@ CREATE POLICY "Customers can read own order items"
         )
     );
 
+DROP POLICY IF EXISTS "Enable insert for order items" ON public.order_items;
+CREATE POLICY "Enable insert for order items"
+    ON public.order_items FOR INSERT
+    WITH CHECK (true);
+
 -- ORDER STATUS HISTORY RLS
 DROP POLICY IF EXISTS "Customers can read own order history" ON public.order_status_history;
 CREATE POLICY "Customers can read own order history"
@@ -448,6 +458,11 @@ CREATE POLICY "Customers can read own order history"
               AND (o.user_id = auth.uid() OR public.is_admin())
         )
     );
+
+DROP POLICY IF EXISTS "Enable insert for order status history" ON public.order_status_history;
+CREATE POLICY "Enable insert for order status history"
+    ON public.order_status_history FOR INSERT
+    WITH CHECK (true);
 
 -- ====================================================================
 -- SUPABASE STORAGE BUCKET: 'product-images'
