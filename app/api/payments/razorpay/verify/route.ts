@@ -81,10 +81,15 @@ export async function POST(req: Request) {
     const adminSupabase = createAdminClient();
 
     // 1. Locate order in Supabase
-    const { data: order, error: orderErr } = await (adminSupabase.from('orders') as any)
-      .select('*, order_items(*)')
-      .or(`id.eq.${orderId},order_number.eq.${orderId}`)
-      .maybeSingle();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(orderId).trim());
+    let orderQuery = (adminSupabase.from('orders') as any).select('*, order_items(*)');
+    if (isUuid) {
+      orderQuery = orderQuery.or(`id.eq.${orderId},order_number.eq.${orderId}`);
+    } else {
+      orderQuery = orderQuery.eq('order_number', String(orderId).trim());
+    }
+
+    const { data: order, error: orderErr } = await orderQuery.maybeSingle();
 
     if (orderErr || !order) {
       return NextResponse.json(
