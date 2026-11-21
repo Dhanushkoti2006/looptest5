@@ -126,7 +126,7 @@
       ],
       "materials": "100% Milk Cotton Yarn, Fiberfill, Stainless Steel Keyring",
       "dimensions": "Height: 9 cm | Width: 6 cm",
-      "stock": 8,
+      "stock": 6,
       "sku": "LL-PROD-8673",
       "prepTimeDays": 2,
       "careInstructions": "Spot clean only with a slightly damp cloth.",
@@ -173,7 +173,7 @@
       ],
       "materials": "100% Premium Milk Cotton Yarn, Polyester Fiberfill, Embroidered Felt Accents",
       "dimensions": "Height: 25 cm",
-      "stock": 11,
+      "stock": 10,
       "sku": "LL-TOY-002",
       "prepTimeDays": 2,
       "careInstructions": "Spot clean with mild soapy water or gentle hand wash. Lay flat to dry.",
@@ -2954,6 +2954,216 @@
       "updatedAt": "2026-11-21T05:41:41.488Z",
       "razorpayPaymentId": "pay_U2iIeqhXOfg1Fy",
       "razorpaySignature": "b6d97be4fa8eba032da8bfe4d98babfe91dc61687bb39308e516f31994e2abde"
+    },
+    {
+      "userId": "7208621a-3e0e-4c1e-bc8d-89fd95e0ebda",
+      "customerName": "dhansuh",
+      "customerEmail": "dhansuhkotis8@gmail.com",
+      "customerPhone": "9025283958",
+      "items": [
+        {
+          "id": "oi-1795246673820-u26h",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Classic Red & Blue",
+          "size": "Standard (25 cm)",
+          "unitPrice": 1899,
+          "quantity": 1,
+          "totalPrice": 1899
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795246673638",
+        "userId": "7208621a-3e0e-4c1e-bc8d-89fd95e0ebda",
+        "name": "dhansuh",
+        "phone": "9025283958",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-21T07:37:53.638Z"
+      },
+      "subtotal": 1899,
+      "shippingCharge": 0,
+      "taxAmount": 94.95,
+      "discountAmount": 0,
+      "totalAmount": 1993.95,
+      "paymentStatus": "SUCCESS",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_U2kHhTGuPZZBLT",
+      "orderStatus": "Order Confirmed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-21T07:37:54.101Z",
+          "note": "Order initiated, awaiting verified payment."
+        },
+        {
+          "status": "Payment Verified",
+          "timestamp": "2026-11-21T07:39:19.437Z",
+          "note": "Payment successfully verified via Razorpay ID: pay_U2kI9FhFUUMndP"
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-21T07:39:19.437Z",
+          "note": "Order confirmed and queued for artisan crafting."
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-21T07:39:19.440Z",
+          "note": "Payment verified and inventory reserved."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795246674101",
+      "orderNumber": "LL-2026-1042",
+      "createdAt": "2026-11-21T07:37:54.101Z",
+      "updatedAt": "2026-11-21T07:39:19.440Z",
+      "razorpayPaymentId": "pay_U2kI9FhFUUMndP",
+      "razorpaySignature": "01a0851ecfe7fe955c488ebb811f0a52ae26d0cc10d0c95df78d50e71362f7e1"
+    },
+    {
+      "userId": "7208621a-3e0e-4c1e-bc8d-89fd95e0ebda",
+      "customerName": "dhansuhkotis8",
+      "customerEmail": "dhansuhkotis8@gmail.com",
+      "customerPhone": "789989776",
+      "items": [
+        {
+          "id": "oi-1795246791010-ye9o",
+          "productId": "prod-1794922878678-hq6n",
+          "productName": "batman",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8blEikMyOjaBH4MhGcGqPy-8ocKBBzOnAym9wFWCviq4OWT7IQLWsMJIb&s=10",
+          "color": "Midnight Black & Yellow",
+          "size": "Standard Charm (9 cm)",
+          "unitPrice": 800,
+          "quantity": 1,
+          "totalPrice": 800
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795246790462",
+        "userId": "7208621a-3e0e-4c1e-bc8d-89fd95e0ebda",
+        "name": "dhansuhkotis8",
+        "phone": "789989776",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-21T07:39:50.462Z"
+      },
+      "subtotal": 800,
+      "shippingCharge": 99,
+      "taxAmount": 40,
+      "discountAmount": 0,
+      "totalAmount": 939,
+      "paymentStatus": "SUCCESS",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_U2kJlFyGHjix21",
+      "orderStatus": "Order Confirmed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-21T07:39:51.152Z",
+          "note": "Order initiated, awaiting verified payment."
+        },
+        {
+          "status": "Payment Verified",
+          "timestamp": "2026-11-21T07:40:13.268Z",
+          "note": "Payment successfully verified via Razorpay ID: pay_U2kJsjya9auLIO"
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-21T07:40:13.268Z",
+          "note": "Order confirmed and queued for artisan crafting."
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-21T07:40:13.274Z",
+          "note": "Payment verified and inventory reserved."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795246791152",
+      "orderNumber": "LL-2026-1043",
+      "createdAt": "2026-11-21T07:39:51.152Z",
+      "updatedAt": "2026-11-21T07:40:13.274Z",
+      "razorpayPaymentId": "pay_U2kJsjya9auLIO",
+      "razorpaySignature": "abd93494402038479f2a321a30819c5da19dd7aac5c42cb1bb5f9a14d75a5b95"
+    },
+    {
+      "userId": "b249569c-5551-4feb-b8f1-86edc6da86e4",
+      "customerName": "kavin",
+      "customerEmail": "dhanuskotis8@gmail.com",
+      "customerPhone": "9024344322",
+      "items": [
+        {
+          "id": "oi-1795247939660-5ft8",
+          "productId": "prod-1794922878678-hq6n",
+          "productName": "batman",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8blEikMyOjaBH4MhGcGqPy-8ocKBBzOnAym9wFWCviq4OWT7IQLWsMJIb&s=10",
+          "color": "Midnight Black & Yellow",
+          "size": "Standard Charm (9 cm)",
+          "unitPrice": 800,
+          "quantity": 1,
+          "totalPrice": 800
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795247938735",
+        "userId": "b249569c-5551-4feb-b8f1-86edc6da86e4",
+        "name": "kavin",
+        "phone": "9024344322",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-21T07:58:58.735Z"
+      },
+      "subtotal": 800,
+      "shippingCharge": 99,
+      "taxAmount": 40,
+      "discountAmount": 0,
+      "totalAmount": 939,
+      "paymentStatus": "SUCCESS",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_U2kdzDsVHGkYIj",
+      "orderStatus": "Order Confirmed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-21T07:58:59.989Z",
+          "note": "Order initiated, awaiting verified payment."
+        },
+        {
+          "status": "Payment Verified",
+          "timestamp": "2026-11-21T07:59:29.507Z",
+          "note": "Payment successfully verified via Razorpay ID: pay_U2ke9mjbWkDMJt"
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-21T07:59:29.507Z",
+          "note": "Order confirmed and queued for artisan crafting."
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-21T07:59:29.511Z",
+          "note": "Payment verified and inventory reserved."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795247939989",
+      "orderNumber": "LL-2026-1044",
+      "createdAt": "2026-11-21T07:58:59.989Z",
+      "updatedAt": "2026-11-21T07:59:29.511Z",
+      "razorpayPaymentId": "pay_U2ke9mjbWkDMJt",
+      "razorpaySignature": "6f0615c03547443e3bf25e0676ca1df7e76aaeb0a3fc529ffc419de0739f894f"
     }
   ],
   "customOrders": [
@@ -3533,6 +3743,33 @@
       "link": "/admin/orders?id=ord-1795239675603",
       "isRead": false,
       "createdAt": "2026-11-21T05:41:15.603Z"
+    },
+    {
+      "id": "notif-1795246674101",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1042 for Rs. 1,993.95 placed by dhansuh.",
+      "link": "/admin/orders?id=ord-1795246674101",
+      "isRead": false,
+      "createdAt": "2026-11-21T07:37:54.278Z"
+    },
+    {
+      "id": "notif-1795246791152",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1043 for Rs. 939 placed by dhansuhkotis8.",
+      "link": "/admin/orders?id=ord-1795246791152",
+      "isRead": false,
+      "createdAt": "2026-11-21T07:39:51.152Z"
+    },
+    {
+      "id": "notif-1795247939989",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1044 for Rs. 939 placed by kavin.",
+      "link": "/admin/orders?id=ord-1795247939989",
+      "isRead": false,
+      "createdAt": "2026-11-21T07:59:00.030Z"
     }
   ]
 }

@@ -55,28 +55,6 @@ export default function HomePage() {
   ]);
 
   useEffect(() => {
-    // 1. Immediately load local overrides so the homepage is 100% resilient across lambda restarts
-    try {
-      const localHero = localStorage.getItem('loop_and_love_hero_slides');
-      if (localHero) {
-        const parsed = JSON.parse(localHero);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setHeroSlides(parsed);
-        }
-      }
-    } catch {}
-
-    try {
-      const localProducts = localStorage.getItem('loop_custom_products');
-      if (localProducts) {
-        const parsed = JSON.parse(localProducts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProducts(parsed);
-        }
-      }
-    } catch {}
-
-    // 2. Fetch fresh live data from the server with cache disabled
     fetch('/api/hero', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
@@ -90,22 +68,7 @@ export default function HomePage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.products && Array.isArray(data.products)) {
-          setProducts((currentProds) => {
-            // Merge custom products from local storage if any
-            try {
-              const local = localStorage.getItem('loop_custom_products');
-              if (local) {
-                const custom = JSON.parse(local) as Product[];
-                if (Array.isArray(custom)) {
-                  // Put custom/newly added products first, avoid duplicates
-                  const customIds = new Set(custom.map((c) => c.id));
-                  const serverOnly = data.products.filter((p: Product) => !customIds.has(p.id));
-                  return [...custom, ...serverOnly];
-                }
-              }
-            } catch {}
-            return data.products;
-          });
+          setProducts(data.products);
         }
       })
       .catch((err) => console.error('Error fetching products:', err));

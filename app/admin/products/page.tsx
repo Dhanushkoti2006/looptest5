@@ -75,37 +75,13 @@ export default function AdminProductsPage() {
   const fetchProducts = () => {
     setLoading(true);
 
-    try {
-      const local = localStorage.getItem('loop_custom_products');
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProducts(parsed);
-          setLoading(false);
-        }
-      }
-    } catch {}
-
     Promise.all([
       fetch('/api/products', { cache: 'no-store' }).then((r) => r.json()),
       fetch('/api/categories', { cache: 'no-store' }).then((r) => r.json()),
     ])
       .then(([prodData, catData]) => {
         if (prodData.products && Array.isArray(prodData.products)) {
-          setProducts((current) => {
-            try {
-              const local = localStorage.getItem('loop_custom_products');
-              if (local) {
-                const custom = JSON.parse(local) as Product[];
-                if (Array.isArray(custom)) {
-                  const customIds = new Set(custom.map((c) => c.id));
-                  const serverOnly = prodData.products.filter((p: Product) => !customIds.has(p.id));
-                  return [...custom, ...serverOnly];
-                }
-              }
-            } catch {}
-            return prodData.products;
-          });
+          setProducts(prodData.products);
         }
         if (catData.categories) {
           setCategories(catData.categories);
@@ -449,18 +425,8 @@ export default function AdminProductsPage() {
         ...payload,
       };
 
-      setProducts((prev) => {
-        const next = editingProduct
-          ? prev.map((p) => (p.id === prodToSave.id ? prodToSave : p))
-          : [prodToSave, ...prev];
-        try {
-          localStorage.setItem('loop_custom_products', JSON.stringify(next));
-        } catch {}
-        return next;
-      });
-
       setIsModalOpen(false);
-      setSuccessToast(editingProduct ? 'Product & specific page customized successfully!' : 'New product created successfully!');
+      setSuccessToast(editingProduct ? 'Product customized successfully in Supabase!' : 'New product created successfully in Supabase!');
       setTimeout(() => setSuccessToast(''), 4000);
       fetchProducts();
     } catch (err) {
@@ -475,9 +441,6 @@ export default function AdminProductsPage() {
       p.id === product.id ? { ...p, isFeatured: nextFeatured } : p
     );
     setProducts(updated);
-    try {
-      localStorage.setItem('loop_custom_products', JSON.stringify(updated));
-    } catch {}
 
     try {
       await fetch('/api/products', {

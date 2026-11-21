@@ -33,7 +33,31 @@ export default function CustomOrdersPage() {
     new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
   );
   const [referenceImageUrl, setReferenceImageUrl] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [additionalNotes, setAdditionalNotes] = useState('');
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        setReferenceImageUrl(data.url);
+      }
+    } catch (err) {
+      console.warn('Image upload error:', err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const [loading, setLoading] = useState(false);
   const [submittedData, setSubmittedData] = useState<any>(null);
@@ -317,20 +341,38 @@ export default function CustomOrdersPage() {
                 </div>
               </div>
 
-              {/* Reference Image link */}
+              {/* Reference Image link & Upload */}
               <div>
                 <label className="text-xs font-bold text-gray-700 block mb-1">
-                  Reference Image Link / Photo URL (Optional)
+                  Reference Image / Photo (Optional)
                 </label>
-                <input
-                  type="url"
-                  placeholder="Paste link to Pinterest / Instagram / Imgur image..."
-                  value={referenceImageUrl}
-                  onChange={(e) => setReferenceImageUrl(e.target.value)}
-                  className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
-                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="url"
+                    placeholder="Paste link to Pinterest / Instagram / photo..."
+                    value={referenceImageUrl}
+                    onChange={(e) => setReferenceImageUrl(e.target.value)}
+                    className="flex-1 text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
+                  />
+                  <label className="px-4 py-3 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-xl border border-brand-200 cursor-pointer flex items-center justify-center gap-1.5 shrink-0 transition-colors">
+                    <Upload className="w-4 h-4 text-brand-600" />
+                    <span>{uploadingImage ? 'Uploading...' : 'Upload Photo'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                </div>
+                {referenceImageUrl && (
+                  <p className="text-[11px] text-emerald-700 font-medium mt-1">
+                    ✓ Reference image attached
+                  </p>
+                )}
                 <span className="text-[11px] text-gray-400 mt-1 block">
-                  You can also message reference photos to our WhatsApp team after submitting.
+                  You can upload a screenshot or paste a link.
                 </span>
               </div>
 

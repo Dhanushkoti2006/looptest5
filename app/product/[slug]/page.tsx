@@ -76,49 +76,19 @@ export default function ProductDetailPage() {
       });
     };
 
-    // 1. Try resolving immediately from localStorage if available
-    let resolvedFromLocal = false;
-    try {
-      const local = localStorage.getItem('loop_custom_products');
-      if (local) {
-        const parsed = JSON.parse(local) as Product[];
-        if (Array.isArray(parsed)) {
-          const match = findMatchingProduct(parsed);
-          if (match) {
-            setupFoundProduct(match, parsed);
-            resolvedFromLocal = true;
-          }
-        }
-      }
-    } catch { }
-
-    // 2. Fetch fresh live data from the server
     fetch('/api/products', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.products && Array.isArray(data.products)) {
-          let allProducts: Product[] = data.products;
-          try {
-            const local = localStorage.getItem('loop_custom_products');
-            if (local) {
-              const custom = JSON.parse(local) as Product[];
-              if (Array.isArray(custom)) {
-                const customIds = new Set(custom.map((c) => c.id));
-                const serverOnly = data.products.filter((p: Product) => !customIds.has(p.id));
-                allProducts = [...custom, ...serverOnly];
-              }
-            }
-          } catch { }
-
-          const match = findMatchingProduct(allProducts);
+          const match = findMatchingProduct(data.products);
           if (match) {
-            setupFoundProduct(match, allProducts);
-          } else if (!resolvedFromLocal) {
+            setupFoundProduct(match, data.products);
+          } else {
             setProduct(null);
           }
         }
       })
-      .catch((err) => console.error('Product fetch error:', err))
+      .catch((err) => console.error('Error fetching product detail:', err))
       .finally(() => setLoading(false));
   }, [rawSlug]);
 
@@ -143,6 +113,16 @@ export default function ProductDetailPage() {
       .filter((p: Product) => p.id !== found.id && p.categoryId === found.categoryId)
       .slice(0, 4);
     setRelatedProducts(related.length > 0 ? related : allList.filter((p) => p.id !== found.id).slice(0, 4));
+
+    // Fetch approved reviews from Supabase
+    fetch(`/api/reviews?productId=${found.id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.reviews && Array.isArray(d.reviews)) {
+          setReviews(d.reviews);
+        }
+      })
+      .catch(() => {});
   };
 
   const handleSelectColor = (v: ProductVariant) => {
@@ -220,33 +200,49 @@ export default function ProductDetailPage() {
     }
   };
 
-  const handleRestockSubmit = (e: React.FormEvent) => {
+  const handleRestockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (restockEmail.trim()) {
+    if (!restockEmail.trim() || !product) return;
+
+    try {
+      await fetch('/api/notify-me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: restockEmail.trim(), productId: product.id }),
+      });
       setRestockRegistered(true);
       setRestockEmail('');
+    } catch (err) {
+      console.warn('Restock error:', err);
     }
   };
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !product) return;
 
-    const newRev: Review = {
-      id: `rev-${Date.now()}`,
-      productId: product.id,
-      userId: user?.id || 'guest',
-      userName: user?.name || 'Crochet Collector',
-      rating: newRating,
-      comment: newComment,
-      isVerifiedPurchase: true,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: product.id,
+          userId: user?.id,
+          rating: newRating,
+          comment: newComment.trim(),
+        }),
+      });
 
-    setReviews([newRev, ...reviews]);
-    setNewComment('');
-    setReviewSubmitted(true);
-    setTimeout(() => setReviewSubmitted(false), 3000);
+      const data = await res.json();
+      if (data.success && data.review) {
+        setReviews([data.review, ...reviews]);
+        setNewComment('');
+        setReviewSubmitted(true);
+        setTimeout(() => setReviewSubmitted(false), 4000);
+      }
+    } catch (err) {
+      console.warn('Review submit error:', err);
+    }
   };
 
   const galleryImages =

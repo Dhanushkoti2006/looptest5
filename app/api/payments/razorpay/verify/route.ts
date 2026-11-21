@@ -1,13 +1,28 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { verifyRazorpaySignature } from '@/lib/razorpay';
+import crypto from 'crypto';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
+
+function verifyRazorpaySignature(orderId: string, paymentId: string, signature: string): boolean {
+  const secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!secret) {
+    // If no secret configured (development/sandbox mode), permit simulation
+    return true;
+  }
+  try {
+    const text = `${orderId}|${paymentId}`;
+    const generated = crypto.createHmac('sha256', secret).update(text).digest('hex');
+    return generated === signature;
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature, order: clientOrder } = body;
+    const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } = body;
 
     if (!orderId || !razorpayPaymentId) {
       return NextResponse.json(
@@ -16,105 +31,70 @@ export async function POST(req: Request) {
       );
     }
 
-    // Attempt to locate order in db or restore from clientOrder if serverless instance rotated
-    let order = db.getOrderById(orderId);
-    if (!order && clientOrder) {
-      order = clientOrder;
-      try {
-        db.createOrder({
-          ...clientOrder,
-          statusHistory: clientOrder.statusHistory || [],
-        });
-      } catch (e) {
-        console.warn('Could not re-insert order in memory db:', e);
-      }
+    const adminSupabase = createAdminClient();
+
+    // 1. Locate order in Supabase
+    const { data: order, error: orderErr } = await (adminSupabase.from('orders') as any)
+      .select('*, order_items(*)')
+      .or(`id.eq.${orderId},order_number.eq.${orderId}`)
+      .maybeSingle();
+
+    if (orderErr || !order) {
+      return NextResponse.json(
+        { success: false, message: 'Order record not found.' },
+        { status: 404 }
+      );
     }
 
-    if (!order) {
-      // Create resilient order record so customer purchase is never dropped
-      order = db.createOrder({
-        userId: 'guest',
-        customerName: 'Valued Customer',
-        customerEmail: 'customer@loopandlove.com',
-        customerPhone: '',
-        items: [],
-        shippingAddress: {
-          id: `addr-${Date.now()}`,
-          userId: 'guest',
-          name: 'Valued Customer',
-          phone: '',
-          street: 'Verified Delivery Address',
-          city: 'India',
-          state: 'India',
-          pincode: '000000',
-          isDefault: true,
-          createdAt: new Date().toISOString(),
-        },
-        subtotal: 0,
-        shippingCharge: 0,
-        taxAmount: 0,
-        discountAmount: 0,
-        totalAmount: 0,
-        paymentStatus: 'SUCCESS',
-        paymentMethod: 'Razorpay (Online Payment)',
-        razorpayOrderId: razorpayOrderId || '',
-        orderStatus: 'Payment Verified',
-        statusHistory: [],
-      });
-    }
-
-    // Verify signature with robust fallback for test keys & real payments
-    const isSignatureValid = verifyRazorpaySignature(
-      razorpayOrderId || order.razorpayOrderId || '',
+    // 2. Verify signature
+    const isValid = verifyRazorpaySignature(
+      razorpayOrderId || order.razorpay_order_id || '',
       razorpayPaymentId,
-      razorpaySignature || 'simulated_signature'
+      razorpaySignature || ''
     );
 
-    if (!isSignatureValid) {
+    if (!isValid) {
       return NextResponse.json(
-        { success: false, message: 'Payment signature verification failed.' },
+        { success: false, message: 'Payment verification failed: invalid signature.' },
         { status: 400 }
       );
     }
 
-    // Update order with verified payment details
-    order.paymentStatus = 'SUCCESS';
-    order.razorpayPaymentId = razorpayPaymentId;
-    order.razorpaySignature = razorpaySignature;
-    order.orderStatus = 'Payment Verified';
+    const now = new Date().toISOString();
 
-    if (!order.statusHistory) order.statusHistory = [];
-    order.statusHistory.push({
-      status: 'Payment Verified',
-      timestamp: new Date().toISOString(),
-      note: `Payment successfully verified via Razorpay ID: ${razorpayPaymentId}`,
-    });
+    // 3. Update order payment status in Supabase
+    const { data: updatedOrder, error: updateErr } = await (adminSupabase.from('orders') as any)
+      .update({
+        payment_status: 'paid',
+        status: 'paid',
+        razorpay_payment_id: razorpayPaymentId,
+        razorpay_order_id: razorpayOrderId || order.razorpay_order_id,
+        updated_at: now,
+      })
+      .eq('id', order.id)
+      .select()
+      .single();
 
-    order.statusHistory.push({
-      status: 'Order Confirmed',
-      timestamp: new Date().toISOString(),
-      note: 'Order confirmed and queued for artisan crafting.',
-    });
-
-    // Reduce inventory for each item
-    if (order.items && Array.isArray(order.items)) {
-      for (const item of order.items) {
-        db.reduceStock(item.productId, item.quantity);
-      }
+    if (updateErr) {
+      console.error('Failed to update order payment in Supabase:', updateErr);
+      return NextResponse.json({ success: false, message: 'Database update failed.' }, { status: 500 });
     }
 
-    db.updateOrderStatus(order.id, 'Order Confirmed', 'Payment verified and inventory reserved.');
+    // 4. Record in order_status_history
+    await (adminSupabase.from('order_status_history') as any).insert({
+      order_id: order.id,
+      status: 'paid',
+      notes: `Payment verified via Razorpay ID: ${razorpayPaymentId}`,
+      created_at: now,
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'Payment successfully verified and order confirmed!',
-      order,
+      message: 'Payment successfully verified!',
+      order: updatedOrder,
     });
   } catch (error) {
-    console.error('Payment verification API error:', error);
-    return NextResponse.json(
-      { success: false, message: 'Payment verification failed' },
-      { status: 500 }
-    );
+    console.error('Payment verification exception:', error);
+    return NextResponse.json({ success: false, message: 'Payment verification failed' }, { status: 500 });
   }
 }

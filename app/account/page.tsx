@@ -276,25 +276,22 @@ export default function AccountPage() {
       <div className="flex gap-2 border-b border-canvas-border pb-4 mb-8 text-xs font-semibold">
         <button
           onClick={() => setActiveTab('ORDERS')}
-          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
-            activeTab === 'ORDERS' ? 'bg-brand-800 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
-          }`}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${activeTab === 'ORDERS' ? 'bg-brand-800 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
+            }`}
         >
           <Package className="w-4 h-4" /> My Orders ({orders.length})
         </button>
         <button
           onClick={() => setActiveTab('CUSTOM_ORDERS')}
-          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
-            activeTab === 'CUSTOM_ORDERS' ? 'bg-brand-800 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
-          }`}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${activeTab === 'CUSTOM_ORDERS' ? 'bg-brand-800 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
+            }`}
         >
           <Wand2 className="w-4 h-4" /> Custom Requests ({customOrders.length})
         </button>
         <button
           onClick={() => setActiveTab('PROFILE')}
-          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
-            activeTab === 'PROFILE' ? 'bg-brand-800 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
-          }`}
+          className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${activeTab === 'PROFILE' ? 'bg-brand-800 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
+            }`}
         >
           <User className="w-4 h-4" /> Profile & Details
         </button>
@@ -554,11 +551,10 @@ export default function AccountPage() {
 
             {cancelFeedback && (
               <div
-                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
-                  cancelFeedback.isError
+                className={`p-3 rounded-xl text-xs flex items-center gap-2 ${cancelFeedback.isError
                     ? 'bg-rose-50 text-rose-800 border border-rose-200'
                     : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                }`}
+                  }`}
               >
                 {cancelFeedback.isError ? (
                   <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />

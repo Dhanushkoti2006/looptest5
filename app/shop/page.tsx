@@ -44,37 +44,12 @@ function ShopContent() {
   }, [searchParams]);
 
   useEffect(() => {
-    // 1. Immediately load local custom products if present
-    try {
-      const local = localStorage.getItem('loop_custom_products');
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProducts(parsed);
-          setLoading(false);
-        }
-      }
-    } catch {}
-
-    // 2. Fetch fresh live data with cache disabled
+    setLoading(true);
     fetch('/api/products', { cache: 'no-store' })
       .then((res) => res.json())
       .then((prodData) => {
         if (prodData.products && Array.isArray(prodData.products)) {
-          setProducts((current) => {
-            try {
-              const local = localStorage.getItem('loop_custom_products');
-              if (local) {
-                const custom = JSON.parse(local) as Product[];
-                if (Array.isArray(custom)) {
-                  const customIds = new Set(custom.map((c) => c.id));
-                  const serverOnly = prodData.products.filter((p: Product) => !customIds.has(p.id));
-                  return [...custom, ...serverOnly];
-                }
-              }
-            } catch {}
-            return prodData.products;
-          });
+          setProducts(prodData.products);
         }
       })
       .catch((err) => console.error('Fetch error:', err))

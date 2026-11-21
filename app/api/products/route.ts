@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { INITIAL_PRODUCTS } from '@/lib/seedData';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -21,63 +24,104 @@ export async function GET(req: Request) {
     const status = searchParams.get('status');
     const featured = searchParams.get('featured');
 
-    let products = db.getProducts();
+    const supabase = await createClient();
 
-    if (category && category !== 'all') {
-      products = products.filter(
-        (p) =>
-          p.categoryId === category ||
-          p.category.toLowerCase().replace(/[^a-z0-9]/g, '-') === category
-      );
-    }
-
-    if (search && search.trim().length > 0) {
-      const q = search.toLowerCase();
-      products = products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    }
-
-    if (status) {
-      products = products.filter((p) => p.status === status);
-    }
+    // Query active products with their images and categories
+    let query = (supabase.from('products') as any)
+      .select(`
+        *,
+        product_images (image_url, display_order),
+        categories (id, name, slug)
+      `)
+      .eq('is_active', true);
 
     if (featured === 'true') {
-      products = products.filter((p) => p.isFeatured);
+      query = query.eq('is_featured', true);
     }
 
-    if (minPrice) {
-      products = products.filter((p) => (p.discountPrice || p.price) >= Number(minPrice));
-    }
-    if (maxPrice) {
-      products = products.filter((p) => (p.discountPrice || p.price) <= Number(maxPrice));
+    const { data: dbProducts, error } = await query.order('created_at', { ascending: false });
+
+    if (!error && dbProducts && dbProducts.length > 0) {
+      let mapped = dbProducts.map((p: any) => {
+        const sortedImages = (p.product_images || [])
+          .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+          .map((img: any) => img.image_url)
+          .filter(Boolean);
+
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          description: p.description,
+          price: Number(p.price),
+          discountPrice: undefined,
+          category: p.categories?.name || 'Handmade Crochet',
+          categoryId: p.categories?.slug || p.category_id || 'all',
+          images: sortedImages.length > 0 ? sortedImages : ['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80'],
+          materials: p.materials || '100% Milk Cotton Yarn',
+          dimensions: p.dimensions || '',
+          stock: p.stock ?? 10,
+          sku: `LOOP-${p.slug}`,
+          prepTimeDays: p.prep_time_days || 2,
+          careInstructions: p.care_instructions || 'Hand wash gently in cold water with mild detergent. Lay flat to dry.',
+          tags: ['handmade', 'crochet', p.categories?.slug || 'artisan'],
+          status: p.stock > 0 ? 'AVAILABLE' : 'SOLD_OUT',
+          isFeatured: Boolean(p.is_featured),
+          isBestseller: false,
+          isNewArrival: true,
+          variants: [],
+          averageRating: 5.0,
+          reviewCount: 0,
+          createdAt: p.created_at,
+          updatedAt: p.updated_at,
+        };
+      });
+
+      // Filter by category slug if provided
+      if (category && category !== 'all') {
+        mapped = mapped.filter((p: any) => p.categoryId === category);
+      }
+
+      // Filter by search term
+      if (search && search.trim().length > 0) {
+        const q = search.toLowerCase();
+        mapped = mapped.filter(
+          (p: any) =>
+            p.name.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q)
+        );
+      }
+
+      // Filter by price range
+      if (minPrice) {
+        mapped = mapped.filter((p: any) => p.price >= Number(minPrice));
+      }
+      if (maxPrice) {
+        mapped = mapped.filter((p: any) => p.price <= Number(maxPrice));
+      }
+
+      // Sort
+      if (sort === 'price-low') {
+        mapped.sort((a: any, b: any) => a.price - b.price);
+      } else if (sort === 'price-high') {
+        mapped.sort((a: any, b: any) => b.price - a.price);
+      }
+
+      return NextResponse.json({ success: true, products: mapped }, { headers: noCacheHeaders });
     }
 
-    if (sort === 'price-low') {
-      products.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
-    } else if (sort === 'price-high') {
-      products.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
-    } else if (sort === 'popular') {
-      products.sort((a, b) => b.reviewCount - a.reviewCount);
-    } else if (sort === 'rating') {
-      products.sort((a, b) => b.averageRating - a.averageRating);
-    } else {
-      // Default: newest
-      products.sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+    // Fallback to seed products if database is not yet populated
+    let fallback = [...INITIAL_PRODUCTS];
+    if (category && category !== 'all') {
+      fallback = fallback.filter((p) => p.categoryId === category || p.category.toLowerCase().replace(/[^a-z0-9]/g, '-') === category);
     }
-
-    return NextResponse.json({ success: true, count: products.length, products }, { headers: noCacheHeaders });
+    if (featured === 'true') {
+      fallback = fallback.filter((p) => p.isFeatured);
+    }
+    return NextResponse.json({ success: true, products: fallback }, { headers: noCacheHeaders });
   } catch (error) {
-    console.error('Products API GET error:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to retrieve products' },
-      { status: 500, headers: noCacheHeaders }
-    );
+    console.error('Error fetching products:', error);
+    return NextResponse.json({ success: true, products: INITIAL_PRODUCTS }, { headers: noCacheHeaders });
   }
 }
 
@@ -85,107 +129,150 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    if (!body.name || !body.price || !(body.category || body.categoryId)) {
-  return NextResponse.json(
-    { success: false, message: 'Name, price and a category are required' },
-    { status: 400 }
-  );
-}
+    if (!body.name || !body.price) {
+      return NextResponse.json(
+        { success: false, message: 'Product name and price are required.' },
+        { status: 400 }
+      );
+    }
 
-// Resolve a concrete categoryId
-let categoryId = body.categoryId;
-if (!categoryId) {
-  const cat = db.getCategories().find(c => c.name === body.category);
-  categoryId = cat?.id ?? 'cat-uncategorized';
-}
+    const name = body.name.trim();
+    const slug = (body.slug?.trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, '-')) + `-${Date.now().toString().slice(-4)}`;
+    const description = body.description?.trim() || `${name} - Handcrafted with love from premium milk cotton yarn.`;
+    const price = Number(body.price);
+    const stock = Number(body.stock) || 0;
+    const isFeatured = Boolean(body.isFeatured);
+    const materials = body.materials || '100% Milk Cotton Yarn';
+    const dimensions = body.dimensions || '';
+    const prepTimeDays = Number(body.prepTimeDays) || 2;
+    const careInstructions = body.careInstructions || 'Hand wash gently in cold water. Lay flat to dry.';
+    const imageUrls: string[] = Array.isArray(body.images) ? body.images : body.image ? [body.image] : [];
 
+    const adminSupabase = createAdminClient();
 
-    const slug =
-      body.slug && body.slug.trim().length > 0
-        ? body.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
-        : body.name
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)+/g, '');
+    // 1. Resolve category ID
+    let categoryId: string | null = null;
+    if (body.category || body.categoryId) {
+      const catSearch = body.categoryId || body.category;
+      const { data: catData } = await (adminSupabase.from('categories') as any)
+        .select('id')
+        .or(`slug.eq.${catSearch},name.ilike.%${catSearch}%`)
+        .limit(1)
+        .maybeSingle();
 
-    const newProduct = db.createProduct({
-      name: body.name,
-      slug,
-      description: body.description || 'Artisan handmade crochet piece.',
-      price: Number(body.price),
-      discountPrice: body.discountPrice ? Number(body.discountPrice) : undefined,
-      category: body.category,
-      categoryId: body.categoryId || 'cat-custom',
-      images: body.images && body.images.length > 0
-        ? body.images
-        : ['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80'],
-      materials: body.materials || '100% Premium Milk Cotton Yarn',
-      dimensions: body.dimensions || 'Handmade standard dimension',
-      stock: Number(body.stock || 0),
-      sku: body.sku || `LL-PROD-${Date.now().toString().slice(-4)}`,
-      prepTimeDays: Number(body.prepTimeDays || 2),
-      careInstructions: body.careInstructions || 'Gentle hand wash, dry flat.',
-      tags: body.tags || ['Handmade', 'Boutique'],
-      status: Number(body.stock || 0) <= 0 ? 'SOLD_OUT' : (body.status || 'AVAILABLE'),
-      isFeatured: Boolean(body.isFeatured),
-      isBestseller: Boolean(body.isBestseller),
-      isNewArrival: Boolean(body.isNewArrival),
-      variants: body.variants && body.variants.length > 0 ? body.variants : [
-        {
-          id: `v-${Date.now()}`,
-          productId: '',
-          colorName: 'Standard',
-          colorHex: '#9D7BB0',
-          sizeName: 'Standard',
-          priceModifier: 0,
-          stock: Number(body.stock || 0),
-          sku: `LL-VAR-${Date.now().toString().slice(-4)}`,
-        },
-      ],
-      highlights: body.highlights || [],
-      customNotice: body.customNotice || '',
-      averageRating: 5.0,
-      reviewCount: 0,
+      if (catData) {
+        categoryId = catData.id;
+      }
+    }
+
+    // 2. Insert into products table
+    const { data: newProd, error: prodError } = await (adminSupabase.from('products') as any)
+      .insert({
+        name,
+        slug,
+        description,
+        price,
+        stock,
+        category_id: categoryId,
+        is_active: true,
+        is_featured: isFeatured,
+        materials,
+        dimensions,
+        prep_time_days: prepTimeDays,
+        care_instructions: careInstructions,
+      })
+      .select()
+      .single();
+
+    if (prodError || !newProd) {
+      console.error('Product insertion error:', prodError);
+      return NextResponse.json({ success: false, message: prodError?.message || 'Failed to insert product' }, { status: 500 });
+    }
+
+    // 3. Insert images into product_images table
+    if (imageUrls.length > 0) {
+      const imageRecords = imageUrls.map((url, idx) => ({
+        product_id: newProd.id,
+        image_url: url,
+        alt_text: `${name} photo ${idx + 1}`,
+        display_order: idx,
+      }));
+
+      await (adminSupabase.from('product_images') as any).insert(imageRecords);
+    }
+
+    // 4. Instant revalidation of storefront pages
+    revalidatePath('/');
+    revalidatePath('/shop');
+    revalidatePath(`/product/${slug}`);
+
+    return NextResponse.json({
+      success: true,
+      product: {
+        id: newProd.id,
+        name: newProd.name,
+        slug: newProd.slug,
+        price: newProd.price,
+        stock: newProd.stock,
+        images: imageUrls,
+      },
     });
-
-    return NextResponse.json({ success: true, product: newProduct });
   } catch (error) {
-    console.error('Products API POST error:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create product' },
-      { status: 500 }
-    );
+    console.error('Product creation exception:', error);
+    return NextResponse.json({ success: false, message: 'Server error creating product' }, { status: 500 });
   }
 }
 
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
-    const { id, ...updates } = body;
-
-    if (!id) {
-      return NextResponse.json({ success: false, message: 'Product ID is required' }, { status: 400 });
+    if (!body.id) {
+      return NextResponse.json({ success: false, message: 'Product ID is required for updating.' }, { status: 400 });
     }
 
-    if (updates.slug && updates.slug.trim().length > 0) {
-      updates.slug = updates.slug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-    } else if (updates.name && (!updates.slug || updates.slug.trim().length === 0)) {
-      updates.slug = updates.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const adminSupabase = createAdminClient();
+
+    const updateFields: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (body.name) updateFields.name = body.name.trim();
+    if (body.description) updateFields.description = body.description.trim();
+    if (body.price !== undefined) updateFields.price = Number(body.price);
+    if (body.stock !== undefined) updateFields.stock = Number(body.stock);
+    if (body.isFeatured !== undefined) updateFields.is_featured = Boolean(body.isFeatured);
+    if (body.materials !== undefined) updateFields.materials = body.materials;
+    if (body.dimensions !== undefined) updateFields.dimensions = body.dimensions;
+
+    const { data: updated, error: updateError } = await (adminSupabase.from('products') as any)
+      .update(updateFields)
+      .eq('id', body.id)
+      .select()
+      .single();
+
+    if (updateError || !updated) {
+      return NextResponse.json({ success: false, message: updateError?.message || 'Failed to update product' }, { status: 500 });
     }
 
-    if (updates.price !== undefined) updates.price = Number(updates.price);
-    if (updates.discountPrice !== undefined) updates.discountPrice = updates.discountPrice ? Number(updates.discountPrice) : undefined;
-    if (updates.stock !== undefined) updates.stock = Number(updates.stock);
-    if (updates.prepTimeDays !== undefined) updates.prepTimeDays = Number(updates.prepTimeDays);
-
-    const updated = db.updateProduct(id, updates);
-    if (!updated) {
-      return NextResponse.json({ success: false, message: 'Product not found' }, { status: 404 });
+    // If new images provided, sync product_images
+    if (Array.isArray(body.images) && body.images.length > 0) {
+      await (adminSupabase.from('product_images') as any).delete().eq('product_id', body.id);
+      const imageRecords = body.images.map((url: string, idx: number) => ({
+        product_id: body.id,
+        image_url: url,
+        alt_text: `${updated.name} photo ${idx + 1}`,
+        display_order: idx,
+      }));
+      await (adminSupabase.from('product_images') as any).insert(imageRecords);
     }
+
+    revalidatePath('/');
+    revalidatePath('/shop');
+    revalidatePath(`/product/${updated.slug}`);
 
     return NextResponse.json({ success: true, product: updated });
   } catch (error) {
-    console.error('Products API PUT error:', error);
+    console.error('Product update exception:', error);
     return NextResponse.json({ success: false, message: 'Failed to update product' }, { status: 500 });
   }
 }
@@ -196,13 +283,31 @@ export async function DELETE(req: Request) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ success: false, message: 'Product ID is required' }, { status: 400 });
+      return NextResponse.json({ success: false, message: 'Product ID is required.' }, { status: 400 });
     }
 
-    db.deleteProduct(id);
-    return NextResponse.json({ success: true, message: 'Product deleted successfully' });
+    const adminSupabase = createAdminClient();
+
+    // Soft delete: set is_active = false
+    const { data: softDeleted, error } = await (adminSupabase.from('products') as any)
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('slug')
+      .single();
+
+    if (error) {
+      return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    }
+
+    revalidatePath('/');
+    revalidatePath('/shop');
+    if (softDeleted?.slug) {
+      revalidatePath(`/product/${softDeleted.slug}`);
+    }
+
+    return NextResponse.json({ success: true, message: 'Product soft-deleted successfully.' });
   } catch (error) {
-    console.error('Products API DELETE error:', error);
-    return NextResponse.json({ success: false, message: 'Failed to delete product' }, { status: 500 });
+    console.error('Delete product exception:', error);
+    return NextResponse.json({ success: false, message: 'Failed to delete product.' }, { status: 500 });
   }
 }

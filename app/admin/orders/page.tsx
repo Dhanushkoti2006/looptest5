@@ -42,6 +42,9 @@ export default function AdminOrdersPage() {
   const [statusNote, setStatusNote] = useState('');
   const [trackingNumber, setTrackingNumber] = useState('');
   const [courierPartner, setCourierPartner] = useState('BlueDart Express');
+  const [trackingUrl, setTrackingUrl] = useState('');
+  const [deliveryPersonName, setDeliveryPersonName] = useState('');
+  const [deliveryPersonPhone, setDeliveryPersonPhone] = useState('');
   const [updating, setUpdating] = useState(false);
 
   const fetchOrders = () => {
@@ -59,12 +62,15 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
-  const openStatusModal = (ord: Order) => {
+  const openStatusModal = (ord: any) => {
     setActiveOrder(ord);
-    setNewStatus(ord.orderStatus);
+    setNewStatus(ord.orderStatus || ord.status || 'Making Your Crochet Product');
     setStatusNote('');
-    setTrackingNumber(ord.trackingNumber || '');
-    setCourierPartner(ord.courierPartner || 'BlueDart Express');
+    setTrackingNumber(ord.trackingNumber || ord.tracking_number || '');
+    setCourierPartner(ord.courierPartner || ord.courier_name || 'BlueDart Express');
+    setTrackingUrl(ord.trackingUrl || ord.tracking_url || '');
+    setDeliveryPersonName(ord.deliveryPersonName || ord.delivery_person_name || '');
+    setDeliveryPersonPhone(ord.deliveryPersonPhone || ord.delivery_person_phone || '');
   };
 
   const handleUpdateStatus = async (e: React.FormEvent) => {
@@ -81,6 +87,9 @@ export default function AdminOrdersPage() {
         note: statusNote || undefined,
         trackingNumber: trackingNumber || undefined,
         courierPartner: courierPartner || undefined,
+        trackingUrl: trackingUrl || undefined,
+        deliveryPersonName: deliveryPersonName || undefined,
+        deliveryPersonPhone: deliveryPersonPhone || undefined,
       }),
     });
     setUpdating(false);
@@ -324,6 +333,46 @@ export default function AdminOrdersPage() {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Tracking URL (Optional)</label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={trackingUrl}
+                  onChange={(e) => setTrackingUrl(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600"
+                />
+              </div>
+
+              {/* LOCAL DELIVERY PERSON DETAILS (FOR LOCAL HAND DELIVERY) */}
+              <div className="p-3 bg-purple-50/70 border border-purple-200 rounded-2xl space-y-2">
+                <span className="font-bold text-purple-900 block text-[11px]">
+                  🛵 Local Delivery Personnel (For Local Hand Delivery)
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    placeholder="Delivery Person Name"
+                    value={deliveryPersonName}
+                    onChange={(e) => setDeliveryPersonName(e.target.value)}
+                    className="w-full p-2 bg-white border border-purple-200 rounded-xl text-xs focus:outline-none"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Delivery Person Phone"
+                    value={deliveryPersonPhone}
+                    onChange={(e) => setDeliveryPersonPhone(e.target.value)}
+                    className="w-full p-2 bg-white border border-purple-200 rounded-xl text-xs focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {newStatus === 'Cancelled' && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 text-[11px] rounded-xl">
+                  ⚠️ Note: Marking this order as Cancelled will automatically restock all items back into product inventory.
+                </div>
+              )}
 
               <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
                 <button

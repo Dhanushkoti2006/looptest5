@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,34 +17,42 @@ export async function POST(req: Request) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
       const mimeType = file.type || 'image/jpeg';
-      const base64Data = `data:${mimeType};base64,${buffer.toString('base64')}`;
+      const cleanName = (file.name || 'image.jpg').replace(/[^a-zA-Z0-9.-]/g, '_');
+      const filename = `${Date.now()}-${cleanName}`;
 
-      // Try saving to public/uploads if filesystem is writable
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      const ext =
-        path.extname(file.name) ||
-        (mimeType.includes('png') ? '.png' : mimeType.includes('webp') ? '.webp' : '.jpg');
-      const filename = `img-${Date.now()}-${Math.random().toString(36).substring(2, 6)}${ext}`;
-      const filePath = path.join(uploadsDir, filename);
-
+      // 1. Try uploading to Supabase Storage bucket 'product-images'
       try {
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
+        const adminSupabase = createAdminClient();
+        const { data: uploadData, error: uploadError } = await adminSupabase.storage
+          .from('product-images')
+          .upload(filename, buffer, {
+            contentType: mimeType,
+            upsert: true,
+          });
+
+        if (!uploadError && uploadData) {
+          const { data: publicUrlData } = adminSupabase.storage
+            .from('product-images')
+            .getPublicUrl(filename);
+
+          return NextResponse.json({
+            success: true,
+            url: publicUrlData.publicUrl,
+          });
         }
-        fs.writeFileSync(filePath, buffer);
-        return NextResponse.json({
-          success: true,
-          url: `/uploads/${filename}`,
-          dataUrl: base64Data,
-        });
-      } catch (fsErr) {
-        // Fallback to data URL on serverless environments
-        return NextResponse.json({
-          success: true,
-          url: base64Data,
-          dataUrl: base64Data,
-        });
+
+        console.warn('Supabase storage upload returned error, falling back:', uploadError);
+      } catch (storageErr) {
+        console.warn('Supabase storage exception, falling back:', storageErr);
       }
+
+      // 2. Fallback to data URL
+      const base64Data = `data:${mimeType};base64,${buffer.toString('base64')}`;
+      return NextResponse.json({
+        success: true,
+        url: base64Data,
+        dataUrl: base64Data,
+      });
     }
 
     // Handle base64 JSON upload
@@ -59,7 +66,7 @@ export async function POST(req: Request) {
       url: body.image,
     });
   } catch (error) {
-    console.error('Upload API error:', error);
-    return NextResponse.json({ success: false, message: 'Image upload failed' }, { status: 500 });
+    console.error('Upload processing error:', error);
+    return NextResponse.json({ success: false, message: 'Failed to process upload' }, { status: 500 });
   }
 }
