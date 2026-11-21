@@ -132,8 +132,8 @@ export async function GET(req: Request) {
 
 // TODO: Official Razorpay order creation integration stub
 async function createRazorpayOrderStub(amountInPaise: number, orderNumber: string) {
-  const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  const keyId = (process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || '').trim();
+  const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim();
 
   if (!keyId || !keySecret || keyId === 'rzp_test_placeholder') {
     // Keys not yet configured: return null so payment status stays pending
