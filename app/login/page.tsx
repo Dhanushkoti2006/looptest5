@@ -42,13 +42,10 @@ function LoginContent() {
   // If already authenticated, redirect
   useEffect(() => {
     if (!isLoading && user) {
-      if (isAdmin && redirectPath.startsWith('/admin')) {
-        router.replace(redirectPath);
-      } else {
-        router.replace(redirectPath);
-      }
+      const target = isAdmin && redirectPath.startsWith('/admin') ? redirectPath : redirectPath;
+      window.location.href = target;
     }
-  }, [user, isAdmin, isLoading, router, redirectPath]);
+  }, [user, isAdmin, isLoading, redirectPath]);
 
   // Cooldown countdown timer
   useEffect(() => {
@@ -120,13 +117,10 @@ function LoginContent() {
 
     if (res.success) {
       setMessage({ text: 'Verification successful! Redirecting...', isError: false });
+      const target = res.user?.role === 'admin' && redirectPath.startsWith('/admin') ? redirectPath : redirectPath;
       setTimeout(() => {
-        if (res.user?.role === 'admin' && redirectPath.startsWith('/admin')) {
-          router.push(redirectPath);
-        } else {
-          router.push(redirectPath);
-        }
-      }, 500);
+        window.location.href = target;
+      }, 300);
     } else {
       setMessage({ text: res.message, isError: true });
     }

@@ -325,8 +325,26 @@ export default function CheckoutPage() {
       const razorpayConfig = orderData.razorpay;
       const rzpKey = razorpayConfig?.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
+      // Ensure Razorpay SDK is ready
+      let isRazorpayLoaded = typeof window !== 'undefined' && !!(window as any).Razorpay;
+      if (typeof window !== 'undefined' && !isRazorpayLoaded) {
+        isRazorpayLoaded = await new Promise((resolve) => {
+          const existing = document.querySelector('script[src*="checkout.razorpay.com"]');
+          if (existing) {
+            existing.addEventListener('load', () => resolve(true));
+            setTimeout(() => resolve(!!(window as any).Razorpay), 1500);
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = () => resolve(true);
+          script.onerror = () => resolve(false);
+          document.body.appendChild(script);
+        });
+      }
+
       // 2. TRIGGER RAZORPAY OFFICIAL CHECKOUT
-      if (typeof window !== 'undefined' && window.Razorpay && rzpKey && rzpKey !== 'rzp_test_placeholder') {
+      if (typeof window !== 'undefined' && (window as any).Razorpay && rzpKey && rzpKey !== 'rzp_test_placeholder') {
         const options = {
           key: rzpKey,
           amount: razorpayConfig?.amount || Math.round(createdOrder.total * 100),
@@ -334,7 +352,7 @@ export default function CheckoutPage() {
           name: 'Loop & Love Crochet',
           description: `Order #${createdOrder.orderNumber} Payment`,
           image: '/images/loop-and-love-logo.jpg',
-          order_id: razorpayConfig?.orderId || createdOrder.razorpayOrderId,
+          order_id: razorpayConfig?.orderId || createdOrder.razorpayOrderId || undefined,
           handler: async function (response: any) {
             try {
               const verifyRes = await fetch('/api/payments/razorpay/verify', {
@@ -372,7 +390,7 @@ export default function CheckoutPage() {
           },
         };
 
-        const rzp = new window.Razorpay(options);
+        const rzp = new (window as any).Razorpay(options);
         rzp.on('payment.failed', function (response: any) {
           setErrorMessage(`Payment failed: ${response.error?.description || 'Transaction declined'}`);
           setIsProcessing(false);

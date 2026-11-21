@@ -220,20 +220,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const cleanEmail = email.trim().toLowerCase();
       const cleanToken = token.trim();
 
-      const { data, error } = await supabase.auth.verifyOtp({
+      // 1. Try 'email' type (standard OTP for sign-in / existing accounts)
+      let { data, error } = await supabase.auth.verifyOtp({
         email: cleanEmail,
         token: cleanToken,
         type: 'email',
       });
 
-      if (error || !data.user) {
-        return { success: false, message: 'Invalid or expired login code. Please try again.' };
+      // 2. Fallback to 'signup' type (in case user registered fresh and Supabase sent confirmation OTP)
+      if (error || !data?.user) {
+        const signupAttempt = await supabase.auth.verifyOtp({
+          email: cleanEmail,
+          token: cleanToken,
+          type: 'signup',
+        });
+        if (!signupAttempt.error && signupAttempt.data?.user) {
+          data = signupAttempt.data;
+          error = null;
+        }
+      }
+
+      if (error || !data?.user) {
+        return {
+          success: false,
+          message: error?.message || 'Invalid or expired login code. Please try again.',
+        };
       }
 
       // Guarantee profile in public.profiles with correct role
       const isAdminEmail = cleanEmail === 'callmedhanush777@gmail.com';
-      const candidateName = extraData?.fullName || (data.user.user_metadata?.full_name as string) || (isAdminEmail ? 'Admin Dhanush' : cleanEmail.split('@')[0]);
-      const candidatePhone = extraData?.phone || (data.user.user_metadata?.phone as string) || '';
+      const candidateName =
+        extraData?.fullName ||
+        (data.user.user_metadata?.full_name as string) ||
+        (isAdminEmail ? 'Admin Dhanush' : cleanEmail.split('@')[0]);
+      const candidatePhone =
+        extraData?.phone || (data.user.user_metadata?.phone as string) || '';
       const assignedRole = isAdminEmail ? 'admin' : 'customer';
 
       try {
@@ -254,13 +275,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         document.cookie = 'loop_admin_auth=true; path=/; max-age=604800; SameSite=Lax';
         setLocalAdminAuth(true);
       }
+
+      if (userProfile) {
+        setUser(userProfile);
+      }
+
       return {
         success: true,
         message: 'Signed in successfully!',
         user: userProfile || undefined,
       };
-    } catch {
-      return { success: false, message: 'Verification error. Please request a new code.' };
+    } catch (err: any) {
+      console.error('Verify OTP exception:', err);
+      return { success: false, message: err?.message || 'Verification error. Please request a new code.' };
     }
   };
 

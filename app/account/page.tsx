@@ -61,7 +61,7 @@ interface OrderRecord {
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin, isLoading, logout } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'ORDERS' | 'CUSTOM_ORDERS' | 'PROFILE'>('ORDERS');
   const [orders, setOrders] = useState<OrderRecord[]>([]);
@@ -113,6 +113,8 @@ export default function AccountPage() {
   }, [user, supabase]);
 
   useEffect(() => {
+    if (isLoading) return;
+
     if (!user) {
       router.push('/login');
       return;
@@ -141,7 +143,7 @@ export default function AccountPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, router, loadOrders, loadCustomOrders, supabase]);
+  }, [user, isLoading, router, loadOrders, loadCustomOrders, supabase]);
 
   const handleConfirmCancel = async () => {
     if (!cancellingOrder) return;
@@ -220,6 +222,15 @@ export default function AccountPage() {
     const s = (status || '').toLowerCase();
     return ['paid', 'confirmed', 'order confirmed', 'pending_payment'].includes(s);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <div className="w-10 h-10 border-2 border-brand-800 border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-xs text-gray-500 font-medium">Loading your account details...</p>
+      </div>
+    );
+  }
 
   if (!user) return null;
 

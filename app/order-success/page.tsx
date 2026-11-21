@@ -127,12 +127,14 @@ function OrderSuccessContent() {
           {/* Items Preview */}
           <div className="pt-4 border-t border-canvas-border space-y-3">
             <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Ordered Items</h4>
-            {order.items.map((item) => (
+            {(order.items || (order as any).order_items || []).map((item: any) => (
               <div key={item.id} className="flex justify-between items-center text-xs">
                 <span className="font-medium text-brand-900">
-                  {item.quantity}x {item.productName} ({item.color}, {item.size})
+                  {item.quantity}x {item.productName || item.product_name} {item.color ? `(${item.color}${item.size ? `, ${item.size}` : ''})` : ''}
                 </span>
-                <span className="font-semibold text-brand-900">₹{item.totalPrice.toLocaleString('en-IN')}</span>
+                <span className="font-semibold text-brand-900">
+                  ₹{(item.totalPrice || (Number(item.unit_price) || 0) * (item.quantity || 1)).toLocaleString('en-IN')}
+                </span>
               </div>
             ))}
           </div>

@@ -372,6 +372,12 @@ export async function POST(req: Request) {
         paymentStatus: newOrder.payment_status,
         razorpayOrderId,
       },
+      razorpay: {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        orderId: razorpayOrderId,
+        amount: Math.round(calculatedTotal * 100),
+        currency: 'INR',
+      },
     });
   } catch (error) {
     console.error('Order creation exception:', error);
