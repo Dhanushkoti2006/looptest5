@@ -165,7 +165,7 @@ export default function AdminLoginPage() {
           <form onSubmit={handleVerifyOtp} className="space-y-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                6-Digit Security Code
+                Verification Security Code
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -174,12 +174,11 @@ export default function AdminLoginPage() {
                 <input
                   type="text"
                   required
-                  maxLength={6}
-                  pattern="[0-9]{6}"
+                  maxLength={8}
                   inputMode="numeric"
                   value={otpToken}
                   onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, ''))}
-                  placeholder="123456"
+                  placeholder="Enter code"
                   className="w-full pl-10 pr-4 py-2.5 font-mono text-center tracking-widest text-lg bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
                 />
               </div>

@@ -78,7 +78,7 @@ function LoginContent() {
     e.preventDefault();
     const cleanToken = otpToken.trim();
     if (!cleanToken || cleanToken.length < 6) {
-      setMessage({ text: 'Please enter the complete 6-digit code.', isError: true });
+      setMessage({ text: 'Please enter the complete verification code.', isError: true });
       return;
     }
 
@@ -142,11 +142,10 @@ function LoginContent() {
         <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-cozy border border-canvas-border">
           {message && (
             <div
-              className={`mb-6 p-4 rounded-2xl flex items-start gap-3 text-sm ${
-                message.isError
+              className={`mb-6 p-4 rounded-2xl flex items-start gap-3 text-sm ${message.isError
                   ? 'bg-rose-50 text-rose-800 border border-rose-200'
                   : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-              }`}
+                }`}
             >
               {message.isError ? (
                 <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
@@ -203,7 +202,7 @@ function LoginContent() {
             <form onSubmit={handleVerifyOtp} className="space-y-5">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  6-Digit OTP Code
+                  Verification Code (OTP)
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -212,13 +211,12 @@ function LoginContent() {
                   <input
                     type="text"
                     required
-                    maxLength={6}
-                    pattern="[0-9]{6}"
+                    maxLength={8}
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     value={otpToken}
                     onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, ''))}
-                    placeholder="123456"
+                    placeholder="Enter code"
                     className="w-full pl-11 pr-4 py-3 text-center tracking-widest font-mono text-lg bg-canvas-warm/50 border border-canvas-border rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                   />
                 </div>
