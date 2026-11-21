@@ -110,18 +110,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, products: mapped }, { headers: noCacheHeaders });
     }
 
-    // Fallback to seed products if database is not yet populated
-    let fallback = [...INITIAL_PRODUCTS];
-    if (category && category !== 'all') {
-      fallback = fallback.filter((p) => p.categoryId === category || p.category.toLowerCase().replace(/[^a-z0-9]/g, '-') === category);
-    }
-    if (featured === 'true') {
-      fallback = fallback.filter((p) => p.isFeatured);
-    }
-    return NextResponse.json({ success: true, products: fallback }, { headers: noCacheHeaders });
+    // No products found or error occurred - return empty array (no mock data fallback)
+    return NextResponse.json({ success: true, products: [] }, { headers: noCacheHeaders });
   } catch (error) {
     console.error('Error fetching products:', error);
-    return NextResponse.json({ success: true, products: INITIAL_PRODUCTS }, { headers: noCacheHeaders });
+    return NextResponse.json({ success: true, products: [] }, { headers: noCacheHeaders });
   }
 }
 

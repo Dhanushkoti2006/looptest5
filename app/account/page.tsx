@@ -273,7 +273,7 @@ export default function AccountPage() {
       </div>
 
       {/* TABS */}
-      <div className="flex gap-2 border-b border-canvas-border pb-4 mb-8 text-xs font-semibold">
+      <div className="flex flex-wrap gap-2 border-b border-canvas-border pb-4 mb-8 text-xs font-semibold">
         <button
           onClick={() => setActiveTab('ORDERS')}
           className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${activeTab === 'ORDERS' ? 'bg-brand-800 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
@@ -288,6 +288,12 @@ export default function AccountPage() {
         >
           <Wand2 className="w-4 h-4" /> Custom Requests ({customOrders.length})
         </button>
+        <Link
+          href="/account/addresses"
+          className="px-4 py-2 rounded-xl transition-all flex items-center gap-2 text-gray-600 hover:bg-white hover:text-brand-800 border border-transparent hover:border-canvas-border"
+        >
+          <MapPin className="w-4 h-4 text-brand-600" /> Saved Addresses
+        </Link>
         <button
           onClick={() => setActiveTab('PROFILE')}
           className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${activeTab === 'PROFILE' ? 'bg-brand-800 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
@@ -414,10 +420,10 @@ export default function AccountPage() {
                     )}
 
                     <Link
-                      href={`/track-order?id=${ord.order_number}`}
+                      href={`/account/orders/${ord.id}`}
                       className="px-4 py-2 rounded-xl bg-brand-800 hover:bg-brand-900 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors"
                     >
-                      <Package className="w-3.5 h-3.5" /> Track Status
+                      <Package className="w-3.5 h-3.5" /> Order Details & Timeline
                     </Link>
                   </div>
                 </div>

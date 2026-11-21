@@ -18,14 +18,6 @@ export type OrderStatus =
   | 'delivered'
   | 'cancelled';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
-export type CustomRequestStatus =
-  | 'pending'
-  | 'quoted'
-  | 'accepted'
-  | 'rejected'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled';
 
 export interface Database {
   public: {
@@ -91,6 +83,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       products: {
         Row: {
@@ -100,6 +93,7 @@ export interface Database {
           slug: string;
           description: string;
           price: number;
+          discount_price: number | null;
           stock: number;
           is_active: boolean;
           is_featured: boolean;
@@ -107,6 +101,7 @@ export interface Database {
           dimensions: string | null;
           prep_time_days: number;
           care_instructions: string | null;
+          highlights: string[] | null;
           created_at: string;
           updated_at: string;
         };
@@ -117,6 +112,7 @@ export interface Database {
           slug: string;
           description: string;
           price: number;
+          discount_price?: number | null;
           stock?: number;
           is_active?: boolean;
           is_featured?: boolean;
@@ -124,6 +120,7 @@ export interface Database {
           dimensions?: string | null;
           prep_time_days?: number;
           care_instructions?: string | null;
+          highlights?: string[] | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -134,6 +131,7 @@ export interface Database {
           slug?: string;
           description?: string;
           price?: number;
+          discount_price?: number | null;
           stock?: number;
           is_active?: boolean;
           is_featured?: boolean;
@@ -141,35 +139,44 @@ export interface Database {
           dimensions?: string | null;
           prep_time_days?: number;
           care_instructions?: string | null;
+          highlights?: string[] | null;
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       product_images: {
         Row: {
           id: string;
           product_id: string;
+          url: string;
           image_url: string;
-          alt_text: string | null;
+          sort_order: number;
           display_order: number;
+          alt_text: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           product_id: string;
-          image_url: string;
-          alt_text?: string | null;
+          url?: string;
+          image_url?: string;
+          sort_order?: number;
           display_order?: number;
+          alt_text?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
           product_id?: string;
+          url?: string;
           image_url?: string;
-          alt_text?: string | null;
+          sort_order?: number;
           display_order?: number;
+          alt_text?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       addresses: {
         Row: {
@@ -177,13 +184,14 @@ export interface Database {
           user_id: string;
           full_name: string;
           phone: string;
-          street_address: string;
+          line1: string;
+          line2: string | null;
+          street_address: string | null;
           apartment: string | null;
           city: string;
           state: string;
           pincode: string;
           is_default: boolean;
-          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -192,13 +200,14 @@ export interface Database {
           user_id: string;
           full_name: string;
           phone: string;
-          street_address: string;
+          line1?: string;
+          line2?: string | null;
+          street_address?: string | null;
           apartment?: string | null;
           city: string;
           state: string;
           pincode: string;
           is_default?: boolean;
-          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -207,16 +216,18 @@ export interface Database {
           user_id?: string;
           full_name?: string;
           phone?: string;
-          street_address?: string;
+          line1?: string;
+          line2?: string | null;
+          street_address?: string | null;
           apartment?: string | null;
           city?: string;
           state?: string;
           pincode?: string;
           is_default?: boolean;
-          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       carts: {
         Row: {
@@ -237,6 +248,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       cart_items: {
         Row: {
@@ -244,6 +256,8 @@ export interface Database {
           cart_id: string;
           product_id: string;
           quantity: number;
+          variant_color: string | null;
+          variant_size: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -252,6 +266,8 @@ export interface Database {
           cart_id: string;
           product_id: string;
           quantity?: number;
+          variant_color?: string | null;
+          variant_size?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -260,9 +276,12 @@ export interface Database {
           cart_id?: string;
           product_id?: string;
           quantity?: number;
+          variant_color?: string | null;
+          variant_size?: string | null;
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       delivery_zones: {
         Row: {
@@ -304,32 +323,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-      };
-      couriers: {
-        Row: {
-          id: string;
-          name: string;
-          tracking_url_template: string | null;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          tracking_url_template?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          tracking_url_template?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
+        Relationships: [];
       };
       orders: {
         Row: {
@@ -340,27 +334,28 @@ export interface Database {
           payment_status: PaymentStatus;
           razorpay_order_id: string | null;
           razorpay_payment_id: string | null;
+          razorpay_refund_id: string | null;
           subtotal: number;
           delivery_fee: number;
           total: number;
           delivery_method: DeliveryMethod;
           shipping_full_name: string;
           shipping_phone: string;
-          shipping_street_address: string;
+          shipping_line1: string;
+          shipping_line2: string | null;
+          shipping_street_address: string | null;
           shipping_apartment: string | null;
           shipping_city: string;
           shipping_state: string;
           shipping_pincode: string;
           customer_note: string | null;
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          delivery_person_name: string | null;
+          delivery_person_phone: string | null;
           courier_name: string | null;
           tracking_number: string | null;
           tracking_url: string | null;
-          delivery_person_name: string | null;
-          delivery_person_phone: string | null;
-          estimated_delivery_date: string | null;
-          cancel_reason: string | null;
-          cancelled_at: string | null;
-          delivered_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -372,27 +367,28 @@ export interface Database {
           payment_status?: PaymentStatus;
           razorpay_order_id?: string | null;
           razorpay_payment_id?: string | null;
+          razorpay_refund_id?: string | null;
           subtotal: number;
           delivery_fee?: number;
           total: number;
-          delivery_method: DeliveryMethod;
+          delivery_method?: DeliveryMethod;
           shipping_full_name: string;
           shipping_phone: string;
-          shipping_street_address: string;
+          shipping_line1?: string;
+          shipping_line2?: string | null;
+          shipping_street_address?: string | null;
           shipping_apartment?: string | null;
           shipping_city: string;
           shipping_state: string;
           shipping_pincode: string;
           customer_note?: string | null;
+          cancel_reason?: string | null;
+          cancelled_at?: string | null;
+          delivery_person_name?: string | null;
+          delivery_person_phone?: string | null;
           courier_name?: string | null;
           tracking_number?: string | null;
           tracking_url?: string | null;
-          delivery_person_name?: string | null;
-          delivery_person_phone?: string | null;
-          estimated_delivery_date?: string | null;
-          cancel_reason?: string | null;
-          cancelled_at?: string | null;
-          delivered_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -404,30 +400,32 @@ export interface Database {
           payment_status?: PaymentStatus;
           razorpay_order_id?: string | null;
           razorpay_payment_id?: string | null;
+          razorpay_refund_id?: string | null;
           subtotal?: number;
           delivery_fee?: number;
           total?: number;
           delivery_method?: DeliveryMethod;
           shipping_full_name?: string;
           shipping_phone?: string;
-          shipping_street_address?: string;
+          shipping_line1?: string;
+          shipping_line2?: string | null;
+          shipping_street_address?: string | null;
           shipping_apartment?: string | null;
           shipping_city?: string;
           shipping_state?: string;
           shipping_pincode?: string;
           customer_note?: string | null;
+          cancel_reason?: string | null;
+          cancelled_at?: string | null;
+          delivery_person_name?: string | null;
+          delivery_person_phone?: string | null;
           courier_name?: string | null;
           tracking_number?: string | null;
           tracking_url?: string | null;
-          delivery_person_name?: string | null;
-          delivery_person_phone?: string | null;
-          estimated_delivery_date?: string | null;
-          cancel_reason?: string | null;
-          cancelled_at?: string | null;
-          delivered_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       order_items: {
         Row: {
@@ -446,7 +444,7 @@ export interface Database {
           product_id?: string | null;
           product_name: string;
           unit_price: number;
-          quantity: number;
+          quantity?: number;
           image_url?: string | null;
           created_at?: string;
         };
@@ -460,6 +458,7 @@ export interface Database {
           image_url?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       order_status_history: {
         Row: {
@@ -486,6 +485,7 @@ export interface Database {
           changed_by?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       custom_requests: {
         Row: {
@@ -499,7 +499,7 @@ export interface Database {
           description: string;
           reference_images: Json;
           budget_range: string | null;
-          status: CustomRequestStatus;
+          status: string;
           admin_notes: string | null;
           quotation_amount: number | null;
           created_at: string;
@@ -516,7 +516,7 @@ export interface Database {
           description: string;
           reference_images?: Json;
           budget_range?: string | null;
-          status?: CustomRequestStatus;
+          status?: string;
           admin_notes?: string | null;
           quotation_amount?: number | null;
           created_at?: string;
@@ -533,12 +533,13 @@ export interface Database {
           description?: string;
           reference_images?: Json;
           budget_range?: string | null;
-          status?: CustomRequestStatus;
+          status?: string;
           admin_notes?: string | null;
           quotation_amount?: number | null;
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       reviews: {
         Row: {
@@ -574,6 +575,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       wishlist: {
         Row: {
@@ -594,6 +596,7 @@ export interface Database {
           product_id?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       newsletter_subscribers: {
         Row: {
@@ -614,79 +617,49 @@ export interface Database {
           is_active?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       notify_me_requests: {
         Row: {
           id: string;
-          product_id: string;
+          product_id: string | null;
           email: string;
           is_notified: boolean;
           created_at: string;
         };
         Insert: {
           id?: string;
-          product_id: string;
+          product_id?: string | null;
           email: string;
           is_notified?: boolean;
           created_at?: string;
         };
         Update: {
           id?: string;
-          product_id?: string;
+          product_id?: string | null;
           email?: string;
           is_notified?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
     };
-    Views: {
-      active_couriers: {
-        Row: {
-          id: string;
-          name: string;
-          tracking_url_template: string | null;
-        };
-      };
-    };
+    Views: {};
     Functions: {
       is_admin: {
-        Args: Record<string, never>;
+        Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
     };
-    Enums: {
-      user_role: UserRole;
-      delivery_method: DeliveryMethod;
-      order_status: OrderStatus;
-      payment_status: PaymentStatus;
-      custom_request_status: CustomRequestStatus;
-    };
-    CompositeTypes: Record<string, never>;
+    Enums: {};
+    CompositeTypes: {};
   };
 }
 
-export type Tables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Row'];
-export type InsertTables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Insert'];
-export type UpdateTables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Update'];
-
-export type Profile = Tables<'profiles'>;
-export type Category = Tables<'categories'>;
-export type Product = Tables<'products'>;
-export type ProductImage = Tables<'product_images'>;
-export type Address = Tables<'addresses'>;
-export type Cart = Tables<'carts'>;
-export type CartItem = Tables<'cart_items'>;
-export type DeliveryZone = Tables<'delivery_zones'>;
-export type Courier = Tables<'couriers'>;
-export type Order = Tables<'orders'>;
-export type OrderItem = Tables<'order_items'>;
-export type OrderStatusHistory = Tables<'order_status_history'>;
-export type CustomRequest = Tables<'custom_requests'>;
-export type Review = Tables<'reviews'>;
-export type WishlistItem = Tables<'wishlist'>;
-export type NewsletterSubscriber = Tables<'newsletter_subscribers'>;
-export type NotifyMeRequest = Tables<'notify_me_requests'>;
-
+export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type Category = Database['public']['Tables']['categories']['Row'];
+export type ProductRow = Database['public']['Tables']['products']['Row'];
+export type ProductImageRow = Database['public']['Tables']['product_images']['Row'];
+export type AddressRow = Database['public']['Tables']['addresses']['Row'];
+export type OrderRow = Database['public']['Tables']['orders']['Row'];
+export type OrderItemRow = Database['public']['Tables']['order_items']['Row'];

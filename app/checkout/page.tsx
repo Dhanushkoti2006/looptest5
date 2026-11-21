@@ -17,6 +17,9 @@ import {
   MapPin,
   Bell,
   Check,
+  Plus,
+  Home,
+  CheckCircle,
 } from 'lucide-react';
 
 declare global {
@@ -35,10 +38,29 @@ interface DeliveryZoneInfo {
   estimatedDaysMax: number;
 }
 
+interface SavedAddressItem {
+  id: string;
+  user_id: string;
+  full_name: string;
+  phone: string;
+  line1: string;
+  line2?: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  is_default: boolean;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, subtotal, discountAmount, coupon, clearCart } = useCart();
   const { user } = useAuth();
+
+  // Saved Addresses
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddressItem[]>([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
+  const [saveToAccount, setSaveToAccount] = useState(true);
 
   // Form states
   const [customerName, setCustomerName] = useState(user?.name || '');
@@ -66,6 +88,54 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'RAZORPAY_UPI' | 'RAZORPAY_CARD' | 'RAZORPAY_NETBANKING'>('RAZORPAY_UPI');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Fetch saved addresses if logged in
+  useEffect(() => {
+    if (user?.id) {
+      setLoadingAddresses(true);
+      fetch('/api/addresses', { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.addresses) && data.addresses.length > 0) {
+            setSavedAddresses(data.addresses);
+            // Default to default address or first address
+            const defaultAddr = data.addresses.find((a: SavedAddressItem) => a.is_default) || data.addresses[0];
+            if (defaultAddr) {
+              setSelectedAddressId(defaultAddr.id);
+              applyAddress(defaultAddr);
+            }
+          }
+        })
+        .catch((e) => console.warn('Could not fetch saved addresses:', e))
+        .finally(() => setLoadingAddresses(false));
+    }
+  }, [user?.id]);
+
+  const applyAddress = (addr: SavedAddressItem) => {
+    setCustomerName(addr.full_name || user?.name || '');
+    setCustomerPhone(addr.phone || user?.phone || '');
+    setStreet(addr.line1 || '');
+    setLandmark(addr.line2 || '');
+    setCity(addr.city || '');
+    setState(addr.state || '');
+    setPincode(addr.pincode || '');
+  };
+
+  const handleSelectSavedAddress = (addr: SavedAddressItem) => {
+    setSelectedAddressId(addr.id);
+    applyAddress(addr);
+  };
+
+  const handleSelectNewAddress = () => {
+    setSelectedAddressId('new');
+    setCustomerName(user?.name || '');
+    setCustomerPhone(user?.phone || '');
+    setStreet('');
+    setLandmark('');
+    setCity('');
+    setState('');
+    setPincode('');
+  };
 
   // Sync user profile data when loaded
   useEffect(() => {
@@ -175,6 +245,11 @@ export default function CheckoutPage() {
     e.preventDefault();
     setErrorMessage('');
 
+    if (!customerName.trim() || !customerPhone.trim() || !street.trim() || !city.trim() || !state.trim() || !pincode.trim()) {
+      setErrorMessage('Please fill in or select a complete delivery address to proceed.');
+      return;
+    }
+
     if (isUnservedPincode || !deliveryZone) {
       setErrorMessage('Please enter a serviceable 6-digit Indian PIN code to proceed with checkout.');
       return;
@@ -183,6 +258,28 @@ export default function CheckoutPage() {
     setIsProcessing(true);
 
     try {
+      // If user typed a new address and opted to save it
+      if (user?.id && selectedAddressId === 'new' && saveToAccount) {
+        try {
+          await fetch('/api/addresses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fullName: customerName,
+              phone: customerPhone,
+              line1: street,
+              line2: landmark,
+              city,
+              state,
+              pincode: pincode.trim(),
+              isDefault: savedAddresses.length === 0,
+            }),
+          });
+        } catch (addrErr) {
+          console.warn('Address auto-save warning:', addrErr);
+        }
+      }
+
       const shippingAddress: Address = {
         id: `addr-${Date.now()}`,
         userId: user?.id || 'guest',
@@ -207,7 +304,11 @@ export default function CheckoutPage() {
           customerEmail,
           customerPhone,
           items: cart,
-          shippingAddress,
+          shippingAddress: {
+            ...shippingAddress,
+            line1: street,
+            line2: landmark,
+          },
           customerNote: specialInstructions,
           paymentMethod: `Razorpay (${paymentMethod})`,
         }),
@@ -372,151 +473,255 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* 2. Shipping Address & Live Pincode Check */}
+          {/* 2. Saved Addresses Selection */}
           <div className="bg-white p-6 rounded-3xl border border-canvas-border shadow-cozy space-y-4">
-            <h3 className="font-serif font-bold text-base text-brand-900 pb-2 border-b border-canvas-border flex items-center justify-between">
-              <span>2. Delivery Address & Service Check</span>
-              <span className="text-xs font-semibold text-brand-600 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" /> Pincode Verified
-              </span>
-            </h3>
+            <div className="flex items-center justify-between pb-2 border-b border-canvas-border">
+              <h3 className="font-serif font-bold text-base text-brand-900">
+                2. Select Delivery Address *
+              </h3>
+              {user ? (
+                <Link
+                  href="/account/addresses"
+                  target="_blank"
+                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold"
+                >
+                  Manage Addresses →
+                </Link>
+              ) : (
+                <Link
+                  href="/login?redirect=/checkout"
+                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold"
+                >
+                  Log in to use saved addresses →
+                </Link>
+              )}
+            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">PIN Code (6 digits) *</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    placeholder="e.g. 560001"
-                    value={pincode}
-                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                    className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none font-mono ${
-                      isUnservedPincode
-                        ? 'border-red-400 focus:border-red-500'
-                        : deliveryZone
-                        ? 'border-emerald-500 focus:border-emerald-600'
-                        : 'border-canvas-border focus:border-brand-500'
+            {/* List of saved addresses if available */}
+            {savedAddresses.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-gray-700">Choose from your saved addresses:</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {savedAddresses.map((addr) => {
+                    const isSelected = selectedAddressId === addr.id;
+                    return (
+                      <div
+                        key={addr.id}
+                        onClick={() => handleSelectSavedAddress(addr)}
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all text-left relative ${
+                          isSelected
+                            ? 'border-brand-600 bg-brand-50/60 ring-2 ring-brand-400'
+                            : 'border-canvas-border hover:border-brand-300 bg-canvas-subtle/50'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="selectedAddress"
+                              checked={isSelected}
+                              onChange={() => handleSelectSavedAddress(addr)}
+                              className="accent-brand-600 mt-0.5"
+                            />
+                            <span className="font-bold text-xs text-brand-900">{addr.full_name}</span>
+                          </div>
+                          {addr.is_default && (
+                            <span className="text-[10px] bg-brand-100 text-brand-800 px-2 py-0.5 rounded-full font-bold">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 mt-2 pl-5 line-clamp-2">
+                          {addr.line1}
+                          {addr.line2 ? `, ${addr.line2}` : ''}
+                        </p>
+                        <p className="text-xs text-gray-500 pl-5 font-mono">
+                          {addr.city}, {addr.state} - {addr.pincode}
+                        </p>
+                        <p className="text-[11px] text-gray-500 pl-5 mt-1">Phone: {addr.phone}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSelectNewAddress}
+                    className={`text-xs font-semibold px-4 py-2 rounded-xl border transition-all flex items-center gap-1.5 ${
+                      selectedAddressId === 'new'
+                        ? 'border-brand-600 bg-brand-50 text-brand-800 font-bold'
+                        : 'border-canvas-border hover:bg-canvas-subtle text-gray-700'
                     }`}
-                  />
-                  {zoneChecking && (
-                    <span className="absolute right-3 top-3 text-xs text-gray-400 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 animate-spin text-brand-500" /> Checking...
-                    </span>
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Deliver to a different address
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Address input fields (shown if 'new' or if no saved addresses) */}
+            {(selectedAddressId === 'new' || savedAddresses.length === 0) && (
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-700">Enter Shipping Address:</span>
+                  <span className="text-xs font-semibold text-brand-600 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" /> PIN Verified
+                  </span>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">PIN Code (6 digits) *</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      placeholder="e.g. 560001"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                      className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none font-mono ${
+                        isUnservedPincode
+                          ? 'border-red-400 focus:border-red-500'
+                          : deliveryZone
+                          ? 'border-emerald-500 focus:border-emerald-600'
+                          : 'border-canvas-border focus:border-brand-500'
+                      }`}
+                    />
+                    {zoneChecking && (
+                      <span className="absolute right-3 top-3 text-xs text-gray-400 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 animate-spin text-brand-500" /> Checking...
+                      </span>
+                    )}
+                  </div>
+
+                  {/* ZONE STATUS FEEDBACK */}
+                  {zoneMessage && (
+                    <div
+                      className={`mt-2 p-3 rounded-xl text-xs flex items-center gap-2 ${
+                        isUnservedPincode
+                          ? 'bg-rose-50 border border-rose-200 text-rose-800'
+                          : 'bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium'
+                      }`}
+                    >
+                      {isUnservedPincode ? (
+                        <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                      ) : (
+                        <Truck className="w-4 h-4 shrink-0 text-emerald-600" />
+                      )}
+                      <span>{zoneMessage}</span>
+                    </div>
+                  )}
+
+                  {/* UNSERVED PINCODE NOTIFY ME FORM */}
+                  {isUnservedPincode && (
+                    <div className="mt-3 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-2">
+                      <p className="text-xs text-amber-900 font-semibold flex items-center gap-1.5">
+                        <Bell className="w-3.5 h-3.5 text-amber-700" /> Notify me when delivery expands to {pincode}:
+                      </p>
+                      {notifySuccess ? (
+                        <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
+                          <Check className="w-4 h-4" /> You will be notified the moment we open deliveries in PIN {pincode}!
+                        </p>
+                      ) : (
+                        <div className="flex gap-2">
+                          <input
+                            type="email"
+                            placeholder="Enter your email"
+                            value={notifyEmail}
+                            onChange={(e) => setNotifyEmail(e.target.value)}
+                            className="flex-1 text-xs p-2.5 bg-white border border-amber-300 rounded-xl focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleNotifyMe}
+                            disabled={notifyLoading}
+                            className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold shrink-0"
+                          >
+                            {notifyLoading ? 'Saving...' : 'Notify Me'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 
-                {/* ZONE STATUS FEEDBACK */}
-                {zoneMessage && (
-                  <div
-                    className={`mt-2 p-3 rounded-xl text-xs flex items-center gap-2 ${
-                      isUnservedPincode
-                        ? 'bg-rose-50 border border-rose-200 text-rose-800'
-                        : 'bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium'
-                    }`}
-                  >
-                    {isUnservedPincode ? (
-                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                    ) : (
-                      <Truck className="w-4 h-4 shrink-0 text-emerald-600" />
-                    )}
-                    <span>{zoneMessage}</span>
-                  </div>
-                )}
-
-                {/* UNSERVED PINCODE NOTIFY ME FORM */}
-                {isUnservedPincode && (
-                  <div className="mt-3 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-2">
-                    <p className="text-xs text-amber-900 font-semibold flex items-center gap-1.5">
-                      <Bell className="w-3.5 h-3.5 text-amber-700" /> Notify me when delivery expands to {pincode}:
-                    </p>
-                    {notifySuccess ? (
-                      <p className="text-xs text-emerald-700 font-semibold flex items-center gap-1.5">
-                        <Check className="w-4 h-4" /> You will be notified the moment we open deliveries in PIN {pincode}!
-                      </p>
-                    ) : (
-                      <div className="flex gap-2">
-                        <input
-                          type="email"
-                          placeholder="Enter your email"
-                          value={notifyEmail}
-                          onChange={(e) => setNotifyEmail(e.target.value)}
-                          className="flex-1 text-xs p-2.5 bg-white border border-amber-300 rounded-xl focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleNotifyMe}
-                          disabled={notifyLoading}
-                          className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold shrink-0"
-                        >
-                          {notifyLoading ? 'Saving...' : 'Notify Me'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">Street Address / House No. / Flat No. *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Flat 302, Sunflower Heights, 4th Main"
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-gray-700 block mb-1">Landmark (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Near Metro Station"
-                    value={landmark}
-                    onChange={(e) => setLandmark(e.target.value)}
-                    className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-700 block mb-1">City *</label>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">
+                    House / Flat No., Street, Area (Line 1) *
+                  </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Bengaluru"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g. Flat 302, Sunflower Heights, 4th Main"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
                     className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-700 block mb-1">State *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Karnataka"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">
-                  Delivery Note or Special Gift Message (Optional)
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Please leave with security, or handwritten note: 'Happy Birthday!'"
-                  value={specialInstructions}
-                  onChange={(e) => setSpecialInstructions(e.target.value)}
-                  className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500 resize-none"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Apartment / Landmark (Line 2)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Near Metro Station"
+                      value={landmark}
+                      onChange={(e) => setLandmark(e.target.value)}
+                      className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">City *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Bengaluru"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">State *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Karnataka"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+                </div>
+
+                {user && (
+                  <label className="flex items-center gap-2 cursor-pointer pt-1">
+                    <input
+                      type="checkbox"
+                      checked={saveToAccount}
+                      onChange={(e) => setSaveToAccount(e.target.checked)}
+                      className="accent-brand-600 rounded"
+                    />
+                    <span className="text-xs text-gray-700 font-medium">
+                      Save this address to my account for faster future checkouts
+                    </span>
+                  </label>
+                )}
               </div>
+            )}
+
+            <div>
+              <label className="text-xs font-bold text-gray-700 block mb-1">
+                Special Delivery Instructions or Gift Note (Optional)
+              </label>
+              <textarea
+                rows={2}
+                placeholder="e.g. Please leave with security, or handwritten gift note: 'Happy Birthday!'"
+                value={specialInstructions}
+                onChange={(e) => setSpecialInstructions(e.target.value)}
+                className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500 resize-none"
+              />
             </div>
           </div>
 
@@ -567,8 +772,8 @@ export default function CheckoutPage() {
                     className="accent-brand-600"
                   />
                   <div>
-                    <span className="text-xs font-bold text-brand-900 block">Credit / Debit Cards</span>
-                    <span className="text-[11px] text-gray-500">RuPay, Visa, Mastercard, American Express</span>
+                    <span className="text-xs font-bold text-brand-900 block">Debit / Credit Card</span>
+                    <span className="text-[11px] text-gray-500">Visa, Mastercard, RuPay, Maestro</span>
                   </div>
                 </div>
                 <CreditCard className="w-4 h-4 text-gray-400" />
@@ -591,7 +796,7 @@ export default function CheckoutPage() {
                   />
                   <div>
                     <span className="text-xs font-bold text-brand-900 block">Net Banking</span>
-                    <span className="text-[11px] text-gray-500">SBI, HDFC, ICICI, Axis, Kotak & 50+ banks</span>
+                    <span className="text-[11px] text-gray-500">HDFC, ICICI, SBI, Axis, Kotak & 50+ Banks</span>
                   </div>
                 </div>
               </label>
@@ -600,85 +805,99 @@ export default function CheckoutPage() {
         </div>
 
         {/* RIGHT: ORDER SUMMARY (1 COL) */}
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-canvas-border shadow-cozy space-y-5 sticky top-28">
-            <h3 className="font-serif font-bold text-base text-brand-900 pb-3 border-b border-canvas-border">
-              Order Items ({cart.length})
+        <div className="lg:col-span-1">
+          <div className="bg-white p-6 rounded-3xl border border-canvas-border shadow-cozy space-y-4 sticky top-24">
+            <h3 className="font-serif font-bold text-base text-brand-900 pb-2 border-b border-canvas-border">
+              Order Summary ({cart.length} {cart.length === 1 ? 'item' : 'items'})
             </h3>
 
-            {/* List preview */}
+            {/* Item Thumbnails */}
             <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
               {cart.map((item) => (
-                <div key={item.id} className="flex items-center justify-between text-xs gap-3">
-                  <div className="flex items-center gap-2 truncate">
-                    <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-brand-100">
-                      <Image src={item.image} alt={item.productName} fill className="object-cover" />
-                    </div>
-                    <div className="truncate">
-                      <p className="font-medium text-brand-900 truncate">{item.productName}</p>
-                      <p className="text-[10px] text-gray-400">
-                        Qty: {item.quantity} • {item.color}
-                      </p>
-                    </div>
+                <div key={item.id} className="flex gap-3 items-center text-xs">
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-brand-50 shrink-0 border border-canvas-border">
+                    <Image src={item.image} alt={item.productName} fill className="object-cover" />
                   </div>
-                  <span className="font-semibold text-brand-900 shrink-0">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-brand-900 truncate">{item.productName}</p>
+                    <p className="text-[11px] text-gray-500">Qty: {item.quantity}</p>
+                  </div>
+                  <p className="font-semibold text-brand-900 shrink-0 font-mono">
                     ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                  </span>
+                  </p>
                 </div>
               ))}
             </div>
 
-            {/* Price breakdown */}
-            <div className="pt-3 border-t border-canvas-border space-y-2 text-xs text-gray-600">
-              <div className="flex justify-between">
+            <div className="pt-3 border-t border-canvas-border space-y-2 text-xs">
+              <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span className="font-semibold text-brand-900">₹{subtotal.toLocaleString('en-IN')}</span>
+                <span className="font-mono">₹{subtotal.toLocaleString('en-IN')}</span>
               </div>
+
               {discountAmount > 0 && (
-                <div className="flex justify-between text-rose-600 font-semibold">
-                  <span>Coupon Discount</span>
-                  <span>- ₹{discountAmount.toLocaleString('en-IN')}</span>
+                <div className="flex justify-between text-emerald-700 font-medium">
+                  <span>Coupon Discount ({coupon?.code})</span>
+                  <span className="font-mono">-₹{discountAmount.toLocaleString('en-IN')}</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span className="font-semibold text-brand-900">
-                  {finalShippingCharge === 0 ? <span className="text-emerald-700">FREE</span> : `₹${finalShippingCharge}`}
+
+              <div className="flex justify-between text-gray-600">
+                <span>Estimated Delivery</span>
+                <span className="font-mono">
+                  {finalShippingCharge === 0 ? (
+                    <span className="text-emerald-700 font-bold uppercase text-[10px]">FREE</span>
+                  ) : (
+                    `₹${finalShippingCharge}`
+                  )}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>Taxes (5% GST included)</span>
-                <span className="font-semibold text-brand-900">₹{taxAmount.toLocaleString('en-IN')}</span>
+
+              <div className="flex justify-between text-gray-600">
+                <span>GST (5%)</span>
+                <span className="font-mono">₹{taxAmount.toLocaleString('en-IN')}</span>
               </div>
-              <div className="pt-2 border-t border-canvas-border flex justify-between text-base font-bold text-brand-900">
-                <span>Total Payable</span>
-                <span>₹{calculatedTotal.toLocaleString('en-IN')}</span>
+
+              <div className="pt-3 border-t border-canvas-border flex justify-between items-baseline">
+                <span className="font-bold text-sm text-brand-900">Total Payable</span>
+                <div className="text-right">
+                  <span className="font-serif text-xl font-bold text-brand-900 font-mono">
+                    ₹{calculatedTotal.toLocaleString('en-IN')}
+                  </span>
+                  <p className="text-[10px] text-gray-400">Inclusive of all taxes</p>
+                </div>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={isProcessing || isUnservedPincode || !deliveryZone}
-              className="w-full py-4 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-cozy hover:shadow-cozy-lg transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full py-3.5 px-4 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-soft transition-all flex items-center justify-center gap-2 ${
+                isProcessing || isUnservedPincode || !deliveryZone
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-brand-600 hover:bg-brand-700 hover:shadow-hover'
+              }`}
             >
               {isProcessing ? (
                 <>
                   <Sparkles className="w-4 h-4 animate-spin" /> Processing Payment...
                 </>
               ) : isUnservedPincode ? (
-                <span>PIN Code Not Serviceable</span>
+                'PIN Code Unserviceable'
               ) : !deliveryZone ? (
-                <span>Enter Valid PIN Code to Pay</span>
+                'Enter Valid 6-Digit PIN'
               ) : (
                 <>
-                  <Lock className="w-4 h-4" /> Pay ₹{calculatedTotal.toLocaleString('en-IN')} Securely
+                  <Lock className="w-3.5 h-3.5" /> Pay ₹{calculatedTotal.toLocaleString('en-IN')} & Place Order
                 </>
               )}
             </button>
 
-            <div className="text-[11px] text-gray-400 text-center space-y-1">
-              <p>🛡️ Official Razorpay Payments Gateway (Prepaid Only)</p>
-              <p>Instant PDF Tax Invoice generated upon payment</p>
+            <div className="pt-2 text-center text-[10px] text-gray-400 space-y-1">
+              <p className="flex items-center justify-center gap-1">
+                <Lock className="w-3 h-3 text-emerald-600" /> Bank-grade 256-bit SSL encryption
+              </p>
+              <p>Prepaid only • 100% Guaranteed handcrafting by certified artisans</p>
             </div>
           </div>
         </div>

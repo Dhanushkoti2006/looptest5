@@ -219,8 +219,10 @@ export async function POST(req: Request) {
         delivery_method: zone.delivery_method, // 'local_own' | 'courier_manual'
         shipping_full_name: customerName || shippingAddress.name,
         shipping_phone: customerPhone || shippingAddress.phone,
-        shipping_street_address: shippingAddress.street,
-        shipping_apartment: shippingAddress.apartment || shippingAddress.landmark || '',
+        shipping_street_address: shippingAddress.street || shippingAddress.line1 || '',
+        shipping_apartment: shippingAddress.apartment || shippingAddress.landmark || shippingAddress.line2 || '',
+        shipping_line1: shippingAddress.line1 || shippingAddress.street || '',
+        shipping_line2: shippingAddress.line2 || shippingAddress.apartment || shippingAddress.landmark || '',
         shipping_city: shippingAddress.city,
         shipping_state: shippingAddress.state,
         shipping_pincode: cleanPincode,
