@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Razorpay official checkout SDK */}
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       </head>
       <body className="min-h-screen flex flex-col bg-canvas-bg text-brand-900 antialiased selection:bg-brand-200">
         <AuthProvider>

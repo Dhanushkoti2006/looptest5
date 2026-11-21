@@ -88,6 +88,40 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'RAZORPAY_UPI' | 'RAZORPAY_CARD' | 'RAZORPAY_NETBANKING'>('RAZORPAY_UPI');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [razorpayReady, setRazorpayReady] = useState(false);
+
+  // Pre-load and monitor Razorpay SDK readiness on mount
+  useEffect(() => {
+    function checkRazorpay() {
+      if (typeof window !== 'undefined' && (window as any).Razorpay) {
+        setRazorpayReady(true);
+        return true;
+      }
+      return false;
+    }
+
+    if (checkRazorpay()) return;
+
+    // Dynamically inject Razorpay SDK if not already present
+    if (typeof window !== 'undefined') {
+      const existing = document.querySelector('script[src*="checkout.razorpay.com"]');
+      if (!existing) {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => setRazorpayReady(true);
+        document.body.appendChild(script);
+      }
+    }
+
+    const timer = setInterval(() => {
+      if (checkRazorpay()) {
+        clearInterval(timer);
+      }
+    }, 400);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Fetch saved addresses if logged in
   useEffect(() => {
@@ -323,38 +357,38 @@ export default function CheckoutPage() {
 
       const createdOrder = orderData.order;
       const razorpayConfig = orderData.razorpay;
-      const rzpKey = razorpayConfig?.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      const rzpKey = razorpayConfig?.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_U24YNvPzHAbE40';
 
       // Ensure Razorpay SDK is ready
       let isRazorpayLoaded = typeof window !== 'undefined' && !!(window as any).Razorpay;
       if (typeof window !== 'undefined' && !isRazorpayLoaded) {
+        setErrorMessage('Loading Razorpay secure payment window...');
         isRazorpayLoaded = await new Promise((resolve) => {
-          const existing = document.querySelector('script[src*="checkout.razorpay.com"]');
-          if (existing) {
-            existing.addEventListener('load', () => resolve(true));
-            setTimeout(() => resolve(!!(window as any).Razorpay), 1500);
-            return;
-          }
           const script = document.createElement('script');
           script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.async = true;
           script.onload = () => resolve(true);
           script.onerror = () => resolve(false);
           document.body.appendChild(script);
+          setTimeout(() => resolve(!!(window as any).Razorpay), 2000);
         });
       }
 
-      // 2. TRIGGER RAZORPAY OFFICIAL CHECKOUT
+      // TRIGGER RAZORPAY OFFICIAL CHECKOUT MODAL
       if (typeof window !== 'undefined' && (window as any).Razorpay && rzpKey && rzpKey !== 'rzp_test_placeholder') {
-        const options = {
+        const orderIdValue = razorpayConfig?.orderId || createdOrder.razorpayOrderId;
+        const cleanOrderId = (typeof orderIdValue === 'string' && orderIdValue.startsWith('order_')) ? orderIdValue : undefined;
+
+        const options: any = {
           key: rzpKey,
           amount: razorpayConfig?.amount || Math.round(createdOrder.total * 100),
           currency: razorpayConfig?.currency || 'INR',
           name: 'Loop & Love Crochet',
-          description: `Order #${createdOrder.orderNumber} Payment`,
+          description: `Order #${createdOrder.orderNumber} (Test Mode)`,
           image: '/images/loop-and-love-logo.jpg',
-          order_id: razorpayConfig?.orderId || createdOrder.razorpayOrderId || undefined,
           handler: async function (response: any) {
             try {
+              setErrorMessage('Verifying payment with Razorpay...');
               const verifyRes = await fetch('/api/payments/razorpay/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -380,6 +414,12 @@ export default function CheckoutPage() {
               setIsProcessing(false);
             }
           },
+          modal: {
+            ondismiss: function () {
+              setIsProcessing(false);
+              setErrorMessage('Razorpay checkout window was closed. You can retry paying whenever you are ready.');
+            },
+          },
           prefill: {
             name: customerName,
             email: customerEmail,
@@ -390,14 +430,24 @@ export default function CheckoutPage() {
           },
         };
 
-        const rzp = new (window as any).Razorpay(options);
-        rzp.on('payment.failed', function (response: any) {
-          setErrorMessage(`Payment failed: ${response.error?.description || 'Transaction declined'}`);
+        if (cleanOrderId) {
+          options.order_id = cleanOrderId;
+        }
+
+        try {
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on('payment.failed', function (response: any) {
+            setErrorMessage(`Payment failed: ${response.error?.description || 'Transaction declined'}`);
+            setIsProcessing(false);
+          });
+          rzp.open();
+        } catch (openErr: any) {
+          console.error('Razorpay open exception:', openErr);
+          setErrorMessage('Could not open Razorpay checkout. ' + (openErr?.message || 'Please retry.'));
           setIsProcessing(false);
-        });
-        rzp.open();
+        }
       } else {
-        // High-fidelity sandbox / test payment completion:
+        // High-fidelity sandbox / test payment completion if Razorpay script is blocked by browser:
         const simulatedPaymentId = `pay_sim_${Date.now()}`;
         const simulatedSignature = `sig_sim_${Date.now()}_verified`;
 
@@ -749,6 +799,42 @@ export default function CheckoutPage() {
               <span>3. Prepaid Payment Gateway (Razorpay)</span>
               <span className="text-xs font-semibold text-emerald-700">🔒 100% Encrypted</span>
             </h3>
+
+            {/* RAZORPAY TEST MODE BADGE & HELPER */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 via-purple-50/50 to-emerald-50/40 border border-purple-200 text-xs space-y-3 shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-bold text-purple-900 flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${razorpayReady ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+                  🧪 Razorpay Test Mode Active
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-purple-100 text-purple-800 font-mono px-2 py-0.5 rounded-full font-semibold">
+                    rzp_test_U24YNvPzHAbE40
+                  </span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${razorpayReady ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                    {razorpayReady ? '● Gateway SDK Ready' : '⏳ Connecting...'}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                This store is running in <strong>Razorpay Test Sandbox</strong>. No real currency is deducted.
+                When you click <strong>Place Order & Pay</strong> below, the official Razorpay test payment window will pop up.
+              </p>
+
+              <div className="pt-2 border-t border-purple-100/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div className="bg-white/80 p-2.5 rounded-xl border border-purple-100">
+                  <span className="text-gray-400 block text-[10px] font-bold uppercase tracking-wider">Test UPI ID</span>
+                  <span className="font-mono font-bold text-purple-900">success@razorpay</span>
+                  <span className="block text-[10px] text-emerald-600 font-medium mt-0.5">Instant simulated authorization</span>
+                </div>
+                <div className="bg-white/80 p-2.5 rounded-xl border border-purple-100">
+                  <span className="text-gray-400 block text-[10px] font-bold uppercase tracking-wider">Test Card / OTP</span>
+                  <span className="font-mono font-bold text-purple-900">4111 1111 1111 1111</span>
+                  <span className="block text-[10px] text-slate-500 font-mono mt-0.5">Exp: 12/28 • CVV: 123 • OTP: 123456</span>
+                </div>
+              </div>
+            </div>
 
             <div className="space-y-3">
               <label
