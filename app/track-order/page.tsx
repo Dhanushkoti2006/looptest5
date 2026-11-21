@@ -222,11 +222,11 @@ function TrackOrderContent() {
             </div>
 
             <div className="p-4 rounded-2xl bg-canvas-subtle border border-canvas-border space-y-1.5">
-              <span className="font-bold text-gray-500 uppercase tracking-wider block">Courier & AWB Tracking</span>
+              <span className="font-bold text-gray-500 uppercase tracking-wider block">Courier & Tracking Details</span>
               <p className="font-semibold text-brand-900">
                 {order.courierPartner || 'Artisan Special Handling / BlueDart Express'}
               </p>
-              <p className="text-brand-700 font-mono">AWB: {order.trackingNumber || 'Pending Courier Scan'}</p>
+              <p className="text-brand-700 font-mono">Tracking Number: {order.trackingNumber || 'Pending Courier Scan'}</p>
               <p className="text-emerald-700 font-medium">Payment: {order.paymentMethod}</p>
             </div>
           </div>

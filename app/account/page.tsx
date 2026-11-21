@@ -29,7 +29,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (!user) {
-      router.push('/account/auth');
+      router.push('/login');
       return;
     }
 

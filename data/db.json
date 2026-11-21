@@ -43,6 +43,17 @@
       "id": "usr-1794925485905-59lts",
       "createdAt": "2026-11-17T14:24:45.905Z",
       "updatedAt": "2026-11-17T14:24:45.905Z"
+    },
+    {
+      "name": "dhanush",
+      "email": "dhanushkotis8@gmail.com",
+      "phone": "+91 99999 00000",
+      "role": "CUSTOMER",
+      "isEmailVerified": true,
+      "isPhoneVerified": false,
+      "id": "usr-1795242096639-c58ux",
+      "createdAt": "2026-11-21T06:21:36.639Z",
+      "updatedAt": "2026-11-21T06:21:36.639Z"
     }
   ],
   "categories": [
@@ -162,7 +173,7 @@
       ],
       "materials": "100% Premium Milk Cotton Yarn, Polyester Fiberfill, Embroidered Felt Accents",
       "dimensions": "Height: 25 cm",
-      "stock": 12,
+      "stock": 11,
       "sku": "LL-TOY-002",
       "prepTimeDays": 2,
       "careInstructions": "Spot clean with mild soapy water or gentle hand wash. Lay flat to dry.",
@@ -757,7 +768,7 @@
         {
           "status": "Shipped",
           "timestamp": "2026-11-09T10:00:00Z",
-          "note": "Shipped via BlueDart AWB: BD90284712IN"
+          "note": "Shipped via BlueDart Tracking Number: BD90284712IN"
         },
         {
           "status": "Out for Delivery",
@@ -2809,6 +2820,140 @@
       "orderNumber": "LL-2026-1039",
       "createdAt": "2026-11-19T17:40:39.207Z",
       "updatedAt": "2026-11-19T17:40:39.207Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "dk",
+      "customerEmail": "dhanushkoti987@gmail.com",
+      "customerPhone": "+91 9025283958",
+      "items": [
+        {
+          "id": "oi-1795239614824-1hm0",
+          "productId": "prod-daisy-sunflower-pot",
+          "productName": "Sunflower boquet",
+          "image": "https://www.artsty.com/cdn/shop/files/rn-image_picker_lib_temp_8e481e6d-23cd-4e96-8d2d-930809c76a46.jpg?v=1694774090",
+          "color": "Sunny Golden Yellow",
+          "size": "Standard Bouquet (5 stems)",
+          "unitPrice": 799,
+          "quantity": 1,
+          "totalPrice": 799
+        },
+        {
+          "id": "oi-1795239614824-o08i",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Classic Red & Blue",
+          "size": "Standard (25 cm)",
+          "unitPrice": 1899,
+          "quantity": 1,
+          "totalPrice": 1899
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795239613969",
+        "userId": "usr-admin-1",
+        "name": "dk",
+        "phone": "+91 9025283958",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "600122",
+        "isDefault": true,
+        "createdAt": "2026-11-21T05:40:13.969Z"
+      },
+      "subtotal": 2698,
+      "shippingCharge": 0,
+      "taxAmount": 134.9,
+      "discountAmount": 0,
+      "totalAmount": 2832.9,
+      "paymentStatus": "PENDING",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_U2iHQTwWWmD2d1",
+      "orderStatus": "Order Placed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-21T05:40:15.317Z",
+          "note": "Order initiated, awaiting verified payment."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795239615317",
+      "orderNumber": "LL-2026-1040",
+      "createdAt": "2026-11-21T05:40:15.317Z",
+      "updatedAt": "2026-11-21T05:40:15.317Z"
+    },
+    {
+      "userId": "usr-admin-1",
+      "customerName": "Akash (Loop & Love Founder)",
+      "customerEmail": "dhanushkoti987@gmail.com",
+      "customerPhone": "+91 98765 43210",
+      "items": [
+        {
+          "id": "oi-1795239675365-f526",
+          "productId": "prod-custom-graduation-teddy",
+          "productName": "spiderman toy",
+          "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLZuoNlBD8Vo2kI4JUZH_8fHTgq_hl56yFAhF9KpaULg&s",
+          "color": "Classic Red & Blue",
+          "size": "Standard (25 cm)",
+          "unitPrice": 1899,
+          "quantity": 1,
+          "totalPrice": 1899
+        }
+      ],
+      "shippingAddress": {
+        "id": "addr-1795239675248",
+        "userId": "usr-admin-1",
+        "name": "Akash (Loop & Love Founder)",
+        "phone": "+91 98765 43210",
+        "street": "Flat 402, Lotus Greens, Indiranagar",
+        "landmark": "Near Metro Station",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "pincode": "560038",
+        "isDefault": true,
+        "createdAt": "2026-11-21T05:41:15.248Z"
+      },
+      "subtotal": 1899,
+      "shippingCharge": 0,
+      "taxAmount": 94.95,
+      "discountAmount": 0,
+      "totalAmount": 1993.95,
+      "paymentStatus": "SUCCESS",
+      "paymentMethod": "Razorpay (RAZORPAY_UPI)",
+      "razorpayOrderId": "order_U2iIUKItoQpxAa",
+      "orderStatus": "Order Confirmed",
+      "statusHistory": [
+        {
+          "status": "Order Placed",
+          "timestamp": "2026-11-21T05:41:15.603Z",
+          "note": "Order initiated, awaiting verified payment."
+        },
+        {
+          "status": "Payment Verified",
+          "timestamp": "2026-11-21T05:41:41.482Z",
+          "note": "Payment successfully verified via Razorpay ID: pay_U2iIeqhXOfg1Fy"
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-21T05:41:41.482Z",
+          "note": "Order confirmed and queued for artisan crafting."
+        },
+        {
+          "status": "Order Confirmed",
+          "timestamp": "2026-11-21T05:41:41.488Z",
+          "note": "Payment verified and inventory reserved."
+        }
+      ],
+      "specialInstructions": "",
+      "id": "ord-1795239675603",
+      "orderNumber": "LL-2026-1041",
+      "createdAt": "2026-11-21T05:41:15.603Z",
+      "updatedAt": "2026-11-21T05:41:41.488Z",
+      "razorpayPaymentId": "pay_U2iIeqhXOfg1Fy",
+      "razorpaySignature": "b6d97be4fa8eba032da8bfe4d98babfe91dc61687bb39308e516f31994e2abde"
     }
   ],
   "customOrders": [
@@ -2936,6 +3081,36 @@
       "attempts": 1,
       "isUsed": true,
       "createdAt": "2026-11-17T14:24:40.039Z"
+    },
+    {
+      "id": "otp-1795242072007",
+      "target": "dhanushkotis8@gmail.com",
+      "code": "191222",
+      "type": "REGISTRATION",
+      "expiresAt": "2026-11-21T06:31:12.007Z",
+      "attempts": 1,
+      "isUsed": true,
+      "createdAt": "2026-11-21T06:21:12.007Z"
+    },
+    {
+      "id": "otp-1795242111605",
+      "target": "dhanushkotis8@gmail.com",
+      "code": "259369",
+      "type": "REGISTRATION",
+      "expiresAt": "2026-11-21T06:31:51.605Z",
+      "attempts": 5,
+      "isUsed": false,
+      "createdAt": "2026-11-21T06:21:51.605Z"
+    },
+    {
+      "id": "otp-1795242222133",
+      "target": "dhanushkotis8@gmail.com",
+      "code": "702712",
+      "type": "LOGIN",
+      "expiresAt": "2026-11-21T06:33:42.133Z",
+      "attempts": 1,
+      "isUsed": true,
+      "createdAt": "2026-11-21T06:23:42.133Z"
     }
   ],
   "reviews": [
@@ -3340,6 +3515,24 @@
       "link": "/admin/orders?id=ord-1795110039207",
       "isRead": false,
       "createdAt": "2026-11-19T17:40:39.318Z"
+    },
+    {
+      "id": "notif-1795239615317",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1040 for Rs. 2,832.9 placed by dk.",
+      "link": "/admin/orders?id=ord-1795239615317",
+      "isRead": false,
+      "createdAt": "2026-11-21T05:40:15.473Z"
+    },
+    {
+      "id": "notif-1795239675603",
+      "type": "NEW_ORDER",
+      "title": "New Order Received",
+      "message": "Order #LL-2026-1041 for Rs. 1,993.95 placed by Akash (Loop & Love Founder).",
+      "link": "/admin/orders?id=ord-1795239675603",
+      "isRead": false,
+      "createdAt": "2026-11-21T05:41:15.603Z"
     }
   ]
 }

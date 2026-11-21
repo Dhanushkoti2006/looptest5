@@ -78,7 +78,7 @@ Access URL: `/admin` (Pre-seeded Super Admin account ready)
 - **Order Fulfillment & Tracking (`/admin/orders`)**:
   - Search orders by ID, customer name, or phone.
   - Filter orders by milestone status.
-  - Update milestone with custom artisan notes and courier tracking AWB numbers.
+  - Update milestone with custom artisan notes and courier tracking numbers.
   - Download PDF invoices.
   - Export all orders to CSV.
 - **Custom Order Management (`/admin/custom-orders`)**:
@@ -191,7 +191,7 @@ c:\Users\AKASH\3D Objects\loop\
 │   │   ├── layout.tsx            # Admin sidebar & role-based authentication check
 │   │   ├── page.tsx              # Analytics dashboard, revenue chart, order funnel
 │   │   ├── products/page.tsx     # Add/edit products, stock adjuster, sold-out toggles
-│   │   ├── orders/page.tsx       # Order management, AWB courier tracker, CSV export
+│   │   ├── orders/page.tsx       # Order management, courier tracking number, CSV export
 │   │   ├── custom-orders/page.tsx# Custom requests review, reference photos, quotations
 │   │   └── database/page.tsx     # Raw database table inspector & JSON object viewer
 │   └── api/                      # Full REST API endpoints (orders, products, coupons, etc.)

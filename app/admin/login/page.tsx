@@ -1,50 +1,96 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
-import { Shield, Lock, Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
+import { Shield, Mail, Lock, ArrowRight, AlertCircle, CheckCircle2, RotateCcw } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { loginAsAdmin } = useAuth();
+  const { user, isAdmin, isLoading, signInWithOtp, verifyOtp } = useAuth();
+
+  const [step, setStep] = useState<'EMAIL' | 'OTP'>('EMAIL');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [otpToken, setOtpToken] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
+  const [cooldown, setCooldown] = useState(0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // If already authenticated as admin, go straight to /admin
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (isAdmin) {
+        router.replace('/admin');
+      } else {
+        setMessage({
+          text: `Signed in as ${user.email}, but this account does not have administrator privileges. Please assign role = 'admin' in Supabase SQL editor.`,
+          isError: true,
+        });
+      }
+    }
+  }, [user, isAdmin, isLoading, router]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setMessage({ text: 'Please enter your administrator email.', isError: true });
+      return;
+    }
+
     setLoading(true);
+    setMessage(null);
 
-    // Verify admin credentials
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@loopandlove.com';
-    const adminPass = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'admin123';
+    const res = await signInWithOtp(cleanEmail);
+    setLoading(false);
 
-    if (
-      (email.trim().toLowerCase() === adminEmail.toLowerCase() ||
-       email.trim().toLowerCase() === 'callmedhanush777@gmail.com' ||
-       email.trim().toLowerCase() === 'admin@loopandlove.com') &&
-      (password === adminPass || password === 'dhanush2006' || password === 'admin123')
-    ) {
-      setSuccess(true);
-      loginAsAdmin();
-      setTimeout(() => {
-        router.push('/admin');
-      }, 700);
+    if (res.success) {
+      setStep('OTP');
+      setCooldown(60);
+      setMessage({ text: res.message, isError: false });
     } else {
-      setError('Invalid admin credentials. Access denied.');
-      setLoading(false);
+      setMessage({ text: res.message, isError: true });
     }
   };
 
-  const handleQuickDemo = () => {
-    loginAsAdmin();
-    router.push('/admin');
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanToken = otpToken.trim();
+    if (!cleanToken || cleanToken.length < 6) {
+      setMessage({ text: 'Please enter the 6-digit verification code.', isError: true });
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    const res = await verifyOtp(email.trim(), cleanToken);
+    setLoading(false);
+
+    if (res.success) {
+      if (res.user?.role === 'admin') {
+        setMessage({ text: 'Admin authorization verified! Redirecting...', isError: false });
+        setTimeout(() => {
+          router.push('/admin');
+        }, 500);
+      } else {
+        setMessage({
+          text: `Signed in successfully as ${res.user?.email}, but this account does not have the 'admin' role in public.profiles.`,
+          isError: true,
+        });
+      }
+    } else {
+      setMessage({ text: res.message, isError: true });
+    }
   };
 
   return (
@@ -59,76 +105,128 @@ export default function AdminLoginPage() {
             Admin Portal
           </h1>
           <p className="text-xs text-slate-500">
-            Secure management console for Loop & Love Storefront
+            Secure management console authenticated via Supabase Email OTP
           </p>
         </div>
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-xs text-red-700">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+        {message && (
+          <div
+            className={`p-4 rounded-xl flex items-start gap-2 text-xs leading-relaxed ${
+              message.isError
+                ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+            }`}
+          >
+            {message.isError ? (
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+            )}
+            <span>{message.text}</span>
           </div>
         )}
 
-        {success && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs text-emerald-700">
-            <CheckCircle className="w-4 h-4 shrink-0" />
-            <span>Authenticated! Redirecting to dashboard...</span>
-          </div>
+        {step === 'EMAIL' ? (
+          <form onSubmit={handleSendEmail} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                Admin Email
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@loopandlove.com"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || !email.trim()}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-purple-700 hover:bg-purple-800 text-white font-medium rounded-xl text-sm transition-colors shadow-lg disabled:opacity-50"
+            >
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  Send Admin Login Code <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                6-Digit Security Code
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  required
+                  maxLength={6}
+                  pattern="[0-9]{6}"
+                  inputMode="numeric"
+                  value={otpToken}
+                  onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  className="w-full pl-10 pr-4 py-2.5 font-mono text-center tracking-widest text-lg bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || otpToken.length < 6}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-purple-700 hover:bg-purple-800 text-white font-medium rounded-xl text-sm transition-colors shadow-lg disabled:opacity-50"
+            >
+              {loading ? (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  Verify Admin Access <Shield className="w-4 h-4" />
+                </>
+              )}
+            </button>
+
+            <div className="flex items-center justify-between text-xs pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('EMAIL');
+                  setOtpToken('');
+                  setMessage(null);
+                }}
+                className="text-slate-500 hover:text-slate-800 underline"
+              >
+                Change Email
+              </button>
+              <button
+                type="button"
+                disabled={cooldown > 0 || loading}
+                onClick={handleSendEmail}
+                className="text-purple-700 font-semibold disabled:text-slate-400 flex items-center gap-1"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Code'}
+              </button>
+            </div>
+          </form>
         )}
 
-        {/* LOGIN FORM */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="font-bold text-slate-700 block mb-1.5">
-              Admin Email / Username
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@loopandlove.com"
-                className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white transition-all text-xs"
-              />
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-            </div>
-          </div>
-
-          <div>
-            <label className="font-bold text-slate-700 block mb-1.5">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 focus:bg-white transition-all text-xs"
-              />
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || success}
-            className="w-full py-3 bg-purple-700 hover:bg-purple-800 disabled:bg-purple-400 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-xs"
-          >
-            <span>{loading ? 'Authenticating...' : 'Sign In as Administrator'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
-
-        <div className="pt-4 border-t border-slate-100 text-center">
-          <Link
-            href="/"
-            className="text-xs text-slate-400 hover:text-purple-700 transition-colors"
-          >
-            ← Return to Storefront
+        <div className="pt-4 border-t border-slate-200 text-center">
+          <Link href="/" className="text-xs text-slate-500 hover:text-slate-800 transition-colors">
+            ← Return to Loop & Love Storefront
           </Link>
         </div>
       </div>

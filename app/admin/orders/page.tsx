@@ -90,7 +90,7 @@ export default function AdminOrdersPage() {
 
   const exportToCSV = () => {
     if (orders.length === 0) return;
-    const headers = ['Order Number', 'Date', 'Customer Name', 'Phone', 'Email', 'Items', 'Total Amount', 'Payment Status', 'Order Status', 'Tracking AWB'];
+    const headers = ['Order Number', 'Date', 'Customer Name', 'Phone', 'Email', 'Items', 'Total Amount', 'Payment Status', 'Order Status', 'Tracking Number'];
     const rows = orders.map((o) => [
       o.orderNumber,
       new Date(o.createdAt).toLocaleDateString('en-IN'),
@@ -134,7 +134,7 @@ export default function AdminOrdersPage() {
             Order Fulfillment & Tracking Control
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Update crafting stages, add shipping AWBs, and issue invoices.
+            Update crafting stages, add shipping tracking numbers, and issue invoices.
           </p>
         </div>
 
@@ -189,7 +189,7 @@ export default function AdminOrdersPage() {
                 <th className="py-3 px-6">Products</th>
                 <th className="py-3 px-6">Total Paid</th>
                 <th className="py-3 px-6">Milestone Status</th>
-                <th className="py-3 px-6">Courier AWB</th>
+                <th className="py-3 px-6">Tracking Number</th>
                 <th className="py-3 px-6 text-right">Actions</th>
               </tr>
             </thead>
@@ -314,7 +314,7 @@ export default function AdminOrdersPage() {
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Tracking AWB Code</label>
+                  <label className="font-bold text-slate-700 block mb-1">Tracking Number</label>
                   <input
                     type="text"
                     placeholder="e.g. BD9871234IN"

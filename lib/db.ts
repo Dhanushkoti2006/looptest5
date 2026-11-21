@@ -212,7 +212,7 @@ function initializeDatabase(): DatabaseSchema {
           { status: 'Making Your Crochet Product', timestamp: '2026-11-06T09:00:00Z' },
           { status: 'Quality Check', timestamp: '2026-11-08T15:00:00Z' },
           { status: 'Packed', timestamp: '2026-11-08T18:00:00Z' },
-          { status: 'Shipped', timestamp: '2026-11-09T10:00:00Z', note: 'Shipped via BlueDart AWB: BD90284712IN' },
+          { status: 'Shipped', timestamp: '2026-11-09T10:00:00Z', note: 'Shipped via BlueDart Tracking Number: BD90284712IN' },
           { status: 'Out for Delivery', timestamp: '2026-11-12T08:30:00Z' },
           { status: 'Delivered', timestamp: '2026-11-12T13:45:00Z', note: 'Handed to customer directly' },
         ],

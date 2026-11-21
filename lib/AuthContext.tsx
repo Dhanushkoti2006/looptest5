@@ -1,19 +1,31 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from './types';
-import { INITIAL_ADMIN_USER, INITIAL_SAMPLE_CUSTOMER } from './seedData';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createClient } from './supabase/client';
+import type { Profile } from './supabase/database.types';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'customer' | 'admin';
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   isLoading: boolean;
-  sendOTP: (target: string, type?: 'REGISTRATION' | 'LOGIN' | 'PASSWORD_RESET') => Promise<{ success: boolean; message: string; devCode?: string }>;
-  verifyOTPAndLogin: (target: string, code: string, type?: 'REGISTRATION' | 'LOGIN', extraData?: { name?: string; phone?: string }) => Promise<{ success: boolean; message: string; user?: User }>;
+  signInWithOtp: (email: string) => Promise<{ success: boolean; message: string }>;
+  verifyOtp: (email: string, token: string) => Promise<{ success: boolean; message: string; user?: User }>;
+  logout: () => Promise<void>;
+  updateUserProfile: (updates: Partial<{ name: string; phone: string }>) => Promise<boolean>;
+  sendOTP: (email: string) => Promise<{ success: boolean; message: string }>;
+  verifyOTPAndLogin: (email: string, code: string) => Promise<{ success: boolean; message: string; user?: User }>;
   loginAsAdmin: () => void;
   loginAsCustomer: () => void;
-  logout: () => void;
-  updateUserProfile: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,86 +34,174 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const supabase = createClient();
+
+  const fetchProfile = useCallback(async (authUserId: string, authEmail?: string | null) => {
     try {
-      const savedUser = localStorage.getItem('loop_and_love_user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUserId)
+        .maybeSingle();
+
+      const profile = data as Profile | null;
+
+      if (error) {
+        console.error('Error fetching profile from Supabase:', error);
+      }
+
+      const email = authEmail || '';
+      const name = profile?.full_name || email.split('@')[0] || 'Handmade Lover';
+      const phone = profile?.phone || '';
+      const role = (profile?.role === 'admin' ? 'admin' : 'customer') as 'customer' | 'admin';
+
+      const userObj: User = {
+        id: authUserId,
+        name,
+        email,
+        phone,
+        role,
+        createdAt: profile?.created_at || new Date().toISOString(),
+        updatedAt: profile?.updated_at || new Date().toISOString(),
+      };
+
+      setUser(userObj);
+      return userObj;
+    } catch (e) {
+      console.error('Exception fetching profile:', e);
+      return null;
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function initSession() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && mounted) {
+          await fetchProfile(session.user.id, session.user.email);
+        } else if (mounted) {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Session initialization error:', err);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    initSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await fetchProfile(session.user.id, session.user.email);
       } else {
-        // Do not auto-login as anyone; guest by default
         setUser(null);
       }
-    } catch (e) {
-      console.warn('Error loading auth user:', e);
-    } finally {
       setIsLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase, fetchProfile]);
+
+  const signInWithOtp = async (email: string) => {
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const { error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          shouldCreateUser: true,
+        },
+      });
+
+      if (error) {
+        if (error.message?.toLowerCase().includes('error sending confirmation mail') || error.message?.toLowerCase().includes('rate limit')) {
+          return {
+            success: false,
+            message:
+              'Supabase was unable to send the email. This happens when the default Supabase email rate limit (3 emails/hour) is reached. Please configure custom SMTP in your Supabase Dashboard (Authentication → SMTP Settings), or check your Supabase Auth Logs.',
+          };
+        }
+        return { success: false, message: error.message || 'Unable to send login code. Please try again.' };
+      }
+
+      return { success: true, message: `A 6-digit login code has been sent to ${cleanEmail}.` };
+    } catch {
+      return { success: false, message: 'Authentication service temporarily unavailable.' };
     }
-  }, []);
+  };
+
+  const verifyOtp = async (email: string, token: string) => {
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanToken = token.trim();
+
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: cleanToken,
+        type: 'email',
+      });
+
+      if (error || !data.user) {
+        return { success: false, message: 'Invalid or expired login code. Please try again.' };
+      }
+
+      const userProfile = await fetchProfile(data.user.id, data.user.email);
+      return {
+        success: true,
+        message: 'Signed in successfully!',
+        user: userProfile || undefined,
+      };
+    } catch {
+      return { success: false, message: 'Verification error. Please request a new code.' };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error('Sign out error:', e);
+    }
+    setUser(null);
+  };
+
+  const updateUserProfile = async (updates: Partial<{ name: string; phone: string }>) => {
+    if (!user) return false;
+    try {
+      const { error } = await (supabase.from('profiles') as any)
+        .update({
+          full_name: updates.name,
+          phone: updates.phone,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (!error) {
+        await fetchProfile(user.id, user.email);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
 
   const loginAsAdmin = () => {
-    setUser(INITIAL_ADMIN_USER);
-    localStorage.setItem('loop_and_love_user', JSON.stringify(INITIAL_ADMIN_USER));
+    console.warn('Sandbox auth is disabled. Please sign in with your verified admin email.');
   };
 
   const loginAsCustomer = () => {
-    setUser(INITIAL_SAMPLE_CUSTOMER);
-    localStorage.setItem('loop_and_love_user', JSON.stringify(INITIAL_SAMPLE_CUSTOMER));
+    console.warn('Sandbox auth is disabled. Please sign in with your email OTP.');
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('loop_and_love_user');
-  };
-
-  const sendOTP = async (
-    target: string,
-    type: 'REGISTRATION' | 'LOGIN' | 'PASSWORD_RESET' = 'LOGIN'
-  ) => {
-    try {
-      const res = await fetch('/api/auth/otp/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target, type }),
-      });
-      const data = await res.json();
-      return data;
-    } catch {
-      return { success: false, message: 'Failed to dispatch OTP.' };
-    }
-  };
-
-  const verifyOTPAndLogin = async (
-    target: string,
-    code: string,
-    type: 'REGISTRATION' | 'LOGIN' = 'LOGIN',
-    extraData?: { name?: string; phone?: string }
-  ) => {
-    try {
-      const res = await fetch('/api/auth/otp/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target, code, type, ...extraData }),
-      });
-      const data = await res.json();
-      if (data.success && data.user) {
-        setUser(data.user);
-        localStorage.setItem('loop_and_love_user', JSON.stringify(data.user));
-        return { success: true, message: data.message, user: data.user };
-      }
-      return { success: false, message: data.message || 'Verification failed.' };
-    } catch {
-      return { success: false, message: 'Authentication service error.' };
-    }
-  };
-
-  const updateUserProfile = (updates: Partial<User>) => {
-    if (!user) return;
-    const updated = { ...user, ...updates };
-    setUser(updated);
-    localStorage.setItem('loop_and_love_user', JSON.stringify(updated));
-  };
-
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const isAdmin = user?.role === 'admin';
 
   return (
     <AuthContext.Provider
@@ -109,12 +209,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAdmin,
         isLoading,
-        sendOTP,
-        verifyOTPAndLogin,
-        loginAsAdmin,
-        loginAsCustomer,
+        signInWithOtp,
+        verifyOtp,
         logout,
         updateUserProfile,
+        sendOTP: signInWithOtp,
+        verifyOTPAndLogin: (email, code) => verifyOtp(email, code),
+        loginAsAdmin,
+        loginAsCustomer,
       }}
     >
       {children}

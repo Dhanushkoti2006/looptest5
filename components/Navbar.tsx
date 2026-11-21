@@ -228,35 +228,13 @@ export default function Navbar() {
                         </div>
                       </>
                     ) : (
-                      <>
-                        <Link
-                          href="/account/auth"
-                          onClick={() => setAccountDropdownOpen(false)}
-                          className="block w-full text-center bg-brand-600 text-white font-medium py-2 rounded-xl hover:bg-brand-700 transition-colors mb-2"
-                        >
-                          Login with OTP
-                        </Link>
-                        <div className="pt-2 border-t border-canvas-border space-y-1">
-                          <button
-                            onClick={() => {
-                              loginAsCustomer();
-                              setAccountDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-3 py-1.5 hover:bg-brand-50 rounded-lg text-brand-800"
-                          >
-                            ⚡ Quick Test: Login as Customer
-                          </button>
-                          <button
-                            onClick={() => {
-                              loginAsAdmin();
-                              setAccountDropdownOpen(false);
-                            }}
-                            className="w-full text-left px-3 py-1.5 hover:bg-brand-50 rounded-lg text-purple-700 font-semibold"
-                          >
-                            🛡️ Quick Test: Login as Admin
-                          </button>
-                        </div>
-                      </>
+                      <Link
+                        href="/login"
+                        onClick={() => setAccountDropdownOpen(false)}
+                        className="block w-full text-center bg-brand-800 text-white font-medium py-2 rounded-xl hover:bg-brand-900 transition-colors"
+                      >
+                        Login with Email OTP
+                      </Link>
                     )}
                   </div>
                 )}

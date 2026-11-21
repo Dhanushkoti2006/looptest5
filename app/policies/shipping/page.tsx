@@ -21,7 +21,7 @@ export default function ShippingPolicyPage() {
         </p>
         <h3 className="font-serif font-bold text-base text-brand-900 pt-2">3. Courier Partners & Tracking</h3>
         <p>
-          All orders are shipped via trusted express courier partners (BlueDart, Delhivery, DTDC). A live tracking AWB link is emailed and available inside your Loop & Love account dashboard.
+          All orders are shipped via trusted express courier partners (BlueDart, Delhivery, DTDC). A live tracking link is emailed and available inside your Loop & Love account dashboard.
         </p>
       </div>
     </div>
