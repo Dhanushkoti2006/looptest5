@@ -281,9 +281,13 @@ export async function DELETE(req: Request) {
 
     const adminSupabase = createAdminClient();
 
-    // Soft delete: set is_active = false
+    // Soft delete: set is_active = false and deleted_at
     const { data: softDeleted, error } = await (adminSupabase.from('products') as any)
-      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', id)
       .select('slug')
       .single();

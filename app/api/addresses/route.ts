@@ -19,6 +19,7 @@ export async function GET(req: Request) {
     const { data: addresses, error } = await (supabase.from('addresses') as any)
       .select('*')
       .eq('user_id', user.id)
+      .is('deleted_at', null)
       .order('is_default', { ascending: false })
       .order('created_at', { ascending: false });
 
@@ -148,9 +149,14 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
+    // Soft-delete: update is_active = false and deleted_at = NOW()
     const adminSupabase = createAdminClient();
     const { error } = await (adminSupabase.from('addresses') as any)
-      .delete()
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', addressId)
       .eq('user_id', user.id);
 

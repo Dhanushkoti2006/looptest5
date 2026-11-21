@@ -475,3 +475,49 @@ DROP POLICY IF EXISTS "Admins can delete product images" ON storage.objects;
 CREATE POLICY "Admins can delete product images"
     ON storage.objects FOR DELETE
     USING (bucket_id = 'product-images' AND public.is_admin());
+
+
+-- ====================================================================
+-- 12. SOFT-DELETE COLUMNS, TIMESTAMPS & UPDATED_AT TRIGGERS ON ALL TABLES
+-- ====================================================================
+
+-- 1. Soft delete columns (ensuring no data is hard-deleted)
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+ALTER TABLE public.addresses ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.addresses ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_email TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+-- 2. Ensure created_at & updated_at on all tables
+ALTER TABLE public.product_images ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE public.order_items ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE public.order_status_history ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE public.carts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE public.cart_items ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+-- 3. Automatic updated_at triggers on every table
+DROP TRIGGER IF EXISTS set_product_images_updated_at ON public.product_images;
+CREATE TRIGGER set_product_images_updated_at
+    BEFORE UPDATE ON public.product_images
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+DROP TRIGGER IF EXISTS set_carts_updated_at ON public.carts;
+CREATE TRIGGER set_carts_updated_at
+    BEFORE UPDATE ON public.carts
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+DROP TRIGGER IF EXISTS set_cart_items_updated_at ON public.cart_items;
+CREATE TRIGGER set_cart_items_updated_at
+    BEFORE UPDATE ON public.cart_items
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+DROP TRIGGER IF EXISTS set_order_items_updated_at ON public.order_items;
+CREATE TRIGGER set_order_items_updated_at
+    BEFORE UPDATE ON public.order_items
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+DROP TRIGGER IF EXISTS set_order_status_history_updated_at ON public.order_status_history;
+CREATE TRIGGER set_order_status_history_updated_at
+    BEFORE UPDATE ON public.order_status_history
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();

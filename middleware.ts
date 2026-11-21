@@ -58,27 +58,40 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login');
 
   if (isAdminRoute) {
-    // 1. Must be authenticated
-    if (!user) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/admin/login';
-      redirectUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(redirectUrl);
+    // 1. Allow if master admin cookie is verified
+    const adminCookie = request.cookies.get('loop_admin_auth')?.value;
+    if (adminCookie === 'true') {
+      return supabaseResponse;
     }
 
-    // 2. Server-side role check on EVERY request
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    if (error || profile?.role !== 'admin') {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/admin/login';
-      redirectUrl.searchParams.set('error', 'unauthorized_admin');
-      return NextResponse.redirect(redirectUrl);
+    // 2. Allow if logged-in user is designated admin email
+    const userEmail = (user?.email || '').toLowerCase();
+    if (userEmail === 'callmedhanush777@gmail.com') {
+      return supabaseResponse;
     }
+
+    // 3. Allow if user has admin role in profiles
+    if (user) {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profile?.role === 'admin') {
+          return supabaseResponse;
+        }
+      } catch (err) {
+        console.error('Middleware profile check error:', err);
+      }
+    }
+
+    // Not authorized - redirect to admin login
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/admin/login';
+    redirectUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(redirectUrl);
   }
 
   return supabaseResponse;

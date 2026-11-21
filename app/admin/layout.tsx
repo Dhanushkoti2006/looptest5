@@ -25,7 +25,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAdmin, isLoading, logout } = useAuth();
-  const [checkedAuth, setCheckedAuth] = React.useState(false);
+  const [checkedAuth, setCheckedAuth] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      return (
+        localStorage.getItem('loop_admin_auth') === 'true' ||
+        document.cookie.includes('loop_admin_auth=true')
+      );
+    }
+    return false;
+  });
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {

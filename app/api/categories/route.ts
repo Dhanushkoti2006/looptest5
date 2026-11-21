@@ -102,10 +102,14 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, message: 'Category ID is required' }, { status: 400 });
     }
 
-    // Soft delete: sets is_active = false
+    // Soft delete: sets is_active = false and deleted_at
     const adminSupabase = createAdminClient();
     const { error } = await (adminSupabase.from('categories') as any)
-      .update({ is_active: false })
+      .update({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', id);
 
     if (error) {

@@ -14,7 +14,7 @@ export async function GET(
 
     // Try customer query first
     let { data: order, error } = await (supabase.from('orders') as any)
-      .select('*, order_items(*)')
+      .select('*, order_items(*), order_status_history(*)')
       .or(`id.eq.${idParam},order_number.eq.${idParam}`)
       .maybeSingle();
 
@@ -22,7 +22,7 @@ export async function GET(
     if (!order) {
       const adminSupabase = createAdminClient();
       const { data: adminOrder } = await (adminSupabase.from('orders') as any)
-        .select('*, order_items(*)')
+        .select('*, order_items(*), order_status_history(*)')
         .or(`id.eq.${idParam},order_number.eq.${idParam}`)
         .maybeSingle();
 

@@ -19,6 +19,75 @@ export async function GET(req: Request) {
 
     const supabase = await createClient();
 
+    // Helper to format order for admin and customer components
+    const formatOrder = (o: any) => ({
+      ...o,
+      id: o.id,
+      orderNumber: o.order_number,
+      order_number: o.order_number,
+      userId: o.user_id,
+      user_id: o.user_id,
+      createdAt: o.created_at,
+      created_at: o.created_at,
+      customerName: o.shipping_full_name,
+      customerPhone: o.shipping_phone,
+      customerEmail: o.customer_email || '',
+      shipping_full_name: o.shipping_full_name,
+      shipping_phone: o.shipping_phone,
+      shipping_email: o.customer_email || '',
+      shippingAddress: {
+        name: o.shipping_full_name,
+        phone: o.shipping_phone,
+        street: o.shipping_line1 || o.shipping_street_address || '',
+        apartment: o.shipping_line2 || o.shipping_apartment || '',
+        line1: o.shipping_line1 || o.shipping_street_address || '',
+        line2: o.shipping_line2 || o.shipping_apartment || '',
+        city: o.shipping_city,
+        state: o.shipping_state,
+        pincode: o.shipping_pincode,
+      },
+      items: (o.order_items || []).map((i: any) => ({
+        id: i.id,
+        productId: i.product_id,
+        productName: i.product_name,
+        quantity: i.quantity,
+        unitPrice: Number(i.unit_price) || 0,
+        totalPrice: (Number(i.unit_price) || 0) * (i.quantity || 1),
+        imageUrl: i.image_url || '',
+      })),
+      order_items: o.order_items || [],
+      subtotal: Number(o.subtotal) || 0,
+      deliveryFee: Number(o.delivery_fee) || 0,
+      totalAmount: Number(o.total) || 0,
+      total: Number(o.total) || 0,
+      paymentStatus: o.payment_status === 'paid' ? 'SUCCESS' : o.payment_status?.toUpperCase() || 'PENDING',
+      payment_status: o.payment_status,
+      orderStatus:
+        o.status === 'making'
+          ? 'Making Your Crochet Product'
+          : o.status === 'out_for_delivery'
+          ? 'Out for Delivery'
+          : o.status === 'paid'
+          ? 'Order Confirmed'
+          : o.status
+          ? o.status.charAt(0).toUpperCase() + o.status.slice(1)
+          : 'Order Confirmed',
+      status: o.status,
+      customerNote: o.customer_note || '',
+      deliveryMethod: o.delivery_method,
+      delivery_method: o.delivery_method,
+      courierPartner: o.courier_name || '',
+      courier_name: o.courier_name || '',
+      trackingNumber: o.tracking_number || '',
+      tracking_number: o.tracking_number || '',
+      trackingUrl: o.tracking_url || '',
+      tracking_url: o.tracking_url || '',
+      deliveryPersonName: o.delivery_person_name || '',
+      deliveryPersonPhone: o.delivery_person_phone || '',
+      cancelReason: o.cancel_reason || '',
+      cancelledAt: o.cancelled_at || null,
+    });
+
     if (orderNumber) {
       const { data: order, error } = await (supabase.from('orders') as any)
         .select('*, order_items(*)')
@@ -28,7 +97,7 @@ export async function GET(req: Request) {
       if (error || !order) {
         return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404, headers: noCacheHeaders });
       }
-      return NextResponse.json({ success: true, order }, { headers: noCacheHeaders });
+      return NextResponse.json({ success: true, order: formatOrder(order) }, { headers: noCacheHeaders });
     }
 
     if (userId) {
@@ -40,7 +109,7 @@ export async function GET(req: Request) {
       if (error) {
         return NextResponse.json({ success: false, message: 'Failed to fetch orders' }, { status: 500, headers: noCacheHeaders });
       }
-      return NextResponse.json({ success: true, count: orders?.length || 0, orders }, { headers: noCacheHeaders });
+      return NextResponse.json({ success: true, count: orders?.length || 0, orders: (orders || []).map(formatOrder) }, { headers: noCacheHeaders });
     }
 
     // Admin query
@@ -53,7 +122,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: false, message: 'Failed to fetch orders' }, { status: 500, headers: noCacheHeaders });
     }
 
-    return NextResponse.json({ success: true, count: allOrders?.length || 0, orders: allOrders }, { headers: noCacheHeaders });
+    const formattedOrders = (allOrders || []).map(formatOrder);
+    return NextResponse.json({ success: true, count: formattedOrders.length, orders: formattedOrders }, { headers: noCacheHeaders });
   } catch (error) {
     console.error('Orders GET exception:', error);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500, headers: noCacheHeaders });
@@ -217,6 +287,7 @@ export async function POST(req: Request) {
         delivery_fee: calculatedDeliveryFee,
         total: calculatedTotal,
         delivery_method: zone.delivery_method, // 'local_own' | 'courier_manual'
+        customer_email: customerEmail || shippingAddress.email || '',
         shipping_full_name: customerName || shippingAddress.name,
         shipping_phone: customerPhone || shippingAddress.phone,
         shipping_street_address: shippingAddress.street || shippingAddress.line1 || '',

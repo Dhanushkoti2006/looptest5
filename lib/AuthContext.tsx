@@ -44,7 +44,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [localAdminAuth, setLocalAdminAuth] = useState(false);
+  const [localAdminAuth, setLocalAdminAuth] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return (
+        localStorage.getItem('loop_admin_auth') === 'true' ||
+        document.cookie.includes('loop_admin_auth=true')
+      );
+    }
+    return false;
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
