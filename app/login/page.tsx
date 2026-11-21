@@ -8,11 +8,14 @@ import Turnstile from '@/components/Turnstile';
 import {
   Mail,
   Lock,
+  User,
+  Phone,
   ArrowRight,
   RotateCcw,
   ShieldCheck,
   AlertCircle,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 
 function LoginContent() {
@@ -22,13 +25,18 @@ function LoginContent() {
 
   const { user, isAdmin, isLoading, signInWithOtp, verifyOtp } = useAuth();
 
-  const [step, setStep] = useState<'EMAIL' | 'OTP'>('EMAIL');
+  const [mode, setMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  const [step, setStep] = useState<'FORM' | 'OTP'>('FORM');
+
+  // Form fields
   const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [otpToken, setOtpToken] = useState('');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
+  const [message, setMessage] = useState<{ text: string; isError: boolean; canSwitch?: boolean } | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
   // If already authenticated, redirect
@@ -51,7 +59,7 @@ function LoginContent() {
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  const handleSendEmail = async (e: React.FormEvent) => {
+  const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = email.trim();
     if (!cleanEmail) {
@@ -59,10 +67,25 @@ function LoginContent() {
       return;
     }
 
+    if (mode === 'REGISTER') {
+      if (!fullName.trim() || fullName.trim().length < 2) {
+        setMessage({ text: 'Please enter your full name (at least 2 characters).', isError: true });
+        return;
+      }
+      if (!phone.trim() || phone.trim().replace(/\D/g, '').length < 10) {
+        setMessage({ text: 'Please enter a valid 10-digit mobile number.', isError: true });
+        return;
+      }
+    }
+
     setLoading(true);
     setMessage(null);
 
-    const res = await signInWithOtp(cleanEmail);
+    const res = await signInWithOtp(cleanEmail, {
+      shouldCreateUser: mode === 'REGISTER',
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+    });
     setLoading(false);
 
     if (res.success) {
@@ -70,7 +93,11 @@ function LoginContent() {
       setCooldown(60);
       setMessage({ text: res.message, isError: false });
     } else {
-      setMessage({ text: res.message, isError: true });
+      setMessage({
+        text: res.message,
+        isError: true,
+        canSwitch: res.notRegistered,
+      });
     }
   };
 
@@ -85,7 +112,10 @@ function LoginContent() {
     setLoading(true);
     setMessage(null);
 
-    const res = await verifyOtp(email.trim(), cleanToken);
+    const res = await verifyOtp(email.trim(), cleanToken, {
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+    });
     setLoading(false);
 
     if (res.success) {
@@ -107,12 +137,16 @@ function LoginContent() {
     setLoading(true);
     setMessage(null);
 
-    const res = await signInWithOtp(email.trim());
+    const res = await signInWithOtp(email.trim(), {
+      shouldCreateUser: mode === 'REGISTER',
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+    });
     setLoading(false);
 
     if (res.success) {
       setCooldown(60);
-      setMessage({ text: 'A fresh 6-digit code has been sent.', isError: false });
+      setMessage({ text: 'A fresh verification code has been dispatched.', isError: false });
     } else {
       setMessage({ text: res.message, isError: true });
     }
@@ -129,42 +163,139 @@ function LoginContent() {
             </span>
           </Link>
           <h1 className="text-2xl font-serif font-bold text-slate-900">
-            {step === 'EMAIL' ? 'Welcome Back' : 'Enter Verification Code'}
+            {step === 'FORM'
+              ? mode === 'LOGIN'
+                ? 'Welcome Back'
+                : 'Create Customer Account'
+              : 'Enter Verification Code'}
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            {step === 'EMAIL'
-              ? 'Sign in to access your orders, saved addresses, and wishlist.'
-              : `We sent a 6-digit code to ${email}`}
+            {step === 'FORM'
+              ? mode === 'LOGIN'
+                ? 'Sign in to access your orders, saved addresses, and wishlist.'
+                : 'Register your details to order and track handmade crochet.'
+              : `We sent a verification code to ${email}`}
           </p>
         </div>
 
         {/* AUTH CARD */}
         <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-cozy border border-canvas-border">
-          {message && (
-            <div
-              className={`mb-6 p-4 rounded-2xl flex items-start gap-3 text-sm ${message.isError
-                  ? 'bg-rose-50 text-rose-800 border border-rose-200'
-                  : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+          {/* TAB SELECTOR (Only in FORM step) */}
+          {step === 'FORM' && (
+            <div className="flex p-1 bg-canvas-warm rounded-2xl mb-6 border border-canvas-border">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('LOGIN');
+                  setMessage(null);
+                }}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+                  mode === 'LOGIN'
+                    ? 'bg-white text-brand-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
-            >
-              {message.isError ? (
-                <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
-              ) : (
-                <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600 mt-0.5" />
-              )}
-              <span className="leading-snug">{message.text}</span>
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('REGISTER');
+                  setMessage(null);
+                }}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
+                  mode === 'REGISTER'
+                    ? 'bg-white text-brand-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Create Account
+              </button>
             </div>
           )}
 
-          {step === 'EMAIL' ? (
-            <form onSubmit={handleSendEmail} className="space-y-5">
+          {message && (
+            <div
+              className={`mb-6 p-4 rounded-2xl flex flex-col gap-2 text-sm ${
+                message.isError
+                  ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                  : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                {message.isError ? (
+                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+                ) : (
+                  <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600 mt-0.5" />
+                )}
+                <span className="leading-snug">{message.text}</span>
+              </div>
+              {message.canSwitch && mode === 'LOGIN' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('REGISTER');
+                    setMessage(null);
+                  }}
+                  className="mt-1 text-xs font-bold text-brand-800 hover:underline text-left"
+                >
+                  👉 Switch to Create Account now
+                </button>
+              )}
+            </div>
+          )}
+
+          {step === 'FORM' ? (
+            <form onSubmit={handleSubmitForm} className="space-y-4">
+              {mode === 'REGISTER' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Dhanush Koti"
+                        className="w-full pl-10 pr-4 py-2.5 bg-canvas-warm/50 border border-canvas-border rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Mobile Number
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <Phone className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="tel"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+91 98765 43210"
+                        className="w-full pl-10 pr-4 py-2.5 bg-canvas-warm/50 border border-canvas-border rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                   Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Mail className="w-5 h-5" />
+                    <Mail className="w-4 h-4" />
                   </div>
                   <input
                     type="email"
@@ -172,7 +303,7 @@ function LoginContent() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full pl-11 pr-4 py-3 bg-canvas-warm/50 border border-canvas-border rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-canvas-warm/50 border border-canvas-border rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -186,13 +317,13 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={loading || !email.trim()}
-                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-brand-800 hover:bg-brand-900 text-white font-medium rounded-xl text-sm transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-brand-800 hover:bg-brand-900 text-white font-medium rounded-xl text-sm transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed mt-2"
               >
                 {loading ? (
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
-                    Send Login Code
+                    {mode === 'LOGIN' ? 'Send Login Code' : 'Send Registration Code'}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -231,7 +362,7 @@ function LoginContent() {
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
-                    Verify & Sign In
+                    Verify & Continue
                     <ShieldCheck className="w-4 h-4" />
                   </>
                 )}
@@ -241,13 +372,13 @@ function LoginContent() {
                 <button
                   type="button"
                   onClick={() => {
-                    setStep('EMAIL');
+                    setStep('FORM');
                     setOtpToken('');
                     setMessage(null);
                   }}
                   className="text-slate-500 hover:text-slate-800 underline transition-colors"
                 >
-                  Change Email
+                  Change Details
                 </button>
 
                 <button
@@ -257,7 +388,7 @@ function LoginContent() {
                   className="text-brand-800 font-semibold hover:text-brand-900 disabled:text-slate-400 disabled:cursor-not-allowed flex items-center gap-1 transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  {cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend Code'}
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Code'}
                 </button>
               </div>
             </form>

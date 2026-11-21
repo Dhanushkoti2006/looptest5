@@ -18,8 +18,15 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   isLoading: boolean;
-  signInWithOtp: (email: string) => Promise<{ success: boolean; message: string }>;
-  verifyOtp: (email: string, token: string) => Promise<{ success: boolean; message: string; user?: User }>;
+  signInWithOtp: (
+    email: string,
+    options?: { shouldCreateUser?: boolean; fullName?: string; phone?: string }
+  ) => Promise<{ success: boolean; message: string; notRegistered?: boolean }>;
+  verifyOtp: (
+    email: string,
+    token: string,
+    extraData?: { fullName?: string; phone?: string }
+  ) => Promise<{ success: boolean; message: string; user?: User }>;
   logout: () => Promise<void>;
   updateUserProfile: (updates: Partial<{ name: string; phone: string }>) => Promise<boolean>;
   sendOTP: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -110,34 +117,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [supabase, fetchProfile]);
 
-  const signInWithOtp = async (email: string) => {
+  const signInWithOtp = async (
+    email: string,
+    options?: { shouldCreateUser?: boolean; fullName?: string; phone?: string }
+  ) => {
     try {
       const cleanEmail = email.trim().toLowerCase();
+      const shouldCreate = options?.shouldCreateUser ?? true;
+
       const { error } = await supabase.auth.signInWithOtp({
         email: cleanEmail,
         options: {
-          shouldCreateUser: true,
+          shouldCreateUser: shouldCreate,
+          data: {
+            full_name: options?.fullName || '',
+            phone: options?.phone || '',
+          },
         },
       });
 
       if (error) {
-        if (error.message?.toLowerCase().includes('error sending confirmation mail') || error.message?.toLowerCase().includes('rate limit')) {
+        const errorMsg = error.message?.toLowerCase() || '';
+
+        // If user attempted to log in but has no account yet
+        if (
+          !shouldCreate &&
+          (errorMsg.includes('signups not allowed') ||
+            errorMsg.includes('user not found') ||
+            errorMsg.includes('not found'))
+        ) {
+          return {
+            success: false,
+            notRegistered: true,
+            message: 'No account found with this email. Please switch to Create Account to register.',
+          };
+        }
+
+        if (
+          errorMsg.includes('error sending confirmation mail') ||
+          errorMsg.includes('rate limit')
+        ) {
           return {
             success: false,
             message:
               'Supabase was unable to send the email. This happens when the default Supabase email rate limit (3 emails/hour) is reached. Please configure custom SMTP in your Supabase Dashboard (Authentication → SMTP Settings), or check your Supabase Auth Logs.',
           };
         }
+
         return { success: false, message: error.message || 'Unable to send login code. Please try again.' };
       }
 
-      return { success: true, message: `A 6-digit login code has been sent to ${cleanEmail}.` };
+      return { success: true, message: `A verification code has been dispatched to ${cleanEmail}.` };
     } catch {
       return { success: false, message: 'Authentication service temporarily unavailable.' };
     }
   };
 
-  const verifyOtp = async (email: string, token: string) => {
+  const verifyOtp = async (
+    email: string,
+    token: string,
+    extraData?: { fullName?: string; phone?: string }
+  ) => {
     try {
       const cleanEmail = email.trim().toLowerCase();
       const cleanToken = token.trim();
@@ -150,6 +190,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error || !data.user) {
         return { success: false, message: 'Invalid or expired login code. Please try again.' };
+      }
+
+      // If fullName or phone was provided during signup, guarantee it in public.profiles
+      const candidateName = extraData?.fullName || (data.user.user_metadata?.full_name as string);
+      const candidatePhone = extraData?.phone || (data.user.user_metadata?.phone as string);
+
+      if (candidateName || candidatePhone) {
+        try {
+          await (supabase.from('profiles') as any).upsert({
+            id: data.user.id,
+            full_name: candidateName || cleanEmail.split('@')[0],
+            phone: candidatePhone || '',
+            role: 'customer',
+            updated_at: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.warn('Profile upsert warning:', e);
+        }
       }
 
       const userProfile = await fetchProfile(data.user.id, data.user.email);
