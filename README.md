@@ -18,6 +18,24 @@ Derived directly from the official **Loop & Love** circular emblem:
 
 ---
 
+## 🔐 Supabase Authentication & Email OTP Setup
+
+The platform is integrated with Supabase passwordless Email OTP authentication:
+- **Login URL**: `/login` (with email entry, Cloudflare Turnstile bot verification, and 6-digit OTP code entry).
+- **Email Template in Supabase**:
+  Under Supabase Dashboard → **Authentication** → **Email Templates** → **Magic Link** & **Confirm signup**, use:
+  ```html
+  <h2>Your Verification Code</h2>
+  <p>Use the following 6-digit code to sign in to Loop & Love:</p>
+  <h1 style="font-size: 36px; letter-spacing: 8px; font-weight: bold; color: #4a044e; margin: 20px 0;">
+    {{ .Token }}
+  </h1>
+  <p>This code expires in 10 minutes.</p>
+  ```
+- **SMTP**: Configure under **Authentication** → **SMTP Settings** (e.g. Gmail SMTP or custom domain via Resend).
+
+---
+
 ## 🌟 Key Features & Capabilities
 
 ### 1. Customer Storefront
