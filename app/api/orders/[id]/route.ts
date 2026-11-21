@@ -39,6 +39,7 @@ export async function GET(
       totalAmount: Number(order.total) || 0,
       subtotal: Number(order.subtotal) || 0,
       deliveryFee: Number(order.delivery_fee) || 0,
+      paymentMethod: order.payment_method || 'Prepaid (Razorpay Online)',
       items: (order.order_items || []).map((i: any) => ({
         id: i.id,
         productId: i.product_id,

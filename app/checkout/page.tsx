@@ -384,7 +384,7 @@ export default function CheckoutPage() {
           amount: razorpayConfig?.amount || Math.round(createdOrder.total * 100),
           currency: razorpayConfig?.currency || 'INR',
           name: 'Loop & Love Crochet',
-          description: `Order #${createdOrder.orderNumber} (Test Mode)`,
+          description: `Order #${createdOrder.orderNumber}`,
           image: '/images/loop-and-love-logo.jpg',
           handler: async function (response: any) {
             try {
@@ -403,7 +403,7 @@ export default function CheckoutPage() {
               const verifyData = await verifyRes.json();
               if (verifyData.success) {
                 clearCart();
-                router.push(`/order-success?orderId=${createdOrder.id}`);
+                window.location.href = `/order-success?orderId=${createdOrder.id}`;
               } else {
                 setErrorMessage(verifyData.message || 'Payment verification failed. Please contact support.');
                 setIsProcessing(false);
@@ -466,7 +466,7 @@ export default function CheckoutPage() {
         const verifyData = await verifyRes.json();
         if (verifyData.success) {
           clearCart();
-          router.push(`/order-success?orderId=${createdOrder.id}`);
+          window.location.href = `/order-success?orderId=${createdOrder.id}`;
         } else {
           setErrorMessage(verifyData.message || 'Order completed.');
           setIsProcessing(false);
@@ -576,11 +576,10 @@ export default function CheckoutPage() {
                       <div
                         key={addr.id}
                         onClick={() => handleSelectSavedAddress(addr)}
-                        className={`p-4 rounded-2xl border cursor-pointer transition-all text-left relative ${
-                          isSelected
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all text-left relative ${isSelected
                             ? 'border-brand-600 bg-brand-50/60 ring-2 ring-brand-400'
                             : 'border-canvas-border hover:border-brand-300 bg-canvas-subtle/50'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
@@ -616,11 +615,10 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={handleSelectNewAddress}
-                    className={`text-xs font-semibold px-4 py-2 rounded-xl border transition-all flex items-center gap-1.5 ${
-                      selectedAddressId === 'new'
+                    className={`text-xs font-semibold px-4 py-2 rounded-xl border transition-all flex items-center gap-1.5 ${selectedAddressId === 'new'
                         ? 'border-brand-600 bg-brand-50 text-brand-800 font-bold'
                         : 'border-canvas-border hover:bg-canvas-subtle text-gray-700'
-                    }`}
+                      }`}
                   >
                     <Plus className="w-3.5 h-3.5" /> Deliver to a different address
                   </button>
@@ -648,13 +646,12 @@ export default function CheckoutPage() {
                       placeholder="e.g. 560001"
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                      className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none font-mono ${
-                        isUnservedPincode
+                      className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none font-mono ${isUnservedPincode
                           ? 'border-red-400 focus:border-red-500'
                           : deliveryZone
-                          ? 'border-emerald-500 focus:border-emerald-600'
-                          : 'border-canvas-border focus:border-brand-500'
-                      }`}
+                            ? 'border-emerald-500 focus:border-emerald-600'
+                            : 'border-canvas-border focus:border-brand-500'
+                        }`}
                     />
                     {zoneChecking && (
                       <span className="absolute right-3 top-3 text-xs text-gray-400 flex items-center gap-1">
@@ -666,11 +663,10 @@ export default function CheckoutPage() {
                   {/* ZONE STATUS FEEDBACK */}
                   {zoneMessage && (
                     <div
-                      className={`mt-2 p-3 rounded-xl text-xs flex items-center gap-2 ${
-                        isUnservedPincode
+                      className={`mt-2 p-3 rounded-xl text-xs flex items-center gap-2 ${isUnservedPincode
                           ? 'bg-rose-50 border border-rose-200 text-rose-800'
                           : 'bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium'
-                      }`}
+                        }`}
                     >
                       {isUnservedPincode ? (
                         <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
@@ -838,11 +834,10 @@ export default function CheckoutPage() {
 
             <div className="space-y-3">
               <label
-                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
-                  paymentMethod === 'RAZORPAY_UPI'
+                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${paymentMethod === 'RAZORPAY_UPI'
                     ? 'border-brand-600 bg-brand-50/60 ring-1 ring-brand-400'
                     : 'border-canvas-border hover:bg-canvas-subtle'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <input
@@ -861,11 +856,10 @@ export default function CheckoutPage() {
               </label>
 
               <label
-                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
-                  paymentMethod === 'RAZORPAY_CARD'
+                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${paymentMethod === 'RAZORPAY_CARD'
                     ? 'border-brand-600 bg-brand-50/60 ring-1 ring-brand-400'
                     : 'border-canvas-border hover:bg-canvas-subtle'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <input
@@ -884,11 +878,10 @@ export default function CheckoutPage() {
               </label>
 
               <label
-                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
-                  paymentMethod === 'RAZORPAY_NETBANKING'
+                className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${paymentMethod === 'RAZORPAY_NETBANKING'
                     ? 'border-brand-600 bg-brand-50/60 ring-1 ring-brand-400'
                     : 'border-canvas-border hover:bg-canvas-subtle'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <input
@@ -976,11 +969,10 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={isProcessing || isUnservedPincode || !deliveryZone}
-              className={`w-full py-3.5 px-4 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-soft transition-all flex items-center justify-center gap-2 ${
-                isProcessing || isUnservedPincode || !deliveryZone
+              className={`w-full py-3.5 px-4 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-soft transition-all flex items-center justify-center gap-2 ${isProcessing || isUnservedPincode || !deliveryZone
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-brand-600 hover:bg-brand-700 hover:shadow-hover'
-              }`}
+                }`}
             >
               {isProcessing ? (
                 <>

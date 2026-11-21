@@ -20,6 +20,9 @@ export interface Address {
   phone: string;
   street: string;
   landmark?: string;
+  apartment?: string;
+  line1?: string;
+  line2?: string;
   city: string;
   state: string;
   pincode: string;
