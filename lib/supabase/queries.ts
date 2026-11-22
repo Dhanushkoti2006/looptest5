@@ -1,17 +1,30 @@
-import { createClient } from './server';
-import { Product, Category } from '@/lib/types';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { Product, Category } from '../types';
+import { INITIAL_CATEGORIES } from '../seedData';
+
+// Standalone public client for high-performance server component reads without cookie dependency
+function getPublicClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://okbgrlzknzautiotbcrm.supabase.co';
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    'sb_publishable_xtsI38nSJY499FXIaw2_6w_iN-sZxrB';
+
+  return createSupabaseClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 
 export async function getActiveCategories(): Promise<Category[]> {
   try {
-    const supabase = await createClient();
+    const supabase = getPublicClient();
     const { data, error } = await (supabase.from('categories') as any)
       .select('*')
       .eq('is_active', true)
       .order('display_order', { ascending: true });
 
-    if (error || !data) {
-      console.error('Error fetching categories from Supabase:', error);
-      return [];
+    if (error || !data || data.length === 0) {
+      return INITIAL_CATEGORIES;
     }
 
     return data.map((c: any) => ({
@@ -23,8 +36,8 @@ export async function getActiveCategories(): Promise<Category[]> {
       displayOrder: c.display_order,
     }));
   } catch (err) {
-    console.error('Category query exception:', err);
-    return [];
+    console.warn('Category query exception, using seed categories:', err);
+    return INITIAL_CATEGORIES;
   }
 }
 
@@ -34,14 +47,11 @@ export async function getActiveProducts(options?: {
   limit?: number;
 }): Promise<Product[]> {
   try {
-    const supabase = await createClient();
+    const supabase = getPublicClient();
 
+    // 1. Fetch active products
     let query = (supabase.from('products') as any)
-      .select(`
-        *,
-        product_images (url, image_url, sort_order, display_order),
-        categories (id, name, slug)
-      `)
+      .select('*')
       .eq('is_active', true);
 
     if (options?.isFeatured) {
@@ -52,22 +62,48 @@ export async function getActiveProducts(options?: {
       query = query.limit(options.limit);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data: prods, error: pErr } = await query.order('created_at', { ascending: false });
 
-    if (error || !data) {
-      console.error('Error fetching products from Supabase:', error);
+    if (pErr || !prods || prods.length === 0) {
+      // If featured filter returned 0, retry without featured filter as fallback so storefront is never empty
+      if (options?.isFeatured) {
+        return getActiveProducts({ limit: options.limit });
+      }
       return [];
     }
 
-    let products: Product[] = data.map((p: any) => {
-      const sortedImages = (p.product_images || [])
-        .sort((a: any, b: any) => (a.sort_order ?? a.display_order ?? 0) - (b.sort_order ?? b.display_order ?? 0))
-        .map((img: any) => img.url || img.image_url)
-        .filter(Boolean);
+    // 2. Fetch related images and categories in parallel for speed
+    const pIds = prods.map((p: any) => p.id);
+    const [imagesRes, catsRes] = await Promise.all([
+      (supabase.from('product_images') as any)
+        .select('product_id, url, image_url, sort_order, display_order')
+        .in('product_id', pIds),
+      (supabase.from('categories') as any)
+        .select('id, name, slug'),
+    ]);
 
-      const images = sortedImages.length > 0 ? sortedImages : ['/images/loop-and-love-logo.jpg'];
-      const categoryName = p.categories?.name || 'Handmade Crochet';
-      const categorySlug = p.categories?.slug || 'all';
+    const imagesByProduct: Record<string, string[]> = {};
+    for (const img of (imagesRes.data || [])) {
+      if (!imagesByProduct[img.product_id]) imagesByProduct[img.product_id] = [];
+      const url = img.url || img.image_url;
+      if (url) imagesByProduct[img.product_id].push(url);
+    }
+
+    const catsById: Record<string, { id: string; name: string; slug: string }> = {};
+    for (const cat of (catsRes.data || [])) {
+      catsById[cat.id] = cat;
+    }
+
+    // Map each product
+    let products: Product[] = prods.map((p: any) => {
+      const productImages = imagesByProduct[p.id];
+      const images = productImages && productImages.length > 0
+        ? productImages
+        : ['/images/loop-and-love-logo.jpg'];
+
+      const catInfo = catsById[p.category_id];
+      const categoryName = catInfo?.name || 'Handmade Crochet';
+      const categorySlug = catInfo?.slug || 'all';
 
       return {
         id: p.id,
@@ -134,15 +170,11 @@ export async function getActiveProducts(options?: {
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
     const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
-    const supabase = await createClient();
+    const supabase = getPublicClient();
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
 
     let query = (supabase.from('products') as any)
-      .select(`
-        *,
-        product_images (url, image_url, sort_order, display_order),
-        categories (id, name, slug)
-      `)
+      .select('*')
       .eq('is_active', true);
 
     if (isUuid) {
@@ -153,19 +185,9 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 
     let { data: p, error } = await query.maybeSingle();
 
-    if (error) {
-      console.error('Error fetching product by slug:', error);
-    }
-
     // Fallback: in case product is accessed by case-insensitive slug or without is_active filter
     if (!p) {
-      const fallbackQuery = (supabase.from('products') as any)
-        .select(`
-          *,
-          product_images (url, image_url, sort_order, display_order),
-          categories (id, name, slug)
-        `);
-
+      const fallbackQuery = (supabase.from('products') as any).select('*');
       const { data: fallbackProduct } = isUuid
         ? await fallbackQuery.eq('id', cleanSlug).maybeSingle()
         : await fallbackQuery.ilike('slug', cleanSlug).maybeSingle();
@@ -180,14 +202,24 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
       return null;
     }
 
-    const sortedImages = (p.product_images || [])
-      .sort((a: any, b: any) => (a.sort_order ?? a.display_order ?? 0) - (b.sort_order ?? b.display_order ?? 0))
+    // Fetch images and category in parallel
+    const [imagesRes, catRes] = await Promise.all([
+      (supabase.from('product_images') as any)
+        .select('url, image_url, sort_order, display_order')
+        .eq('product_id', p.id)
+        .order('display_order', { ascending: true }),
+      p.category_id
+        ? (supabase.from('categories') as any).select('id, name, slug').eq('id', p.category_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+
+    const sortedImages = (imagesRes.data || [])
       .map((img: any) => img.url || img.image_url)
       .filter(Boolean);
 
     const images = sortedImages.length > 0 ? sortedImages : ['/images/loop-and-love-logo.jpg'];
-    const categoryName = p.categories?.name || 'Handmade Crochet';
-    const categorySlug = p.categories?.slug || 'all';
+    const categoryName = catRes.data?.name || 'Handmade Crochet';
+    const categorySlug = catRes.data?.slug || 'all';
 
     return {
       id: p.id,

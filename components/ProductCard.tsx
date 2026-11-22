@@ -98,38 +98,38 @@ export default function ProductCard({ product }: ProductCardProps) {
         </button>
 
         {/* PREPARATION TIME BADGE */}
-        <div className="absolute bottom-2 left-3 z-10">
-          <span className="text-[10px] font-medium bg-white/90 backdrop-blur-xs text-brand-800 px-2 py-0.5 rounded-md shadow-xs">
-            ⏱️ {product.prepTimeDays} days craft time
+        <div className="absolute bottom-2 left-2 sm:left-3 z-10">
+          <span className="text-[9px] sm:text-[10px] font-medium bg-white/90 backdrop-blur-xs text-brand-800 px-1.5 sm:px-2 py-0.5 rounded-md shadow-xs">
+            ⏱️ {product.prepTimeDays}d craft
           </span>
         </div>
       </Link>
 
       {/* CONTENT */}
-      <div className="p-4 sm:p-5 flex flex-col flex-grow justify-between">
+      <div className="p-3 sm:p-5 flex flex-col flex-grow justify-between">
         <div>
           {/* Category & Rating */}
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-            <span className="text-brand-600 font-medium text-[11px] uppercase tracking-wider">
+          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+            <span className="text-brand-600 font-medium text-[10px] sm:text-[11px] uppercase tracking-wider truncate max-w-[90px] sm:max-w-none">
               {product.category}
             </span>
-            <div className="flex items-center gap-1 text-amber-500 font-semibold text-xs">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+            <div className="flex items-center gap-0.5 sm:gap-1 text-amber-500 font-semibold text-[11px] sm:text-xs">
+              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
               <span>{product.averageRating}</span>
-              <span className="text-gray-400 text-[11px]">({product.reviewCount})</span>
+              <span className="text-gray-400 text-[10px] hidden sm:inline">({product.reviewCount})</span>
             </div>
           </div>
 
           {/* Title */}
           <Link href={productHref} className="block">
-            <h3 className="font-serif text-base font-semibold text-brand-900 line-clamp-2 hover:text-brand-600 transition-colors leading-snug">
+            <h3 className="font-serif text-xs sm:text-base font-semibold text-brand-900 line-clamp-2 hover:text-brand-600 transition-colors leading-snug">
               {product.name}
             </h3>
           </Link>
 
           {/* Color Swatches */}
           {product.variants && product.variants.length > 0 && (
-            <div className="flex items-center gap-1.5 mt-2.5">
+            <div className="flex items-center gap-1.5 mt-2 hidden sm:flex">
               <span className="text-[11px] text-gray-400">Colors:</span>
               <div className="flex items-center gap-1">
                 {product.variants.slice(0, 4).map((variant) => (
@@ -149,32 +149,32 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Pricing & Add to Cart */}
-        <div className="mt-4 pt-3 border-t border-canvas-border/80 flex items-center justify-between">
+        <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-canvas-border/80 flex items-center justify-between gap-1">
           <div className="flex flex-col">
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold text-brand-900">
+            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+              <span className="text-sm sm:text-lg font-bold text-brand-900">
                 ₹{currentPrice.toLocaleString('en-IN')}
               </span>
               {product.discountPrice && (
-                <span className="text-xs text-gray-400 line-through">
+                <span className="text-[10px] sm:text-xs text-gray-400 line-through">
                   ₹{originalPrice.toLocaleString('en-IN')}
                 </span>
               )}
             </div>
-            <span className="text-[10px] text-emerald-700 font-medium">Taxes included</span>
+            <span className="text-[9px] sm:text-[10px] text-emerald-700 font-medium">Taxes incl.</span>
           </div>
 
           {isSoldOut ? (
             <Link
               href={productHref}
-              className="text-xs font-semibold px-3.5 py-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-brand-50 hover:text-brand-700 transition-colors"
+              className="text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-gray-100 text-gray-600 hover:bg-brand-50 hover:text-brand-700 transition-colors"
             >
-              Notify Me
+              Notify
             </Link>
           ) : (
             <button
               onClick={handleAddToCart}
-              className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs ${
+              className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition-all shadow-xs shrink-0 ${
                 added
                   ? 'bg-emerald-600 text-white'
                   : 'bg-brand-600 hover:bg-brand-700 text-white active:scale-95'
@@ -182,11 +182,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             >
               {added ? (
                 <>
-                  <Check className="w-4 h-4" /> Added
+                  <Check className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Added</span>
                 </>
               ) : (
                 <>
-                  <ShoppingBag className="w-4 h-4" /> Add
+                  <ShoppingBag className="w-3.5 h-3.5" /> Add
                 </>
               )}
             </button>

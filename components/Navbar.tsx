@@ -95,18 +95,21 @@ export default function Navbar() {
             </div>
 
             {/* DESKTOP NAV LINKS */}
-            <nav className="hidden lg:flex items-center space-x-8">
+            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-7">
               <Link href="/" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
                 Home
               </Link>
               <Link href="/shop" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
                 Shop All
               </Link>
-              <Link href="/shop?category=flowers-and-bouquets" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
-                Flowers & Bouquets
+              <Link href="/shop?category=keychains-and-charms" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
+                Keychains
               </Link>
-              <Link href="/shop?category=bags-and-totes" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
-                Bags
+              <Link href="/shop?category=toys" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
+                Toys
+              </Link>
+              <Link href="/shop?category=flower-bouquets" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
+                Bouquets
               </Link>
               <Link href="/custom-orders" className="flex items-center gap-1.5 text-sm font-semibold text-brand-700 bg-brand-50 px-3 py-1.5 rounded-full hover:bg-brand-100 transition-all border border-brand-200">
                 <Wand2 className="w-3.5 h-3.5 text-brand-500" />
@@ -249,14 +252,14 @@ export default function Navbar() {
             <form onSubmit={handleSearchSubmit} className="relative mb-3">
               <input
                 type="text"
-                placeholder="Search bouquets, bags..."
+                placeholder="Search keychains, toys, bouquets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
               />
               <Search className="w-4 h-4 text-brand-400 absolute left-3 top-3" />
             </form>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-2 text-xs">
               <Link
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
@@ -272,18 +275,53 @@ export default function Navbar() {
                 🛍️ Shop All
               </Link>
               <Link
-                href="/shop?category=flowers-and-bouquets"
+                href="/shop?category=keychains-and-charms"
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
               >
-                💐 Flowers
+                🔑 Keychains
               </Link>
               <Link
-                href="/shop?category=bags-and-totes"
+                href="/shop?category=toys"
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
               >
-                👜 Bags
+                🧸 Toys
+              </Link>
+              <Link
+                href="/shop?category=flower-bouquets"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
+              >
+                💐 Bouquets
+              </Link>
+              <Link
+                href="/shop?category=bookmarks"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
+              >
+                🔖 Bookmarks
+              </Link>
+              <Link
+                href="/shop?category=home-decor-crochets"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
+              >
+                🏡 Home Decor
+              </Link>
+              <Link
+                href="/shop?category=crochet-accessories"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
+              >
+                🎀 Accessories
+              </Link>
+              <Link
+                href="/shop?category=coasters"
+                onClick={() => setMobileMenuOpen(false)}
+                className="col-span-2 p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium text-center"
+              >
+                ☕ Coasters & Mug Rugs
               </Link>
               <Link
                 href="/custom-orders"
@@ -295,14 +333,14 @@ export default function Navbar() {
               <Link
                 href="/track-order"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
+                className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium text-center"
               >
                 📦 Track Order
               </Link>
               <Link
                 href="/account"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
+                className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium text-center"
               >
                 👤 My Account
               </Link>

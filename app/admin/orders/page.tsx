@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
   ShoppingBag,
@@ -26,7 +26,10 @@ import {
   FileText,
   ChevronRight,
   Sparkles,
+  XCircle,
+  Radio,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export interface OrderItem {
   id: string;
@@ -76,6 +79,9 @@ export interface OrderRecord {
   deliveryPersonName?: string;
   deliveryPersonPhone?: string;
   cancelReason?: string;
+  cancel_reason?: string;
+  cancelledAt?: string;
+  cancelled_at?: string;
 }
 
 const ALL_STATUSES = [
@@ -92,6 +98,7 @@ const ALL_STATUSES = [
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastSynced, setLastSynced] = useState<Date>(new Date());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState<'ALL' | 'TODAY' | '7DAYS' | '30DAYS' | 'CUSTOM'>('ALL');
@@ -109,21 +116,59 @@ export default function AdminOrdersPage() {
   const [deliveryPersonPhone, setDeliveryPersonPhone] = useState('');
   const [updating, setUpdating] = useState(false);
 
-  const fetchOrders = () => {
-    setLoading(true);
+  const fetchOrders = (silent = false) => {
+    if (!silent) setLoading(true);
     fetch('/api/orders', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.orders && Array.isArray(data.orders)) {
           setOrders(data.orders);
+          setLastSynced(new Date());
         }
       })
       .catch((err) => console.error('Orders fetch error:', err))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   };
 
   useEffect(() => {
-    fetchOrders();
+    // Initial fetch
+    fetchOrders(false);
+
+    // Setup Supabase Realtime Subscription on public.orders
+    let channel: any = null;
+    try {
+      const supabase = createClient();
+      channel = supabase
+        .channel('admin-orders-realtime-feed')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            console.log('⚡ Supabase realtime orders change event:', payload);
+            fetchOrders(true);
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime subscription fallback to polling:', e);
+    }
+
+    // Background poller every 10 seconds for real-time guarantee
+    const pollInterval = setInterval(() => {
+      fetchOrders(true);
+    }, 10000);
+
+    return () => {
+      if (channel) {
+        try {
+          const supabase = createClient();
+          supabase.removeChannel(channel);
+        } catch (_) {}
+      }
+      clearInterval(pollInterval);
+    };
   }, []);
 
   const openStatusModal = (ord: OrderRecord) => {
@@ -160,7 +205,7 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       if (data.success) {
         setActiveOrder(null);
-        fetchOrders();
+        fetchOrders(true);
       } else {
         alert(data.message || 'Failed to update order status');
       }
@@ -169,6 +214,29 @@ export default function AdminOrdersPage() {
       alert('Network error while updating status');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  // Helper to format date and time cleanly
+  const formatDateTime = (dateStr?: string) => {
+    if (!dateStr) return { date: '-', time: '' };
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return { date: dateStr, time: '' };
+      return {
+        date: d.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }),
+        time: d.toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        }),
+      };
+    } catch {
+      return { date: dateStr, time: '' };
     }
   };
 
@@ -184,7 +252,9 @@ export default function AdminOrdersPage() {
         (o.customerPhone || '').includes(q) ||
         (o.customerEmail || '').toLowerCase().includes(q) ||
         (o.shippingAddress?.pincode || '').includes(q) ||
-        (o.shippingAddress?.city || '').toLowerCase().includes(q);
+        (o.shippingAddress?.city || '').toLowerCase().includes(q) ||
+        (o.shippingAddress?.street || '').toLowerCase().includes(q) ||
+        (o.shippingAddress?.line1 || '').toLowerCase().includes(q);
 
       // 2. Status filter
       let matchesStatus = true;
@@ -237,12 +307,13 @@ export default function AdminOrdersPage() {
 
     const headers = [
       'Order Number',
-      'Date',
+      'Order Date',
+      'Order Time',
       'Customer Name',
       'Customer Phone',
       'Customer Email',
-      'Address Line 1',
-      'Address Line 2',
+      'Delivery Address Line 1',
+      'Delivery Address Line 2 / Apartment',
       'City',
       'State',
       'Pincode',
@@ -252,6 +323,9 @@ export default function AdminOrdersPage() {
       'Total Amount (INR)',
       'Payment Status',
       'Order Milestone Status',
+      'Is Cancelled',
+      'Cancellation Reason',
+      'Cancelled At',
       'Delivery Method',
       'Courier Partner',
       'Tracking Number',
@@ -265,10 +339,15 @@ export default function AdminOrdersPage() {
 
       const fullLine1 = o.shippingAddress?.line1 || o.shippingAddress?.street || '';
       const fullLine2 = o.shippingAddress?.line2 || o.shippingAddress?.apartment || '';
+      const dt = formatDateTime(o.createdAt || o.created_at);
+      const isCancelled = ['cancelled', 'Cancelled'].includes(o.orderStatus || o.status || '');
+      const cancelReason = o.cancelReason || o.cancel_reason || '';
+      const cancelledAt = o.cancelledAt || o.cancelled_at ? new Date(o.cancelledAt || o.cancelled_at!).toLocaleString('en-IN') : '';
 
       return [
         o.orderNumber || o.order_number,
-        new Date(o.createdAt || o.created_at || Date.now()).toLocaleString('en-IN'),
+        dt.date,
+        dt.time,
         o.customerName || '',
         o.customerPhone || '',
         o.customerEmail || '',
@@ -283,6 +362,9 @@ export default function AdminOrdersPage() {
         o.totalAmount || o.total || 0,
         o.paymentStatus || o.payment_status || '',
         o.orderStatus || o.status || '',
+        isCancelled ? 'YES' : 'NO',
+        cancelReason,
+        cancelledAt,
         o.deliveryMethod || 'local_own',
         o.courierPartner || '',
         o.trackingNumber || '',
@@ -309,60 +391,115 @@ export default function AdminOrdersPage() {
   };
 
   // Metrics summary
-  const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.totalAmount || o.total) || 0), 0);
+  const totalRevenue = orders
+    .filter((o) => !['Cancelled', 'cancelled'].includes(o.orderStatus || o.status || ''))
+    .reduce((sum, o) => sum + (Number(o.totalAmount || o.total) || 0), 0);
+
   const activeOrdersCount = orders.filter(
     (o) => !['Delivered', 'Cancelled', 'delivered', 'cancelled'].includes(o.orderStatus || o.status || '')
   ).length;
+
   const deliveredCount = orders.filter(
     (o) => ['Delivered', 'delivered'].includes(o.orderStatus || o.status || '')
   ).length;
 
+  const cancelledCount = orders.filter(
+    (o) => ['Cancelled', 'cancelled'].includes(o.orderStatus || o.status || '')
+  ).length;
+
   return (
     <div className="space-y-6">
-      {/* HEADER & CSV ACTION */}
+      {/* HEADER & ACTIONS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2.5">
-            <ShoppingBag className="w-7 h-7 text-purple-700" /> Order Fulfillment & Tracking Control
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2.5">
+              <ShoppingBag className="w-7 h-7 text-purple-700" /> Customer Orders &amp; Fulfillment
+            </h1>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Live Real-Time</span>
+            </div>
+          </div>
           <p className="text-xs text-slate-500 mt-1">
-            Real-time customer order stream, full delivery addresses, crafting milestones, and dispatch management.
+            Real-time customer order stream, complete delivery addresses, cancellation reasons, and dispatch milestones.
+            <span className="text-slate-400 ml-2">Synced: {lastSynced.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
-            onClick={fetchOrders}
-            className="p-2.5 bg-white rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 shadow-2xs transition-colors"
-            title="Refresh Orders"
+            onClick={() => fetchOrders(false)}
+            className="p-2.5 bg-white rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 shadow-2xs transition-colors flex items-center gap-1.5 text-xs font-semibold"
+            title="Refresh Orders Now"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-purple-600' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
           <button
             onClick={exportToCSV}
             className="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-colors"
           >
-            <FileSpreadsheet className="w-4 h-4" /> Export Filtered CSV ({filtered.length})
+            <FileSpreadsheet className="w-4 h-4" /> Export CSV ({filtered.length})
           </button>
         </div>
       </div>
 
-      {/* METRIC STRIP */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+      {/* 5-CARD METRIC STRIP */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div
+          onClick={() => setStatusFilter('ALL')}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+            statusFilter === 'ALL'
+              ? 'bg-purple-50/60 border-purple-300 ring-2 ring-purple-600/20'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+          }`}
+        >
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Orders</p>
           <p className="text-2xl font-serif font-bold text-slate-900 mt-1">{orders.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-amber-500">In Production / Queue</p>
+
+        <div
+          onClick={() => setStatusFilter('Making Your Crochet Product')}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+            statusFilter === 'Making Your Crochet Product'
+              ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-600/20'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+          }`}
+        >
+          <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600">In Production / Queue</p>
           <p className="text-2xl font-serif font-bold text-amber-600 mt-1">{activeOrdersCount}</p>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-500">Delivered Safely</p>
+
+        <div
+          onClick={() => setStatusFilter('Delivered')}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+            statusFilter === 'Delivered'
+              ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-600/20'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+          }`}
+        >
+          <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Delivered Safely</p>
           <p className="text-2xl font-serif font-bold text-emerald-700 mt-1">{deliveredCount}</p>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-purple-600">Total Order Volume</p>
+
+        <div
+          onClick={() => setStatusFilter('Cancelled')}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+            statusFilter === 'Cancelled'
+              ? 'bg-rose-100/70 border-rose-400 ring-2 ring-rose-600/30'
+              : 'bg-rose-50/50 border-rose-200 hover:border-rose-300 shadow-2xs'
+          }`}
+        >
+          <p className="text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center justify-between">
+            <span>Cancelled Orders</span>
+            <XCircle className="w-3.5 h-3.5 text-rose-500" />
+          </p>
+          <p className="text-2xl font-serif font-bold text-rose-700 mt-1">{cancelledCount}</p>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs col-span-2 sm:col-span-1">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-purple-600">Net Order Volume</p>
           <p className="text-2xl font-serif font-bold text-purple-900 mt-1">₹{totalRevenue.toLocaleString('en-IN')}</p>
         </div>
       </div>
@@ -375,7 +512,7 @@ export default function AdminOrdersPage() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             <input
               type="text"
-              placeholder="Search by Order ID (#LL-...), Customer, Phone, or City..."
+              placeholder="Search by Order ID (#LL-...), Customer, Phone, Street, City, Pincode..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all"
@@ -418,11 +555,44 @@ export default function AdminOrdersPage() {
             >
               {ALL_STATUSES.map((st) => (
                 <option key={st} value={st}>
-                  {st === 'ALL' ? `All Statuses (${orders.length})` : st}
+                  {st === 'ALL'
+                    ? `All Orders (${orders.length})`
+                    : st === 'Cancelled'
+                    ? `Cancelled (${cancelledCount})`
+                    : st}
                 </option>
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Quick Filter Status Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 text-xs">
+          <span className="text-slate-400 text-[10px] uppercase font-bold shrink-0">Filter:</span>
+          {ALL_STATUSES.map((st) => {
+            const count =
+              st === 'ALL'
+                ? orders.length
+                : orders.filter((o) => (o.orderStatus || o.status || '').toLowerCase().includes(st.toLowerCase())).length;
+
+            return (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-colors ${
+                  statusFilter === st
+                    ? st === 'Cancelled'
+                      ? 'bg-rose-600 text-white shadow-2xs'
+                      : 'bg-purple-700 text-white shadow-2xs'
+                    : st === 'Cancelled'
+                    ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {st} ({count})
+              </button>
+            );
+          })}
         </div>
 
         {/* Custom date range picker (if CUSTOM selected) */}
@@ -463,10 +633,10 @@ export default function AdminOrdersPage() {
 
       {/* ORDERS LIST TABLE */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-2xs overflow-hidden">
-        {loading ? (
+        {loading && orders.length === 0 ? (
           <div className="py-16 text-center text-slate-400 text-xs flex flex-col items-center gap-3">
             <RefreshCw className="w-6 h-6 animate-spin text-purple-600" />
-            <span>Loading orders directly from Supabase...</span>
+            <span>Loading orders stream from Supabase...</span>
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center text-slate-500 text-xs space-y-2">
@@ -479,69 +649,84 @@ export default function AdminOrdersPage() {
             <table className="w-full text-left text-xs text-slate-700">
               <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
                 <tr>
-                  <th className="py-3 px-5">Order ID & Date</th>
-                  <th className="py-3 px-5">Customer & Contact</th>
-                  <th className="py-3 px-5">Full Delivery Address</th>
-                  <th className="py-3 px-5">Items & Quantity</th>
-                  <th className="py-3 px-5">Amount & Payment</th>
-                  <th className="py-3 px-5">Delivery Details</th>
-                  <th className="py-3 px-5">Milestone Status</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
+                  <th className="py-3.5 px-5">Order ID, Date &amp; Time</th>
+                  <th className="py-3.5 px-5">Customer &amp; Contact</th>
+                  <th className="py-3.5 px-5">Full Delivery Address</th>
+                  <th className="py-3.5 px-5">Ordered Products</th>
+                  <th className="py-3.5 px-5">Amount &amp; Payment</th>
+                  <th className="py-3.5 px-5">Delivery Method</th>
+                  <th className="py-3.5 px-5">Milestone Status</th>
+                  <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((ord) => {
                   const items = ord.items || [];
                   const address = ord.shippingAddress || ({} as any);
-                  const fullAddressStr = [
-                    address.line1 || address.street,
-                    address.line2 || address.apartment,
-                    address.city,
-                    address.state,
-                    address.pincode,
-                  ]
-                    .filter(Boolean)
-                    .join(', ');
-
                   const orderIdDisplay = ord.orderNumber || ord.order_number || ord.id.slice(0, 8);
-                  const isPaid = (ord.paymentStatus || ord.payment_status) === 'SUCCESS' || (ord.paymentStatus || ord.payment_status) === 'paid';
+                  const isPaid =
+                    (ord.paymentStatus || ord.payment_status) === 'SUCCESS' ||
+                    (ord.paymentStatus || ord.payment_status) === 'paid';
+                  const isCancelled =
+                    (ord.orderStatus || ord.status || '').toLowerCase() === 'cancelled';
+                  const dt = formatDateTime(ord.createdAt || ord.created_at);
+                  const cancelReason = ord.cancelReason || ord.cancel_reason;
+                  const cancelledDt = formatDateTime(ord.cancelledAt || ord.cancelled_at);
 
                   return (
-                    <tr key={ord.id} className="hover:bg-slate-50/80 transition-colors">
-                      {/* 1. Order ID & Date */}
+                    <tr
+                      key={ord.id}
+                      className={`transition-colors ${
+                        isCancelled
+                          ? 'bg-rose-50/50 hover:bg-rose-100/50 border-l-4 border-l-rose-500'
+                          : 'hover:bg-slate-50/80'
+                      }`}
+                    >
+                      {/* 1. Order ID, Date & Time */}
                       <td className="py-4 px-5">
                         <Link
                           href={`/admin/orders/${ord.id}`}
-                          className="font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 group"
+                          className="font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 group text-sm"
                         >
                           <span>#{orderIdDisplay}</span>
-                          <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                          <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                         </Link>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          {new Date(ord.createdAt || ord.created_at || Date.now()).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </p>
+                        <div className="flex items-center gap-1.5 text-slate-700 font-semibold text-[11px] mt-1.5">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          <span>{dt.date}</span>
+                        </div>
+                        {dt.time && (
+                          <div className="flex items-center gap-1.5 text-slate-400 text-[10px] mt-0.5">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            <span>{dt.time}</span>
+                          </div>
+                        )}
+                        {isCancelled && (
+                          <span className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">
+                            <XCircle className="w-2.5 h-2.5" /> Cancelled Order
+                          </span>
+                        )}
                       </td>
 
                       {/* 2. Customer & Contact */}
                       <td className="py-4 px-5">
-                        <p className="font-bold text-slate-900">{ord.customerName || 'Customer'}</p>
+                        <p className="font-bold text-slate-900 text-xs flex items-center gap-1">
+                          <User className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>{ord.customerName || 'Customer'}</span>
+                        </p>
                         {ord.customerPhone && (
                           <a
                             href={`tel:${ord.customerPhone}`}
-                            className="text-[11px] text-slate-500 hover:text-purple-700 flex items-center gap-1 mt-0.5"
+                            className="text-[11px] text-slate-600 hover:text-purple-700 flex items-center gap-1 mt-1 font-mono font-medium"
                           >
-                            <Phone className="w-3 h-3 text-slate-400" />
+                            <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                             <span>{ord.customerPhone}</span>
                           </a>
                         )}
                         {ord.customerEmail && (
                           <a
                             href={`mailto:${ord.customerEmail}`}
-                            className="text-[11px] text-slate-400 hover:text-purple-700 flex items-center gap-1 mt-0.5 truncate max-w-[150px]"
+                            className="text-[11px] text-slate-400 hover:text-purple-700 flex items-center gap-1 mt-0.5 truncate max-w-[160px]"
                             title={ord.customerEmail}
                           >
                             <Mail className="w-3 h-3 text-slate-400 shrink-0" />
@@ -551,32 +736,42 @@ export default function AdminOrdersPage() {
                       </td>
 
                       {/* 3. Full Delivery Address */}
-                      <td className="py-4 px-5 max-w-[200px]">
+                      <td className="py-4 px-5 max-w-[240px]">
                         <div className="flex items-start gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                          <div className="text-[11px] leading-relaxed text-slate-600">
-                            <p className="font-medium text-slate-900 line-clamp-1">{address.street || address.line1}</p>
-                            {address.apartment && <p className="line-clamp-1">{address.apartment}</p>}
-                            <p className="font-semibold text-slate-700">
-                              {address.city}, {address.state} - {address.pincode}
+                          <MapPin className="w-3.5 h-3.5 text-purple-700 shrink-0 mt-0.5" />
+                          <div className="text-[11px] leading-relaxed text-slate-700 space-y-0.5">
+                            <p className="font-semibold text-slate-900">
+                              {address.name || ord.customerName}
+                            </p>
+                            <p className="text-slate-600">
+                              {address.line1 || address.street || 'Address Line 1'}
+                            </p>
+                            {(address.line2 || address.apartment) && (
+                              <p className="text-slate-500">
+                                {address.line2 || address.apartment}
+                              </p>
+                            )}
+                            <p className="font-bold text-slate-800">
+                              {address.city}, {address.state} -{' '}
+                              <span className="font-mono text-purple-700 font-bold">{address.pincode}</span>
                             </p>
                           </div>
                         </div>
                       </td>
 
-                      {/* 4. Items & Quantity */}
-                      <td className="py-4 px-5 max-w-[200px]">
-                        <div className="space-y-1">
+                      {/* 4. Ordered Products */}
+                      <td className="py-4 px-5 max-w-[220px]">
+                        <div className="space-y-1.5">
                           {items.slice(0, 2).map((item, idx) => (
                             <div key={idx} className="flex items-center gap-2">
                               {item.imageUrl ? (
                                 <img
                                   src={item.imageUrl}
                                   alt={item.productName}
-                                  className="w-7 h-7 rounded-lg object-cover border border-slate-200 shrink-0"
+                                  className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0"
                                 />
                               ) : (
-                                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                                <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
                                   <Package className="w-3.5 h-3.5" />
                                 </div>
                               )}
@@ -587,13 +782,16 @@ export default function AdminOrdersPage() {
                             </div>
                           ))}
                           {items.length > 2 && (
-                            <p className="text-[10px] text-slate-400 font-semibold pl-9">
+                            <p className="text-[10px] text-slate-400 font-semibold pl-10">
                               +{items.length - 2} more item{items.length - 2 > 1 ? 's' : ''}
                             </p>
                           )}
                         </div>
                         {ord.customerNote && (
-                          <div className="mt-1.5 p-1.5 bg-amber-50 rounded-lg text-[10px] text-amber-800 border border-amber-200 line-clamp-1" title={ord.customerNote}>
+                          <div
+                            className="mt-1.5 p-1.5 bg-amber-50 rounded-lg text-[10px] text-amber-800 border border-amber-200 line-clamp-1"
+                            title={ord.customerNote}
+                          >
                             <strong>Note:</strong> {ord.customerNote}
                           </div>
                         )}
@@ -649,11 +847,32 @@ export default function AdminOrdersPage() {
                         )}
                       </td>
 
-                      {/* 7. Milestone Status */}
+                      {/* 7. Milestone Status & Cancellation Info */}
                       <td className="py-4 px-5">
-                        <span className="inline-block px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">
-                          {ord.orderStatus || ord.status || 'Order Confirmed'}
-                        </span>
+                        {isCancelled ? (
+                          <div className="space-y-1">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-bold">
+                              <XCircle className="w-3 h-3 text-rose-600" /> Cancelled
+                            </span>
+                            {cancelReason && (
+                              <p
+                                className="text-[10px] text-rose-700 bg-rose-50 p-1.5 rounded-lg border border-rose-200 line-clamp-2 max-w-[180px]"
+                                title={cancelReason}
+                              >
+                                <strong>Reason:</strong> {cancelReason}
+                              </p>
+                            )}
+                            {cancelledDt.date !== '-' && (
+                              <p className="text-[9px] text-rose-500">
+                                {cancelledDt.date} {cancelledDt.time}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-block px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold">
+                            {ord.orderStatus || ord.status || 'Order Confirmed'}
+                          </span>
+                        )}
                       </td>
 
                       {/* 8. Actions */}
@@ -810,7 +1029,7 @@ export default function AdminOrdersPage() {
                 <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-[11px] flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                   <span>
-                    Cancelling this order will automatically restock all purchased products back to inventory and log this cancellation in the audit trail.
+                    Cancelling this order will restock items to inventory and record this milestone in the audit log.
                   </span>
                 </div>
               )}

@@ -367,13 +367,7 @@ CREATE POLICY "Admins have full access to products"
 DROP POLICY IF EXISTS "Public can read images of active products" ON public.product_images;
 CREATE POLICY "Public can read images of active products"
     ON public.product_images FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.products p
-            WHERE p.id = product_images.product_id
-              AND (p.is_active = true OR public.is_admin())
-        )
-    );
+    USING (true);
 
 DROP POLICY IF EXISTS "Admins have full access to product images" ON public.product_images;
 CREATE POLICY "Admins have full access to product images"
@@ -619,10 +613,40 @@ CREATE POLICY "Admins have full access to delivery zones"
     WITH CHECK (public.is_admin());
 
 -- ====================================================================
--- 14. ESSENTIAL TABLE PRIVILEGES FOR SUPABASE API ROLES
+-- 15. SEED INITIAL 7 STORE CATEGORIES
 -- ====================================================================
--- Grants required table privileges to anon, authenticated, and service_role.
--- Specific read/write security boundaries are enforced by Row Level Security (RLS).
+INSERT INTO public.categories (name, slug, description, image_url, display_order, is_active)
+VALUES
+  ('Keychains & Charms', 'keychains-and-charms', 'Delightful handcrafted crochet keychains and charms made with premium milk cotton yarn.', 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', 1, true),
+  ('Toys', 'toys', 'Adorable, cuddly crochet plushies and amigurumi toys handcrafted with hypoallergenic yarn.', 'https://images.unsplash.com/photo-1558877385-81a1c7e67d72?auto=format&fit=crop&w=600&q=80', 2, true),
+  ('Flower Bouquets', 'flower-bouquets', 'Everlasting crochet floral arrangements, roses, tulips, and sunflowers.', 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?auto=format&fit=crop&w=600&q=80', 3, true),
+  ('Bookmarks', 'bookmarks', 'Charming handmade crochet bookmarks featuring floral, fruit, and whimsical sprout accents.', 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80', 4, true),
+  ('Home Decor & Crochets', 'home-decor-crochets', 'Artisan crochet home styling essentials, wall hangings, table runners, and plant holders.', 'https://images.unsplash.com/photo-1584589167171-541ce45f1eea?auto=format&fit=crop&w=600&q=80', 5, true),
+  ('Crochet Accessories', 'crochet-accessories', 'Chic wearable crochet accessories, headbands, hair scrunchies, and bandanas.', 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80', 6, true),
+  ('Coasters', 'coasters', 'Handmade crochet cup and mug coasters in intricate floral and spiral designs.', 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=600&q=80', 7, true)
+ON CONFLICT (slug) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  image_url = EXCLUDED.image_url,
+  display_order = EXCLUDED.display_order,
+  is_active = EXCLUDED.is_active,
+  updated_at = NOW();
+
+-- Enable Realtime for orders
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'orders'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.orders;
+  END IF;
+END $$;
+
+-- ====================================================================
+-- 16. ESSENTIAL TABLE PRIVILEGES FOR SUPABASE API ROLES
+-- ====================================================================
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
@@ -631,3 +655,5 @@ GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+
+
