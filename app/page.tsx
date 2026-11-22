@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ProductCard from '@/components/ProductCard';
 import HeroSlideshow from '@/components/HeroSlideshow';
-import { getActiveCategories, getActiveProducts } from '@/lib/supabase/queries';
+import { getActiveCategories, getActiveProducts, getHeroSlidesFromDB } from '@/lib/supabase/queries';
 import {
   Sparkles,
   ArrowRight,
@@ -21,10 +21,11 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function HomePage() {
-  const [categories, allProducts, fetchedFeatured] = await Promise.all([
+  const [categories, allProducts, fetchedFeatured, heroData] = await Promise.all([
     getActiveCategories(),
     getActiveProducts({ limit: 16 }),
     getActiveProducts({ isFeatured: true, limit: 8 }),
+    getHeroSlidesFromDB(),
   ]);
 
   // If no products were explicitly flagged as featured, showcase latest active products
@@ -35,7 +36,7 @@ export default async function HomePage() {
     <div className="space-y-12 sm:space-y-20 pb-16">
       {/* 1. HERO SLIDESHOW */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4">
-        <HeroSlideshow />
+        <HeroSlideshow initialSlides={heroData?.slides} />
       </section>
 
       {/* 2. VALUES / TRUST STRIP */}
@@ -103,7 +104,7 @@ export default async function HomePage() {
             {categories.map((cat) => (
               <Link
                 key={cat.id || cat.slug}
-                href={`/shop?category=${cat.slug || cat.id}`}
+                href={`/shop/${cat.slug}`}
                 className="group relative bg-white rounded-2xl sm:rounded-3xl border border-canvas-border hover:border-brand-300 p-3 sm:p-4 shadow-cozy hover:shadow-cozy-lg transition-all duration-300 flex flex-col items-center text-center overflow-hidden"
               >
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-xl sm:rounded-2xl overflow-hidden mb-2 sm:mb-3 bg-brand-50 group-hover:scale-105 transition-transform duration-300">

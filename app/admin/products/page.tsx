@@ -342,9 +342,9 @@ export default function AdminProductsPage() {
     }
 
     const finalSlug = slug.trim() ? autoGenerateSlug(slug) : autoGenerateSlug(name);
-    const selectedCategory = category || categories[0]?.name || 'Crochet Flowers & Bouquets';
-    const foundCat = categories.find((c) => c.name === selectedCategory);
-    const categoryId = foundCat?.id ?? 'cat-custom';
+    const selectedCategory = category || categories[0]?.name || 'Flower Bouquets';
+    const foundCat = categories.find((c) => c.name === selectedCategory || c.id === selectedCategory || c.slug === selectedCategory);
+    const categoryId = foundCat?.id || foundCat?.slug || 'flower-bouquets';
 
     const tagsArray = tagsInput
       .split(',')
@@ -416,7 +416,7 @@ export default function AdminProductsPage() {
         }
       }
 
-      const prodToSave: Product = savedProduct || {
+      const prodToSave: any = savedProduct || {
         id: editingProduct?.id || `prod-${Date.now()}`,
         createdAt: editingProduct?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -424,6 +424,12 @@ export default function AdminProductsPage() {
         reviewCount: editingProduct?.reviewCount || 0,
         ...payload,
       };
+
+      if (editingProduct) {
+        setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? { ...p, ...prodToSave } : p)));
+      } else {
+        setProducts((prev) => [prodToSave, ...prev]);
+      }
 
       setIsModalOpen(false);
       setSuccessToast(editingProduct ? 'Product customized successfully in Supabase!' : 'New product created successfully in Supabase!');

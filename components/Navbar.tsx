@@ -102,13 +102,13 @@ export default function Navbar() {
               <Link href="/shop" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
                 Shop All
               </Link>
-              <Link href="/shop?category=keychains-and-charms" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
+              <Link href="/shop/keychains-and-charms" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
                 Keychains
               </Link>
-              <Link href="/shop?category=toys" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
+              <Link href="/shop/toys" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
                 Toys
               </Link>
-              <Link href="/shop?category=flower-bouquets" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
+              <Link href="/shop/flower-bouquets" className="text-sm font-medium text-brand-900 hover:text-brand-600 transition-colors">
                 Bouquets
               </Link>
               <Link href="/custom-orders" className="flex items-center gap-1.5 text-sm font-semibold text-brand-700 bg-brand-50 px-3 py-1.5 rounded-full hover:bg-brand-100 transition-all border border-brand-200">
@@ -275,49 +275,49 @@ export default function Navbar() {
                 🛍️ Shop All
               </Link>
               <Link
-                href="/shop?category=keychains-and-charms"
+                href="/shop/keychains-and-charms"
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
               >
                 🔑 Keychains
               </Link>
               <Link
-                href="/shop?category=toys"
+                href="/shop/toys"
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
               >
                 🧸 Toys
               </Link>
               <Link
-                href="/shop?category=flower-bouquets"
+                href="/shop/flower-bouquets"
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
               >
                 💐 Bouquets
               </Link>
               <Link
-                href="/shop?category=bookmarks"
+                href="/shop/bookmarks"
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
               >
                 🔖 Bookmarks
               </Link>
               <Link
-                href="/shop?category=home-decor-crochets"
+                href="/shop/home-decor-crochets"
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
               >
                 🏡 Home Decor
               </Link>
               <Link
-                href="/shop?category=crochet-accessories"
+                href="/shop/crochet-accessories"
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium"
               >
                 🎀 Accessories
               </Link>
               <Link
-                href="/shop?category=coasters"
+                href="/shop/coasters"
                 onClick={() => setMobileMenuOpen(false)}
                 className="col-span-2 p-2.5 rounded-xl bg-canvas-subtle text-brand-900 font-medium text-center"
               >

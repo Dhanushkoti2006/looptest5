@@ -42,19 +42,28 @@ function ShopContent({ initialProducts, initialCategories }: ShopClientProps) {
     const searchParam = searchParams.get('search');
     const wishlistParam = searchParams.get('wishlist');
 
-    if (categoryParam) setSelectedCategory(categoryParam);
-    if (searchParam) setSearchQuery(searchParam);
-    if (wishlistParam === 'true') setShowOnlyWishlist(true);
+    setSelectedCategory(categoryParam || 'all');
+    setSearchQuery(searchParam || '');
+    setShowOnlyWishlist(wishlistParam === 'true');
   }, [searchParams]);
 
   // Filter & sort logic
   const filteredProducts = products.filter((product) => {
     // Category filter
     if (selectedCategory !== 'all') {
-      if (
-        product.categoryId !== selectedCategory &&
-        product.category.toLowerCase().replace(/[^a-z0-9]/g, '-') !== selectedCategory
-      ) {
+      const target = selectedCategory.toLowerCase().trim();
+      const catId = (product.categoryId || '').toLowerCase().trim();
+      const catName = (product.category || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const tags = (product.tags || []).map((t) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+
+      const matchesCategory =
+        catId === target ||
+        catName === target ||
+        catName.includes(target) ||
+        target.includes(catName) ||
+        tags.includes(target);
+
+      if (!matchesCategory) {
         return false;
       }
     }

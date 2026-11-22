@@ -21,6 +21,7 @@ export async function getActiveCategories(): Promise<Category[]> {
     const { data, error } = await (supabase.from('categories') as any)
       .select('*')
       .eq('is_active', true)
+      .neq('slug', '_site_hero_slides')
       .order('display_order', { ascending: true });
 
     if (error || !data || data.length === 0) {
@@ -270,4 +271,67 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     console.error('Product query exception:', err);
     return null;
   }
+}
+
+export const DEFAULT_HERO_SLIDES = [
+  {
+    id: 'slide-1',
+    title: 'Handmade with Love, Crafted to Last.',
+    subtitle: 'Everlasting flower bouquets, charming keychains, and bespoke amigurumi keepsakes stitched with utmost tenderness.',
+    badge: '✨ Artisanal Crochet Collection 2026',
+    ctaText: 'Explore Collection',
+    ctaLink: '/shop',
+    image: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1400&q=85',
+    accentColor: 'from-brand-900/85 via-brand-900/65 to-transparent',
+  },
+  {
+    id: 'slide-2',
+    title: 'Bring Your Dream Crochet Idea to Life',
+    subtitle: 'Custom bridal bouquets, anniversary gifts, or your favorite plush toy character crafted exactly to your vision.',
+    badge: '🌸 Bespoke Custom Order Studio',
+    ctaText: 'Design Custom Order',
+    ctaLink: '/custom-orders',
+    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1400&q=85',
+    accentColor: 'from-brand-900/85 via-brand-900/65 to-transparent',
+  },
+  {
+    id: 'slide-3',
+    title: 'Sweet Companions & Soft Amigurumi Toys',
+    subtitle: 'Gentle, hypoallergenic milk cotton toys stitched for pure cuddles and nursery warmth.',
+    badge: '🧸 Baby Safe & Handcrafted',
+    ctaText: 'Shop Toys',
+    ctaLink: '/shop/toys',
+    image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1400&q=85',
+    accentColor: 'from-brand-900/85 via-brand-900/65 to-transparent',
+  },
+];
+
+let heroSlidesCache: any = null;
+
+export async function getHeroSlidesFromDB(): Promise<{ slides: any[] }> {
+  if (heroSlidesCache) return heroSlidesCache;
+
+  try {
+    const supabase = getPublicClient();
+    const { data, error } = await (supabase.from('categories') as any)
+      .select('description')
+      .eq('slug', '_site_hero_slides')
+      .maybeSingle();
+
+    if (!error && data?.description) {
+      const parsed = JSON.parse(data.description);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        heroSlidesCache = { slides: parsed };
+        return heroSlidesCache;
+      } else if (parsed?.slides && Array.isArray(parsed.slides)) {
+        heroSlidesCache = parsed;
+        return heroSlidesCache;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not read hero slides from Supabase:', err);
+  }
+
+  heroSlidesCache = { slides: DEFAULT_HERO_SLIDES };
+  return heroSlidesCache;
 }

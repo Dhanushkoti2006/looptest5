@@ -19,6 +19,7 @@ import {
   Lock,
   Sparkles,
   Users,
+  Layers,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -108,6 +109,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { label: 'Overview & Analytics', href: '/admin', icon: LayoutDashboard },
     { label: 'Hero Banners & Theme', href: '/admin/hero', icon: Sparkles },
+    { label: 'Categories & Covers', href: '/admin/categories', icon: Layers },
     { label: 'Product & Stock', href: '/admin/products', icon: Package },
     { label: 'Orders & Fulfillment', href: '/admin/orders', icon: ShoppingBag },
     { label: 'Customers & CRM', href: '/admin/customers', icon: Users },

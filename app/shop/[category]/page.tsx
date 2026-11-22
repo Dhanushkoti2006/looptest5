@@ -19,14 +19,33 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const resolvedParams = await Promise.resolve(params);
   const categorySlug = decodeURIComponent(resolvedParams.category).toLowerCase().trim();
 
-  const [categories, products] = await Promise.all([
+  const [categories, allProducts] = await Promise.all([
     getActiveCategories(),
-    getActiveProducts({ categorySlug }),
+    getActiveProducts(),
   ]);
 
   const currentCategory = categories.find(
     (c) => c.slug.toLowerCase() === categorySlug || c.id === categorySlug
   );
+
+  const products = allProducts.filter((p) => {
+    const target = categorySlug;
+    const catId = (p.categoryId || '').toLowerCase().trim();
+    const catName = (p.category || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const tags = (p.tags || []).map((t) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+
+    return (
+      catId === target ||
+      catName === target ||
+      catName.includes(target) ||
+      target.includes(catName) ||
+      tags.includes(target) ||
+      (currentCategory && (
+        p.categoryId === currentCategory.id ||
+        (p.category && currentCategory.name && p.category.toLowerCase() === currentCategory.name.toLowerCase())
+      ))
+    );
+  });
 
   const categoryName = currentCategory ? currentCategory.name : categorySlug.replace(/-/g, ' ');
   const categoryDesc = currentCategory?.description || 'Explore handcrafted crochet pieces made with milk cotton yarn.';
