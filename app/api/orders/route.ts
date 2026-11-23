@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { notifyAdminsNewOrder } from '@/lib/email/notifications';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -113,41 +115,9 @@ export async function GET(req: Request) {
     }
 
     // Admin query - strictly verify administrator privileges
-    let isAuthorized = false;
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        if (user.email?.toLowerCase() === 'callmedhanush777@gmail.com') {
-          isAuthorized = true;
-        } else {
-          const { data: profile } = await (supabase.from('profiles') as any)
-            .select('role')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (profile?.role === 'admin') {
-            isAuthorized = true;
-          }
-        }
-      } else {
-        const { cookies } = await import('next/headers');
-        const adminCookie = cookies().get('loop_admin_auth')?.value;
-        if (adminCookie === 'true') {
-          isAuthorized = true;
-        }
-      }
-    } catch (e) {
-      console.warn('Orders admin auth check warning:', e);
-    }
-
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized. Store admin credentials required.' },
-        { status: 403, headers: noCacheHeaders }
-      );
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
     }
 
     const adminSupabase = createAdminClient();
@@ -394,6 +364,15 @@ export async function POST(req: Request) {
         console.warn('Error clearing user cart:', cartErr);
       }
     }
+
+    // 11. ASYNC ADMIN NOTIFICATION
+    notifyAdminsNewOrder({
+      orderNumber: newOrder.order_number,
+      customerName: newOrder.shipping_full_name,
+      customerEmail: newOrder.customer_email || undefined,
+      totalAmount: calculatedTotal,
+      itemsCount: validatedItems.reduce((acc, it) => acc + it.quantity, 0),
+    }).catch((notifErr) => console.warn('Admin order notification error:', notifErr));
 
     return NextResponse.json({
       success: true,

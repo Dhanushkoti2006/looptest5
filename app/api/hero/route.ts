@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getHeroSlidesFromDB, DEFAULT_HERO_SLIDES } from '@/lib/supabase/queries';
+import { heroSlidesBatchSchema } from '@/lib/validations/hero';
+import { getHeroSlidesFromDB, invalidateHeroSlidesCache } from '@/lib/supabase/queries';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -22,71 +24,96 @@ export async function GET() {
   } catch (error: any) {
     console.error('Failed to get hero banner:', error);
     return NextResponse.json(
-      { success: true, hero: { slides: DEFAULT_HERO_SLIDES } },
-      { headers: noCacheHeaders }
+      { success: false, message: 'Failed to retrieve hero banner slides', hero: { slides: [] } },
+      { status: 500, headers: noCacheHeaders }
     );
   }
 }
 
 async function handleSaveHero(req: Request) {
   try {
+    // 1. Strict Server-Side Administrator Authentication Guard
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     let body: any;
     try {
       body = await req.json();
     } catch {
       return NextResponse.json(
-        { success: false, message: 'Invalid JSON in request body' },
+        { success: false, message: 'Invalid JSON payload in request body' },
         { status: 400, headers: noCacheHeaders }
       );
     }
 
-    if (!body || !Array.isArray(body.slides) || body.slides.length === 0) {
+    if (!body || !Array.isArray(body.slides)) {
       return NextResponse.json(
-        { success: false, message: 'At least one slide is required in hero banner' },
+        { success: false, message: 'Invalid format. Array of slides required.' },
         { status: 400, headers: noCacheHeaders }
       );
     }
 
-    const data = { slides: body.slides };
-
-    // 1. Persist to Supabase database
-    try {
-      const supabase = createAdminClient();
-      await (supabase.from('categories') as any).upsert(
-        {
-          name: '_Hero_Slides_Config_',
-          slug: '_site_hero_slides',
-          description: JSON.stringify(body.slides),
-          is_active: false,
-          display_order: 9999,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'slug' }
+    // 2. Validate with Zod schema (title, subtitle limits, URL check, max 6 active slides)
+    const validationResult = heroSlidesBatchSchema.safeParse(body.slides);
+    if (!validationResult.success) {
+      const errorMsg = validationResult.error.issues.map((e) => e.message).join(', ');
+      return NextResponse.json(
+        { success: false, message: `Validation error: ${errorMsg}` },
+        { status: 400, headers: noCacheHeaders }
       );
-    } catch (dbErr) {
-      console.warn('Failed to persist hero to Supabase:', dbErr);
     }
 
-    // 2. Local file backup
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      const heroFilePath = path.join(process.cwd(), 'data', 'hero.json');
-      const dir = path.dirname(heroFilePath);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(heroFilePath, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (_) {}
+    const validatedSlides = validationResult.data;
+    const adminSupabase = createAdminClient();
 
-    // 3. Revalidate home page cache
+    // 3. Persist to dedicated public.hero_slides table
+    // Delete existing slides and insert the validated updated list in order
+    const { error: deleteError } = await (adminSupabase as any)
+      .from('hero_slides')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (deleteError) {
+      console.error('Error clearing old hero slides:', deleteError);
+    }
+
+    const insertPayload = validatedSlides.map((slide, index) => ({
+      image_url: slide.image_url,
+      title: slide.title,
+      subtitle: slide.subtitle || '',
+      button_text: slide.button_text || 'Explore Collection',
+      button_link: slide.button_link || '/shop',
+      sort_order: index,
+      is_active: slide.is_active ?? true,
+      updated_at: new Date().toISOString(),
+    }));
+
+    const { data: inserted, error: insertError } = await (adminSupabase as any)
+      .from('hero_slides')
+      .insert(insertPayload)
+      .select('*');
+
+    if (insertError) {
+      console.error('Failed to insert hero slides:', insertError);
+      return NextResponse.json(
+        { success: false, message: `Database error: ${insertError.message}` },
+        { status: 500, headers: noCacheHeaders }
+      );
+    }
+
+    // 4. Invalidate memory cache & trigger instant page revalidation
+    invalidateHeroSlidesCache();
     try {
-      revalidatePath('/');
+      revalidatePath('/', 'page');
     } catch (_) {}
 
     return NextResponse.json(
       {
         success: true,
         message: 'Hero banner updated and synced successfully',
-        hero: data,
+        hero: { slides: inserted || insertPayload },
       },
       { headers: noCacheHeaders }
     );

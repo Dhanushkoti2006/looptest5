@@ -3,7 +3,6 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import confetti from 'canvas-confetti';
 import { Order } from '@/lib/types';
 import {
   CheckCircle2,
@@ -26,15 +25,18 @@ function OrderSuccessContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Launch celebratory confetti
-    try {
-      confetti({
-        particleCount: 90,
-        spread: 80,
-        origin: { y: 0.55 },
-        colors: ['#9D7BB0', '#FBF5E5', '#C98B9E', '#E2C474', '#10B981'],
-      });
-    } catch {}
+    // Launch celebratory confetti via dynamic import
+    import('canvas-confetti')
+      .then((module) => {
+        const confetti = module.default;
+        confetti({
+          particleCount: 90,
+          spread: 80,
+          origin: { y: 0.55 },
+          colors: ['#9D7BB0', '#FBF5E5', '#C98B9E', '#E2C474', '#10B981'],
+        });
+      })
+      .catch(() => {});
 
     if (orderId) {
       fetch(`/api/orders/${orderId}`)

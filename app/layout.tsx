@@ -24,10 +24,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap"
+          rel="stylesheet"
+        />
         {/* Razorpay official checkout SDK */}
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       </head>
-      <body className="min-h-screen flex flex-col bg-canvas-bg text-brand-900 antialiased selection:bg-brand-200">
+      <body className="min-h-screen flex flex-col bg-canvas-bg text-brand-900 font-sans antialiased selection:bg-brand-200">
         <AuthProvider>
           <CartProvider>
             <Navbar />

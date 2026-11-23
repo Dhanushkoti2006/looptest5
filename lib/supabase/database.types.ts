@@ -22,6 +22,45 @@ export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 export interface Database {
   public: {
     Tables: {
+      hero_slides: {
+        Row: {
+          id: string;
+          image_url: string;
+          title: string;
+          subtitle: string;
+          button_text: string;
+          button_link: string;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          image_url: string;
+          title: string;
+          subtitle?: string;
+          button_text?: string;
+          button_link?: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          image_url?: string;
+          title?: string;
+          subtitle?: string;
+          button_text?: string;
+          button_link?: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;

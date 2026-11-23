@@ -320,7 +320,7 @@ export default function AccountOrdersPage() {
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="relative w-14 h-14 rounded-2xl bg-canvas-subtle overflow-hidden shrink-0 border border-canvas-border">
                             <Image
-                              src={item.image_url || '/images/loop-and-love-logo.jpg'}
+                              src={item.image_url || '/images/photo-coming-soon.svg'}
                               alt={item.product_name}
                               fill
                               className="object-cover"

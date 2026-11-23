@@ -26,47 +26,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAdmin, isLoading, logout } = useAuth();
-  const [checkedAuth, setCheckedAuth] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      return (
-        localStorage.getItem('loop_admin_auth') === 'true' ||
-        document.cookie.includes('loop_admin_auth=true')
-      );
-    }
-    return false;
-  });
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isAuth =
-        localStorage.getItem('loop_admin_auth') === 'true' ||
-        document.cookie.includes('loop_admin_auth=true');
-      setCheckedAuth(isAuth);
-    }
-  }, []);
-
-  // Strict authorization:
-  // If a user session is active, they MUST be the master admin or have role='admin'.
-  // If NO user is logged in, allow the master password admin session (checkedAuth).
-  const isAuthorized = user
-    ? user.role === 'admin' || user.email?.toLowerCase() === 'callmedhanush777@gmail.com'
-    : checkedAuth;
-
-  // Redirect unauthenticated / non-admin users to /admin/login (only if not already on /admin/login)
-  React.useEffect(() => {
-    if (pathname === '/admin/login') return;
-    if (!isLoading && !isAuthorized) {
-      router.replace('/admin/login');
-    }
-  }, [pathname, isLoading, isAuthorized, router]);
 
   // If on login page, render children directly without admin chrome
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
 
-  // If loading or not admin, show secure access checkpoint
-  if (isLoading && !isAuthorized) {
+  // If still checking Supabase session, show loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-8 text-center space-y-4 text-white shadow-2xl">
@@ -82,7 +49,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!isAuthorized) {
+  // If user is completely unauthenticated
+  if (!user) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-8 text-center space-y-4 text-white shadow-2xl">
@@ -93,12 +61,53 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <p className="text-xs text-slate-400 leading-relaxed">
             Authentication required. This area is restricted to authorized store administrators only.
           </p>
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
             <Link
               href="/admin/login"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition-colors shadow-lg"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition-colors shadow-lg"
             >
               <ShieldCheck className="w-4 h-4" /> Go to Admin Sign In
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Return to Store
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is logged in, but role is NOT 'admin'
+  if (user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-3xl p-8 text-center space-y-4 text-white shadow-2xl">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-900/60 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <Lock className="w-7 h-7" />
+          </div>
+          <h2 className="text-xl font-bold font-serif text-white">This account is not an admin</h2>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            You are signed in as <span className="font-semibold text-purple-300">{user.email}</span>, which is a standard customer account and does not have store administrator privileges.
+          </p>
+          <div className="pt-4 flex flex-col gap-2.5">
+            <button
+              onClick={async () => {
+                await logout();
+                router.push('/admin/login');
+              }}
+              type="button"
+              className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
+            >
+              <LogOut className="w-4 h-4" /> Sign out and switch account
+            </button>
+            <Link
+              href="/"
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Return to Storefront
             </Link>
           </div>
         </div>

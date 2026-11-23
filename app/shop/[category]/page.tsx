@@ -12,8 +12,7 @@ interface CategoryPageProps {
   };
 }
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const resolvedParams = await Promise.resolve(params);
@@ -21,7 +20,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const [categories, allProducts] = await Promise.all([
     getActiveCategories(),
-    getActiveProducts(),
+    getActiveProducts({ limit: 48 }),
   ]);
 
   const currentCategory = categories.find(
@@ -69,7 +68,16 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <div className="relative rounded-3xl overflow-hidden bg-brand-900 text-white p-8 sm:p-12 shadow-cozy">
         {currentCategory?.imageUrl && (
           <div className="absolute inset-0 opacity-20">
-            <Image src={currentCategory.imageUrl} alt={categoryName} fill className="object-cover" />
+            <Image
+              src={currentCategory.imageUrl}
+              alt={categoryName}
+              fill
+              priority
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 400'%3E%3Crect width='100%25' height='100%25' fill='%232E1D36'/%3E%3C/svg%3E"
+              sizes="(max-width: 1200px) 100vw, 1200px"
+              className="object-cover"
+            />
           </div>
         )}
         <div className="relative z-10 max-w-2xl space-y-3">

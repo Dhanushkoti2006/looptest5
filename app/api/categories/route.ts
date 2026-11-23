@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { INITIAL_CATEGORIES } from '@/lib/seedData';
@@ -73,6 +74,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     const body = await req.json();
     if (!body.name || !body.name.trim()) {
       return NextResponse.json({ success: false, message: 'Category name is required' }, { status: 400 });
@@ -134,6 +140,11 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     const body = await req.json();
     const id = body.id;
     const slug = body.slug;
@@ -201,6 +212,11 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 

@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Send, Sparkles, Shield, Truck, RefreshCw, MessageSquare } from 'lucide-react';
+import { siteConfig } from '@/src/config/site';
+import { Heart, Send, Sparkles, Shield, Truck, RefreshCw, MessageSquare, Mail } from 'lucide-react';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -102,9 +103,17 @@ export default function Footer() {
             <p className="text-sm text-cream-200/90 leading-relaxed max-w-sm">
               We create everlasting crochet blooms, charming plush amigurumi, artisanal tote bags, and personalized handmade keepsakes designed to bring warmth, beauty, and joy to your everyday life.
             </p>
-            <div className="pt-2 text-xs text-brand-300 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-emerald-400" />
-              <span>WhatsApp Support: +91 98765 43210 (10 AM - 7 PM)</span>
+            <div className="pt-2 text-xs text-brand-300 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-emerald-400" />
+                <span>WhatsApp: +91 98765 43210 (10 AM - 7 PM)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-brand-300" />
+                <a href={`mailto:${siteConfig.contactEmail}`} className="hover:underline text-cream-200">
+                  {siteConfig.contactEmail}
+                </a>
+              </div>
             </div>
           </div>
 
@@ -113,28 +122,38 @@ export default function Footer() {
             <h4 className="font-serif font-bold text-white text-base tracking-wide">Handmade Collections</h4>
             <ul className="space-y-2 text-sm text-cream-300/80">
               <li>
-                <Link href="/shop?category=flowers-and-bouquets" className="hover:text-white transition-colors">
-                  Crochet Flowers & Bouquets
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop?category=bags-and-totes" className="hover:text-white transition-colors">
-                  Granny Square Bags & Totes
-                </Link>
-              </li>
-              <li>
-                <Link href="/shop?category=soft-toys-amigurumi" className="hover:text-white transition-colors">
-                  Soft Toys & Amigurumi
-                </Link>
-              </li>
-              <li>
                 <Link href="/shop?category=keychains-and-charms" className="hover:text-white transition-colors">
-                  Keychains & Bag Charms
+                  Keychains & Charms
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=toys" className="hover:text-white transition-colors">
+                  Amigurumi Toys
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=flower-bouquets" className="hover:text-white transition-colors">
+                  Flower Bouquets
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=bookmarks" className="hover:text-white transition-colors">
+                  Handmade Bookmarks
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=home-decor-crochets" className="hover:text-white transition-colors">
+                  Home Decor & Crochets
                 </Link>
               </li>
               <li>
                 <Link href="/shop?category=crochet-accessories" className="hover:text-white transition-colors">
-                  Hair Scrunchies & Brooches
+                  Crochet Accessories
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?category=coasters" className="hover:text-white transition-colors">
+                  Floral Coasters
                 </Link>
               </li>
               <li>

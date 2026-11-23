@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createClient } from '@/lib/supabase/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
@@ -8,44 +7,9 @@ export const revalidate = 0;
 
 export async function GET(req: Request) {
   try {
-    let isAuthorized = false;
-
-    try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        if (user.email?.toLowerCase() === 'callmedhanush777@gmail.com') {
-          isAuthorized = true;
-        } else {
-          const { data: profile } = await (supabase.from('profiles') as any)
-            .select('role')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (profile?.role === 'admin') {
-            isAuthorized = true;
-          }
-        }
-      } else {
-        // Only if no Supabase customer session is active, allow master admin password cookie
-        const cookieStore = cookies();
-        const adminCookie = cookieStore.get('loop_admin_auth')?.value;
-        if (adminCookie === 'true') {
-          isAuthorized = true;
-        }
-      }
-    } catch (authErr) {
-      console.warn('Customer API auth check warning:', authErr);
-    }
-
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized. Admin role required.' },
-        { status: 403 }
-      );
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
     }
 
     // Service role client - runs server-side only, never exposed to client
@@ -101,7 +65,7 @@ export async function GET(req: Request) {
     const customers = (profiles || []).map((p: any) => ({
       id: p.id,
       name: p.full_name || 'Customer',
-      email: userEmailMap[p.id] || (p.role === 'admin' ? 'callmedhanush777@gmail.com' : 'Verified Customer'),
+      email: userEmailMap[p.id] || (p.role === 'admin' ? 'Store Administrator' : 'Verified Customer'),
       phone: p.phone || '',
       role: p.role || 'customer',
       createdAt: p.created_at,

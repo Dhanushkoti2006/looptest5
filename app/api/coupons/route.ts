@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { db } from '@/lib/db';
 
 export async function GET(req: Request) {
@@ -28,6 +29,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     const body = await req.json();
     const { code, discountType, discountValue, minOrderValue, maxDiscount, expiryDate } = body;
 

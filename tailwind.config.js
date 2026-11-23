@@ -45,8 +45,8 @@ module.exports = {
         }
       },
       fontFamily: {
-        serif: ['var(--font-serif)', 'Georgia', 'serif'],
-        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-serif)', '"Playfair Display"', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         'cozy': '0 4px 20px -2px rgba(46, 29, 54, 0.08), 0 2px 6px -1px rgba(46, 29, 54, 0.04)',

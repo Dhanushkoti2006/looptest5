@@ -19,26 +19,17 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Trigger to auto-create profile row on user registration via Supabase Auth
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
-DECLARE
-    assigned_role TEXT := 'customer';
-    default_name TEXT := '';
 BEGIN
-    IF LOWER(COALESCE(NEW.email, '')) = 'callmedhanush777@gmail.com' THEN
-        assigned_role := 'admin';
-        default_name := 'Admin Dhanush';
-    END IF;
-
     INSERT INTO public.profiles (id, full_name, phone, role)
     VALUES (
         NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', default_name),
+        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', ''),
         COALESCE(NEW.raw_user_meta_data->>'phone', ''),
-        assigned_role
+        'customer'
     )
     ON CONFLICT (id) DO UPDATE
     SET 
-        full_name = CASE WHEN LOWER(COALESCE(NEW.email, '')) = 'callmedhanush777@gmail.com' AND (public.profiles.full_name IS NULL OR public.profiles.full_name = '') THEN 'Admin Dhanush' ELSE EXCLUDED.full_name END,
-        role = CASE WHEN LOWER(COALESCE(NEW.email, '')) = 'callmedhanush777@gmail.com' THEN 'admin' ELSE public.profiles.role END,
+        full_name = COALESCE(NULLIF(EXCLUDED.full_name, ''), public.profiles.full_name),
         phone = COALESCE(NULLIF(EXCLUDED.phone, ''), public.profiles.phone),
         updated_at = NOW();
     RETURN NEW;
@@ -288,6 +279,11 @@ CREATE TABLE IF NOT EXISTS public.order_status_history (
 CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON public.products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON public.products(is_active);
+CREATE INDEX IF NOT EXISTS idx_products_created_at ON public.products(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_products_active_created ON public.products(is_active, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_products_active_category ON public.products(is_active, category_id);
+CREATE INDEX IF NOT EXISTS idx_categories_slug ON public.categories(slug);
+CREATE INDEX IF NOT EXISTS idx_categories_is_active ON public.categories(is_active, display_order ASC);
 CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON public.product_images(product_id);
 CREATE INDEX IF NOT EXISTS idx_addresses_user_id ON public.addresses(user_id);
 CREATE INDEX IF NOT EXISTS idx_carts_user_id ON public.carts(user_id);
@@ -313,19 +309,32 @@ ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_status_history ENABLE ROW LEVEL SECURITY;
 
--- Helper function to check admin role safely
+-- Helper function to check admin role safely (Strictly profile-based, NO email bypass)
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-    RETURN (
-        (auth.jwt() ->> 'email' ILIKE 'callmedhanush777@gmail.com')
-        OR EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE id = auth.uid() AND role = 'admin'
-        )
+    RETURN EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'admin'
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to prevent regular users from escalating their own role to admin
+CREATE OR REPLACE FUNCTION public.prevent_role_escalation()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.role <> OLD.role AND NOT public.is_admin() THEN
+        RAISE EXCEPTION 'Unauthorized: Regular users cannot modify their account role.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS check_role_escalation ON public.profiles;
+CREATE TRIGGER check_role_escalation
+    BEFORE UPDATE OF role ON public.profiles
+    FOR EACH ROW EXECUTE FUNCTION public.prevent_role_escalation();
 
 -- PROFILES RLS
 DROP POLICY IF EXISTS "Public can view own profile" ON public.profiles;
@@ -655,5 +664,83 @@ GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+
+-- ====================================================================
+-- 17. HERO SLIDESHOW (Single Source of Truth & Hero Storage)
+-- ====================================================================
+
+CREATE TABLE IF NOT EXISTS public.hero_slides (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    image_url TEXT NOT NULL,
+    title TEXT NOT NULL,
+    subtitle TEXT NOT NULL DEFAULT '',
+    button_text TEXT NOT NULL DEFAULT 'Explore Collection',
+    button_link TEXT NOT NULL DEFAULT '/shop',
+    sort_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Trigger for updated_at
+DROP TRIGGER IF EXISTS set_hero_slides_updated_at ON public.hero_slides;
+CREATE TRIGGER set_hero_slides_updated_at
+    BEFORE UPDATE ON public.hero_slides
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+-- Index for fast ordering and filtering
+CREATE INDEX IF NOT EXISTS idx_hero_slides_active_sort ON public.hero_slides(is_active, sort_order);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.hero_slides ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Public read-only access for active slides
+DROP POLICY IF EXISTS "Public can view active hero slides" ON public.hero_slides;
+CREATE POLICY "Public can view active hero slides"
+    ON public.hero_slides FOR SELECT
+    USING (is_active = true OR public.is_admin());
+
+-- RLS Policy: Admins have full access via is_admin()
+DROP POLICY IF EXISTS "Admins have full access to hero slides" ON public.hero_slides;
+CREATE POLICY "Admins have full access to hero slides"
+    ON public.hero_slides FOR ALL
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
+
+-- Storage Bucket: hero-images (public read, admin write)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'hero-images',
+    'hero-images',
+    true,
+    5242880,
+    ARRAY['image/jpeg', 'image/png', 'image/webp']
+)
+ON CONFLICT (id) DO UPDATE SET
+    public = true,
+    file_size_limit = 5242880,
+    allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp'];
+
+-- Storage Policies for hero-images bucket
+DROP POLICY IF EXISTS "Public can view hero images" ON storage.objects;
+CREATE POLICY "Public can view hero images"
+    ON storage.objects FOR SELECT
+    USING (bucket_id = 'hero-images');
+
+DROP POLICY IF EXISTS "Admins can upload hero images" ON storage.objects;
+CREATE POLICY "Admins can upload hero images"
+    ON storage.objects FOR INSERT
+    WITH CHECK (bucket_id = 'hero-images' AND public.is_admin());
+
+DROP POLICY IF EXISTS "Admins can update hero images" ON storage.objects;
+CREATE POLICY "Admins can update hero images"
+    ON storage.objects FOR UPDATE
+    USING (bucket_id = 'hero-images' AND public.is_admin());
+
+DROP POLICY IF EXISTS "Admins can delete hero images" ON storage.objects;
+CREATE POLICY "Admins can delete hero images"
+    ON storage.objects FOR DELETE
+    USING (bucket_id = 'hero-images' AND public.is_admin());
+
 
 

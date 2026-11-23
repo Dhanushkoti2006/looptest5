@@ -1,4 +1,5 @@
 import React from 'react';
+import { siteConfig } from '@/src/config/site';
 
 export default function ReturnsPolicyPage() {
   return (
@@ -11,7 +12,7 @@ export default function ReturnsPolicyPage() {
         </p>
         <h3 className="font-serif font-bold text-base text-brand-900 pt-2">1. Transit Damage or Defects</h3>
         <p>
-          In the rare event that your product arrives damaged in transit or defective, please contact our support team at <strong>contact@loopandlove.com</strong> or WhatsApp <strong>+91 98765 43210</strong> within 48 hours of delivery along with an unboxing photo or video. We will promptly dispatch a replacement or issue a full refund.
+          In the rare event that your product arrives damaged in transit or defective, please contact our support team at <strong>{siteConfig.contactEmail}</strong> or WhatsApp <strong>+91 98765 43210</strong> within 48 hours of delivery along with an unboxing photo or video. We will promptly dispatch a replacement or issue a full refund.
         </p>
         <h3 className="font-serif font-bold text-base text-brand-900 pt-2">2. Custom & Personalized Items</h3>
         <p>

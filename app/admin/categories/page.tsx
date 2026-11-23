@@ -19,6 +19,7 @@ import {
   Sliders,
   Sparkles,
 } from 'lucide-react';
+import { compressImageClient } from '@/lib/imageCompressor';
 
 export interface CategoryRecord {
   id: string;
@@ -169,8 +170,18 @@ export default function AdminCategoriesPage() {
     try {
       let finalUrl = '';
       try {
+        const compressed = await compressImageClient(file, {
+          maxDimension: 1200,
+          quality: 0.82,
+          generateThumbnail: true,
+        });
+
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', compressed.file);
+        if (compressed.thumbnailFile) {
+          formData.append('thumbnail', compressed.thumbnailFile);
+        }
+
         const res = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
@@ -178,6 +189,8 @@ export default function AdminCategoriesPage() {
         const data = await res.json();
         if (data.success && data.url) {
           finalUrl = data.url;
+        } else if (compressed.previewUrl) {
+          finalUrl = compressed.previewUrl;
         }
       } catch (_) {}
 

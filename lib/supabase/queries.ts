@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { Product, Category } from '../types';
 import { INITIAL_CATEGORIES } from '../seedData';
@@ -19,7 +20,7 @@ export async function getActiveCategories(): Promise<Category[]> {
   try {
     const supabase = getPublicClient();
     const { data, error } = await (supabase.from('categories') as any)
-      .select('*')
+      .select('id, name, slug, description, image_url, display_order')
       .eq('is_active', true)
       .neq('slug', '_site_hero_slides')
       .order('display_order', { ascending: true });
@@ -44,41 +45,45 @@ export async function getActiveCategories(): Promise<Category[]> {
 
 export async function getActiveProducts(options?: {
   categorySlug?: string;
+  categoryId?: string;
   isFeatured?: boolean;
   limit?: number;
 }): Promise<Product[]> {
   try {
     const supabase = getPublicClient();
+    const limit = options?.limit || 36;
 
-    // 1. Fetch active products
+    // 1. Fetch active products with only necessary columns
     let query = (supabase.from('products') as any)
-      .select('*')
+      .select('id, name, slug, description, price, discount_price, category_id, stock, is_featured, prep_time_days, materials, dimensions, highlights, created_at, updated_at')
       .eq('is_active', true);
+
+    if (options?.categoryId) {
+      query = query.eq('category_id', options.categoryId);
+    }
 
     if (options?.isFeatured) {
       query = query.eq('is_featured', true);
     }
 
-    if (options?.limit) {
-      query = query.limit(options.limit);
-    }
-
-    const { data: prods, error: pErr } = await query.order('created_at', { ascending: false });
+    const { data: prods, error: pErr } = await query
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
     if (pErr || !prods || prods.length === 0) {
-      // If featured filter returned 0, retry without featured filter as fallback so storefront is never empty
       if (options?.isFeatured) {
         return getActiveProducts({ limit: options.limit });
       }
       return [];
     }
 
-    // 2. Fetch related images and categories in parallel for speed
+    // 2. Fetch related images and categories in parallel
     const pIds = prods.map((p: any) => p.id);
     const [imagesRes, catsRes] = await Promise.all([
       (supabase.from('product_images') as any)
         .select('product_id, url, image_url, sort_order, display_order')
-        .in('product_id', pIds),
+        .in('product_id', pIds)
+        .order('display_order', { ascending: true }),
       (supabase.from('categories') as any)
         .select('id, name, slug'),
     ]);
@@ -86,7 +91,11 @@ export async function getActiveProducts(options?: {
     const imagesByProduct: Record<string, string[]> = {};
     for (const img of (imagesRes.data || [])) {
       if (!imagesByProduct[img.product_id]) imagesByProduct[img.product_id] = [];
-      const url = img.url || img.image_url;
+      let url = img.url || img.image_url;
+      // Sanitize oversized base64 to avoid transferring megabytes in HTML SSR
+      if (url && url.startsWith('data:') && url.length > 50000) {
+        url = '/images/photo-coming-soon.svg';
+      }
       if (url) imagesByProduct[img.product_id].push(url);
     }
 
@@ -100,7 +109,7 @@ export async function getActiveProducts(options?: {
       const productImages = imagesByProduct[p.id];
       const images = productImages && productImages.length > 0
         ? productImages
-        : ['/images/loop-and-love-logo.jpg'];
+        : ['/images/photo-coming-soon.svg'];
 
       const catInfo = catsById[p.category_id];
       const categoryName = catInfo?.name || 'Handmade Crochet';
@@ -125,8 +134,10 @@ export async function getActiveProducts(options?: {
         tags: [categoryName, 'Handmade', 'Crochet'],
         status: p.stock <= 0 ? 'SOLD_OUT' : 'AVAILABLE',
         isFeatured: Boolean(p.is_featured),
-        isBestseller: Boolean(p.is_featured),
-        isNewArrival: true,
+        isBestseller: Boolean(p.is_featured || p.is_bestseller),
+        isNewArrival: p.created_at
+          ? Date.now() - new Date(p.created_at).getTime() <= 14 * 24 * 60 * 60 * 1000
+          : false,
         variants: [
           {
             id: `var-${p.id}-1`,
@@ -146,8 +157,8 @@ export async function getActiveProducts(options?: {
               'Ultra-soft, colorfast, hypoallergenic milk cotton yarn',
               'Gift-ready packaging with satin ribbon and note card',
             ],
-        averageRating: 5.0,
-        reviewCount: 1,
+        averageRating: p.average_rating ? Number(p.average_rating) : 0,
+        reviewCount: p.review_count ? Number(p.review_count) : 0,
         createdAt: p.created_at,
         updatedAt: p.updated_at,
       };
@@ -168,7 +179,7 @@ export async function getActiveProducts(options?: {
   }
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
+export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
   try {
     const cleanSlug = decodeURIComponent(slug).toLowerCase().trim();
     const supabase = getPublicClient();
@@ -218,7 +229,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
       .map((img: any) => img.url || img.image_url)
       .filter(Boolean);
 
-    const images = sortedImages.length > 0 ? sortedImages : ['/images/loop-and-love-logo.jpg'];
+    const images = sortedImages.length > 0 ? sortedImages : ['/images/photo-coming-soon.svg'];
     const categoryName = catRes.data?.name || 'Handmade Crochet';
     const categorySlug = catRes.data?.slug || 'all';
 
@@ -241,8 +252,10 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
       tags: [categoryName, 'Handmade', 'Crochet'],
       status: p.stock <= 0 ? 'SOLD_OUT' : 'AVAILABLE',
       isFeatured: Boolean(p.is_featured),
-      isBestseller: Boolean(p.is_featured),
-      isNewArrival: true,
+      isBestseller: Boolean(p.is_featured || p.is_bestseller),
+      isNewArrival: p.created_at
+        ? Date.now() - new Date(p.created_at).getTime() <= 14 * 24 * 60 * 60 * 1000
+        : false,
       variants: [
         {
           id: `var-${p.id}-1`,
@@ -262,8 +275,8 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
             'Ultra-soft, colorfast, hypoallergenic milk cotton yarn',
             'Gift-ready packaging with satin ribbon and note card',
           ],
-      averageRating: 5.0,
-      reviewCount: 1,
+      averageRating: p.average_rating ? Number(p.average_rating) : 0,
+      reviewCount: p.review_count ? Number(p.review_count) : 0,
       createdAt: p.created_at,
       updatedAt: p.updated_at,
     };
@@ -271,67 +284,50 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     console.error('Product query exception:', err);
     return null;
   }
+});
+
+let heroSlidesCache: { slides: any[] } | null = null;
+
+export function invalidateHeroSlidesCache() {
+  heroSlidesCache = null;
 }
-
-export const DEFAULT_HERO_SLIDES = [
-  {
-    id: 'slide-1',
-    title: 'Handmade with Love, Crafted to Last.',
-    subtitle: 'Everlasting flower bouquets, charming keychains, and bespoke amigurumi keepsakes stitched with utmost tenderness.',
-    badge: '✨ Artisanal Crochet Collection 2026',
-    ctaText: 'Explore Collection',
-    ctaLink: '/shop',
-    image: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1400&q=85',
-    accentColor: 'from-brand-900/85 via-brand-900/65 to-transparent',
-  },
-  {
-    id: 'slide-2',
-    title: 'Bring Your Dream Crochet Idea to Life',
-    subtitle: 'Custom bridal bouquets, anniversary gifts, or your favorite plush toy character crafted exactly to your vision.',
-    badge: '🌸 Bespoke Custom Order Studio',
-    ctaText: 'Design Custom Order',
-    ctaLink: '/custom-orders',
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1400&q=85',
-    accentColor: 'from-brand-900/85 via-brand-900/65 to-transparent',
-  },
-  {
-    id: 'slide-3',
-    title: 'Sweet Companions & Soft Amigurumi Toys',
-    subtitle: 'Gentle, hypoallergenic milk cotton toys stitched for pure cuddles and nursery warmth.',
-    badge: '🧸 Baby Safe & Handcrafted',
-    ctaText: 'Shop Toys',
-    ctaLink: '/shop/toys',
-    image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1400&q=85',
-    accentColor: 'from-brand-900/85 via-brand-900/65 to-transparent',
-  },
-];
-
-let heroSlidesCache: any = null;
 
 export async function getHeroSlidesFromDB(): Promise<{ slides: any[] }> {
   if (heroSlidesCache) return heroSlidesCache;
 
   try {
     const supabase = getPublicClient();
-    const { data, error } = await (supabase.from('categories') as any)
-      .select('description')
-      .eq('slug', '_site_hero_slides')
-      .maybeSingle();
+    const { data, error } = await (supabase as any)
+      .from('hero_slides')
+      .select('id, image_url, title, subtitle, button_text, button_link, sort_order, is_active')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
 
-    if (!error && data?.description) {
-      const parsed = JSON.parse(data.description);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        heroSlidesCache = { slides: parsed };
-        return heroSlidesCache;
-      } else if (parsed?.slides && Array.isArray(parsed.slides)) {
-        heroSlidesCache = parsed;
-        return heroSlidesCache;
-      }
+    if (error) {
+      console.error('Failed to query hero_slides from Supabase:', error.message);
+      return { slides: [] };
     }
-  } catch (err) {
-    console.warn('Could not read hero slides from Supabase:', err);
+
+    if (data && Array.isArray(data)) {
+      const slides = data.map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        subtitle: s.subtitle || '',
+        badge: '✨ Artisanal Crochet Collection',
+        ctaText: s.button_text || 'Explore Collection',
+        ctaLink: s.button_link || '/shop',
+        image: s.image_url,
+        accentColor: 'from-brand-900/85 via-brand-900/65 to-transparent',
+      }));
+
+      heroSlidesCache = { slides };
+      return heroSlidesCache;
+    }
+  } catch (err: any) {
+    console.error('Exception fetching hero slides from Supabase:', err);
   }
 
-  heroSlidesCache = { slides: DEFAULT_HERO_SLIDES };
+  // Never fall back to stock Unsplash images. Return empty array so neutral branded banner renders.
+  heroSlidesCache = { slides: [] };
   return heroSlidesCache;
 }

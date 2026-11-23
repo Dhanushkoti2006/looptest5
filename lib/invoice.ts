@@ -1,5 +1,6 @@
 import { Order } from './types';
 import jsPDF from 'jspdf';
+import { siteConfig } from '@/src/config/site';
 
 export function generateInvoicePDF(order: Order): jsPDF {
   const doc = new jsPDF({
@@ -26,7 +27,7 @@ export function generateInvoicePDF(order: Order): jsPDF {
 
   doc.setFontSize(8);
   doc.setTextColor(grayText);
-  doc.text('contact@loopandlove.com | www.loopandlove.com', 20, 36);
+  doc.text(`${siteConfig.contactEmail} | www.loopandlove.com`, 20, 36);
 
   // Invoice Title & Meta
   doc.setFont('helvetica', 'bold');
@@ -147,7 +148,7 @@ export function generateInvoicePDF(order: Order): jsPDF {
   doc.setFontSize(8);
   doc.setTextColor(grayText);
   doc.text('Every stitch in your order was handcrafted with love and care.', 20, footerY + 5);
-  doc.text('For queries, custom requests, or care guides, contact us at contact@loopandlove.com', 20, footerY + 9);
+  doc.text(`For queries, custom requests, or care guides, contact us at ${siteConfig.contactEmail}`, 20, footerY + 9);
   doc.text('Authorized Signatory: Loop & Love Artisans', 140, footerY + 12);
 
   return doc;

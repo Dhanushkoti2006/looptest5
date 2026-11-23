@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { INITIAL_PRODUCTS } from '@/lib/seedData';
@@ -74,7 +75,7 @@ export async function GET(req: Request) {
           discountPrice: undefined,
           category: catInfo?.name || 'Handmade Crochet',
           categoryId: catInfo?.slug || p.category_id || 'all',
-          images: sortedImages.length > 0 ? sortedImages : ['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80'],
+          images: sortedImages.length > 0 ? sortedImages : ['/images/photo-coming-soon.svg'],
           materials: p.materials || '100% Milk Cotton Yarn',
           dimensions: p.dimensions || '',
           stock: p.stock ?? 10,
@@ -84,11 +85,13 @@ export async function GET(req: Request) {
           tags: ['handmade', 'crochet', catInfo?.slug || 'artisan'],
           status: p.stock > 0 ? 'AVAILABLE' : 'SOLD_OUT',
           isFeatured: Boolean(p.is_featured),
-          isBestseller: false,
-          isNewArrival: true,
+          isBestseller: Boolean(p.is_featured || p.is_bestseller),
+          isNewArrival: p.created_at
+            ? Date.now() - new Date(p.created_at).getTime() <= 14 * 24 * 60 * 60 * 1000
+            : false,
           variants: [],
-          averageRating: 5.0,
-          reviewCount: 0,
+          averageRating: p.average_rating ? Number(p.average_rating) : 0,
+          reviewCount: p.review_count ? Number(p.review_count) : 0,
           createdAt: p.created_at,
           updatedAt: p.updated_at,
         };
@@ -160,6 +163,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     const body = await req.json();
 
     const name = body.name?.trim();
@@ -176,6 +184,10 @@ export async function POST(req: Request) {
 
     if (!name || isNaN(price)) {
       return NextResponse.json({ success: false, message: 'Title and valid price are required.' }, { status: 400 });
+    }
+
+    if (imageUrls.length === 0) {
+      return NextResponse.json({ success: false, message: 'At least one product photo is required to publish a product.' }, { status: 400 });
     }
 
     const adminSupabase = createAdminClient();
@@ -300,6 +312,11 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     const body = await req.json();
     if (!body.id) {
       return NextResponse.json({ success: false, message: 'Product ID is required for updating.' }, { status: 400 });
@@ -358,7 +375,10 @@ export async function PUT(req: Request) {
     }
 
     // Update images if provided
-    if (Array.isArray(body.images) && body.images.length > 0) {
+    if (Array.isArray(body.images)) {
+      if (body.images.length === 0) {
+        return NextResponse.json({ success: false, message: 'At least one product photo is required.' }, { status: 400 });
+      }
       await (adminSupabase.from('product_images') as any).delete().eq('product_id', body.id);
       const imageRecords = body.images.filter(Boolean).map((url: string, idx: number) => ({
         product_id: body.id,
@@ -386,6 +406,11 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 

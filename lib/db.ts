@@ -19,7 +19,6 @@ import {
   INITIAL_CATEGORIES,
   INITIAL_PRODUCTS,
   INITIAL_COUPONS,
-  INITIAL_ADMIN_USER,
   INITIAL_SAMPLE_CUSTOMER,
 } from './seedData';
 
@@ -320,7 +319,7 @@ function initializeDatabase(): DatabaseSchema {
     ];
 
     const initialData: DatabaseSchema = {
-      users: [INITIAL_ADMIN_USER, INITIAL_SAMPLE_CUSTOMER],
+      users: [],
       categories: INITIAL_CATEGORIES,
       products: INITIAL_PRODUCTS,
       orders: initialOrders,
@@ -907,67 +906,11 @@ export const db = {
     return data.users.find((u) => u.id === sess.userId);
   },
 
-  // HERO BANNER CONFIGURATION
+  // HERO BANNER CONFIGURATION (Delegated strictly to Supabase hero_slides table)
   getHeroBanner: () => {
-    if (memoryHeroBanner) {
-      return memoryHeroBanner;
-    }
-
-    // In serverless/Vercel environments, /tmp/data/hero.json holds live updates
-    const heroFilePath = isServerless
-      ? path.join('/tmp', 'hero.json')
-      : path.join(process.cwd(), 'data', 'hero.json');
-
-    if (fs.existsSync(heroFilePath)) {
-      try {
-        const loaded = JSON.parse(fs.readFileSync(heroFilePath, 'utf-8'));
-        memoryHeroBanner = loaded;
-        return loaded;
-      } catch (err) {
-        console.warn('Error reading hero file, falling back:', err);
-      }
-    }
-
-    // Fall back to bundled data/hero.json
-    const bundledHero = path.join(process.cwd(), 'data', 'hero.json');
-    if (fs.existsSync(bundledHero)) {
-      try {
-        const loaded = JSON.parse(fs.readFileSync(bundledHero, 'utf-8'));
-        memoryHeroBanner = loaded;
-        return loaded;
-      } catch {}
-    }
-
-    return {
-      slides: [
-        {
-          id: 'slide-1',
-          title: 'Handmade with Love, Crafted to Last.',
-          subtitle: 'Everlasting blooms, cozy artisan totes, and bespoke amigurumi keepsakes stitched with utmost tenderness.',
-          badge: '✨ Artisanal Crochet Collection 2026',
-          ctaText: 'Explore Collection',
-          ctaLink: '/shop',
-          image: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1400&q=85',
-          accentColor: 'from-brand-900/80 via-brand-900/60 to-transparent'
-        }
-      ]
-    };
+    return { slides: [] };
   },
   updateHeroBanner: (data: { slides: any[] }) => {
-    memoryHeroBanner = data;
-    const heroFilePath = isServerless
-      ? path.join('/tmp', 'hero.json')
-      : path.join(process.cwd(), 'data', 'hero.json');
-
-    try {
-      const dir = path.dirname(heroFilePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(heroFilePath, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (e) {
-      console.warn('Could not write hero banner to disk, returning data in-memory:', e);
-    }
     return data;
   },
 };

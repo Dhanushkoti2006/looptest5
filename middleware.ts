@@ -33,11 +33,6 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // IMPORTANT: getUser() refreshes the auth token and validates it against Supabase
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const { pathname } = request.nextUrl;
 
   // Protected customer routes: /account/* (excluding auth pages), /checkout
@@ -47,6 +42,19 @@ export async function middleware(request: NextRequest) {
   const isAccountRoute = pathname.startsWith('/account') && !isAuthRoute;
   const isCheckoutRoute = pathname === '/checkout' || pathname.startsWith('/checkout/');
 
+  // Protected admin routes: /admin/* (excluding /admin/login)
+  const isAdminRoute = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login');
+
+  // Fast path: If route is public, bypass immediately without any expensive auth network call
+  if (!isAccountRoute && !isCheckoutRoute && !isAdminRoute) {
+    return supabaseResponse;
+  }
+
+  // IMPORTANT: getUser() refreshes the auth token and validates it against Supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user && (isAccountRoute || isCheckoutRoute)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/login';
@@ -54,52 +62,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Protected admin routes: /admin/* (excluding /admin/login)
-  const isAdminRoute = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login');
-
   if (isAdminRoute) {
-    // 1. If a user is logged in via Supabase, strictly verify their admin authorization
-    if (user) {
-      const userEmail = (user.email || '').toLowerCase();
-      if (userEmail === 'callmedhanush777@gmail.com') {
+    // If user is completely unauthenticated, redirect to /admin/login
+    if (!user) {
+      if (pathname === '/admin/login') {
         return supabaseResponse;
       }
-
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (profile?.role === 'admin') {
-          return supabaseResponse;
-        }
-      } catch (err) {
-        console.error('Middleware profile check error:', err);
-      }
-
-      // Logged in user is a customer, NOT an admin!
-      // Deny access, wipe any lingering admin cookie, and redirect to login
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = '/admin/login';
-      redirectUrl.searchParams.set('error', 'customer_access_denied');
-      const deniedResponse = NextResponse.redirect(redirectUrl);
-      deniedResponse.cookies.delete('loop_admin_auth');
-      return deniedResponse;
+      redirectUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(redirectUrl);
     }
 
-    // 2. If NO Supabase user is logged in, allow standalone master password admin session
-    const adminCookie = request.cookies.get('loop_admin_auth')?.value;
-    if (adminCookie === 'true') {
-      return supabaseResponse;
-    }
-
-    // 3. Not authorized - redirect to admin login
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/admin/login';
-    redirectUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(redirectUrl);
+    // Authenticated user: Let request pass to /admin layout.
+    // If user profile role !== 'admin', /admin/layout renders the "This account is not an admin" page
+    // with "Sign out and switch account" button (avoids redirect loops and silent cookie drops).
+    return supabaseResponse;
   }
 
   return supabaseResponse;
@@ -107,13 +85,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - static image and asset files
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/admin/:path*',
+    '/account/:path*',
+    '/checkout',
+    '/checkout/:path*',
   ],
 };

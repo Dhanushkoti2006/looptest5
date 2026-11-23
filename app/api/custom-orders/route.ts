@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { notifyAdminsCustomRequest } from '@/lib/email/notifications';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -132,6 +133,15 @@ export async function POST(req: Request) {
       console.error('Custom request insert error:', error);
       return NextResponse.json({ success: false, message: 'Failed to save custom request' }, { status: 500 });
     }
+
+    // Async admin notification
+    notifyAdminsCustomRequest({
+      requestNumber: inserted.request_number,
+      customerName: inserted.customer_name,
+      customerEmail: inserted.email,
+      productType: inserted.product_type,
+      budgetRange: inserted.budget_range,
+    }).catch((notifErr) => console.warn('Admin custom request notification error:', notifErr));
 
     return NextResponse.json({
       success: true,

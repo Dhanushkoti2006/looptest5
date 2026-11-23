@@ -1,7 +1,7 @@
 import { Product, Category, Coupon, User } from './types';
 
 export const INITIAL_HERO = {
-  bannerImage: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?auto=format&fit=crop&w=1200&q=80',
+  bannerImage: '/images/loop-and-love-logo.jpg',
   headline: 'Handmade with Love, Crafted to Last.',
   subtext: 'Explore our exclusive crochet collections.'
 };
@@ -608,18 +608,6 @@ export const INITIAL_COUPONS: Coupon[] = [
     usageCount: 52,
   },
 ];
-
-export const INITIAL_ADMIN_USER: User = {
-  id: 'usr-admin-1',
-  name: 'Akash (Loop & Love Founder)',
-  email: 'admin@loopandlove.com',
-  phone: '+91 98765 43210',
-  role: 'SUPER_ADMIN',
-  isEmailVerified: true,
-  isPhoneVerified: true,
-  createdAt: '2026-09-01T00:00:00Z',
-  updatedAt: '2026-11-01T00:00:00Z',
-};
 
 export const INITIAL_SAMPLE_CUSTOMER: User = {
   id: 'usr-cust-1',

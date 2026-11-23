@@ -40,7 +40,7 @@ export default function AboutPage() {
 
           <div className="relative aspect-4/3 rounded-3xl overflow-hidden shadow-cozy border border-canvas-border">
             <Image
-              src="https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80"
+              src="/images/loop-and-love-logo.jpg"
               alt="Crafting crochet blooms"
               fill
               className="object-cover"

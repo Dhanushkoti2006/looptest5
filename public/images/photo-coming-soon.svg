@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBF9F5"/>
+      <stop offset="100%" stop-color="#F0EAE1"/>
+    </linearGradient>
+    <radialGradient id="softGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#EADDCF" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#F0EAE1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="800" fill="url(#bgGrad)"/>
+  <circle cx="400" cy="360" r="280" fill="url(#softGlow)"/>
+
+  <!-- Decorative Border -->
+  <rect x="40" y="40" width="720" height="720" rx="32" fill="none" stroke="#D8C8B8" stroke-width="2" stroke-dasharray="8 8" opacity="0.6"/>
+
+  <!-- Yarn Ball & Crochet Hook Icon -->
+  <g transform="translate(400, 330)" stroke="#7A528A" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Camera/Lens silhouette with yarn motifs -->
+    <rect x="-80" y="-55" width="160" height="120" rx="24" stroke-width="4" stroke="#8E659E"/>
+    <path d="M-30 -55 L-20 -75 L20 -75 L30 -55" stroke-width="4" stroke="#8E659E" fill="none"/>
+    <circle cx="0" cy="5" r="38" stroke-width="4" stroke="#8E659E"/>
+    <circle cx="0" cy="5" r="16" fill="#8E659E" opacity="0.2"/>
+    <circle cx="42" cy="-28" r="6" fill="#8E659E"/>
+
+    <!-- Crochet Hook accent -->
+    <path d="M-95 55 Q-50 20 -5 70 T85 30" stroke="#B08DBE" stroke-width="3" stroke-dasharray="4 4"/>
+  </g>
+
+  <!-- Text -->
+  <text x="400" y="460" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Playfair Display', Georgia, serif" font-size="28" font-weight="600" fill="#4A3455" text-anchor="middle" letter-spacing="1.5">
+    PHOTO COMING SOON
+  </text>
+  
+  <text x="400" y="495" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="400" fill="#8C7A94" text-anchor="middle" letter-spacing="0.5">
+    Handcrafted with Love • Loop &amp; Love
+  </text>
+</svg>

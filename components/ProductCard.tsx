@@ -15,7 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const [added, setAdded] = useState(false);
   const [activeImage, setActiveImage] = useState(
-    product.images[0] || '/images/loop-and-love-logo.jpg'
+    product.images[0] || '/images/photo-coming-soon.svg'
   );
 
   const isSoldOut = product.status === 'SOLD_OUT' || product.stock <= 0;
@@ -28,6 +28,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     product.discountPrice && originalPrice > product.discountPrice
       ? Math.round(((originalPrice - product.discountPrice) / originalPrice) * 100)
       : null;
+
+  // Data-driven badges: NEW only within 14 days of created_at; BESTSELLER only by admin flag or real sales; at most one per card
+  const isNew = Boolean(
+    product.createdAt &&
+      Date.now() - new Date(product.createdAt).getTime() <= 14 * 24 * 60 * 60 * 1000
+  );
+  const isBestseller = Boolean(product.isBestseller || product.isFeatured);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -51,37 +58,34 @@ export default function ProductCard({ product }: ProductCardProps) {
           src={activeImage}
           alt={product.name}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          loading="lazy"
+          placeholder="blur"
+          blurDataURL="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='%23F7F3FA'/%3E%3C/svg%3E"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className={`object-cover object-center group-hover:scale-105 transition-transform duration-500 ${
             isSoldOut ? 'grayscale-30 opacity-80' : ''
           }`}
         />
 
-        {/* BADGES */}
+        {/* BADGES: At most one per card */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {isSoldOut ? (
             <span className="px-3 py-1 bg-rose-600 text-white text-[11px] font-bold tracking-wider uppercase rounded-full shadow-sm">
               SOLD OUT
             </span>
-          ) : (
-            <>
-              {product.isBestseller && (
-                <span className="px-2.5 py-1 bg-brand-900 text-cream-200 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs">
-                  Bestseller
-                </span>
-              )}
-              {product.isNewArrival && (
-                <span className="px-2.5 py-1 bg-brand-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs">
-                  New Launch
-                </span>
-              )}
-              {discountPercent && (
-                <span className="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-bold rounded-full shadow-xs">
-                  {discountPercent}% OFF
-                </span>
-              )}
-            </>
-          )}
+          ) : isBestseller ? (
+            <span className="px-2.5 py-1 bg-brand-900 text-cream-200 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs">
+              Bestseller
+            </span>
+          ) : isNew ? (
+            <span className="px-2.5 py-1 bg-brand-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-xs">
+              New Launch
+            </span>
+          ) : discountPercent ? (
+            <span className="px-2 py-0.5 bg-rose-500 text-white text-[10px] font-bold rounded-full shadow-xs">
+              {discountPercent}% OFF
+            </span>
+          ) : null}
         </div>
 
         {/* WISHLIST BUTTON */}
@@ -100,7 +104,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* PREPARATION TIME BADGE */}
         <div className="absolute bottom-2 left-2 sm:left-3 z-10">
           <span className="text-[9px] sm:text-[10px] font-medium bg-white/90 backdrop-blur-xs text-brand-800 px-1.5 sm:px-2 py-0.5 rounded-md shadow-xs">
-            ⏱️ {product.prepTimeDays}d craft
+            ⏱️ Made in {product.prepTimeDays || 2} days
           </span>
         </div>
       </Link>
@@ -113,11 +117,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             <span className="text-brand-600 font-medium text-[10px] sm:text-[11px] uppercase tracking-wider truncate max-w-[90px] sm:max-w-none">
               {product.category}
             </span>
-            <div className="flex items-center gap-0.5 sm:gap-1 text-amber-500 font-semibold text-[11px] sm:text-xs">
-              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
-              <span>{product.averageRating}</span>
-              <span className="text-gray-400 text-[10px] hidden sm:inline">({product.reviewCount})</span>
-            </div>
+            {Boolean(product.reviewCount && product.reviewCount > 0) && (
+              <div className="flex items-center gap-0.5 sm:gap-1 text-amber-500 font-semibold text-[11px] sm:text-xs">
+                <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+                <span>{product.averageRating}</span>
+                <span className="text-gray-400 text-[10px] hidden sm:inline">({product.reviewCount})</span>
+              </div>
+            )}
           </div>
 
           {/* Title */}

@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
     const { searchParams } = new URL(req.url);
     const period = (searchParams.get('period') as 'today' | '7days' | '30days' | 'all') || 'all';
     const viewRawTable = searchParams.get('table');

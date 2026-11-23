@@ -1,8 +1,7 @@
 import { getActiveCategories, getActiveProducts } from '@/lib/supabase/queries';
 import ShopClient from '@/components/ShopClient';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export const metadata = {
   title: 'Shop All Handcrafted Crochet | Loop & Love',
@@ -12,7 +11,7 @@ export const metadata = {
 export default async function ShopPage() {
   const [categories, products] = await Promise.all([
     getActiveCategories(),
-    getActiveProducts(),
+    getActiveProducts({ limit: 48 }),
   ]);
 
   return <ShopClient initialCategories={categories} initialProducts={products} />;

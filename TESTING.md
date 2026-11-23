@@ -92,6 +92,16 @@ This document outlines the end-to-end verification checklist and architecture fo
 - [x] Security headers configured in `next.config.js` (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`).
 - [x] `npm run build` compiles with 0 errors.
 
+### Phase 9: Hero Slideshow & Media Storage Verification
+- [ ] **Add a Slide**: In Admin (`/admin/hero`), add a new slide with custom image, headline, and link; click **Save & Publish Live**.
+- [ ] **Incognito & Mobile Verification**: Open the homepage in an incognito window and across mobile network data.
+- [ ] **Zero-Flicker Reload Test**: Reload the homepage 5 consecutive times; confirm there is no content flicker, no layout shift, and slides render instantly from the server without resetting.
+- [ ] **Edit, Reorder & Delete**: In Admin (`/admin/hero`), edit slide text, reorder using Move Up/Down arrows, or delete a slide; verify the storefront updates immediately on the next visit via `revalidatePath('/')`.
+- [ ] **Non-Admin Security Verification**:
+  - Verify that an unauthenticated user or customer profile CANNOT write, insert, update, or delete in `public.hero_slides` via the Supabase client.
+  - Verify that non-admins CANNOT upload or delete files in the `hero-images` storage bucket.
+- [ ] **Zero Unsplash URLs**: Confirm no Unsplash image URLs remain anywhere in the hero slideshow codebase or in the built production output (`.next`). Zero active slides displays the neutral branded fallback with logo, never stock photos.
+
 ---
 
 ## 🔑 Configuration & Placeholders Status

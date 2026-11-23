@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { siteConfig } from '@/src/config/site';
 import { Mail, Phone, MapPin, MessageSquare, Send, CheckCircle2, HelpCircle } from 'lucide-react';
 
 export default function ContactPage() {
@@ -68,8 +69,8 @@ export default function ContactPage() {
                 <Mail className="w-4 h-4 text-brand-300 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-semibold block text-white">Email Us</span>
-                  <a href="mailto:contact@loopandlove.com" className="hover:underline text-cream-200">
-                    contact@loopandlove.com
+                  <a href={`mailto:${siteConfig.contactEmail}`} className="hover:underline text-cream-200">
+                    {siteConfig.contactEmail}
                   </a>
                 </div>
               </div>

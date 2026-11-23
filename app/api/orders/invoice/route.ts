@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { siteConfig } from '@/src/config/site';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateInvoicePDF } from '@/lib/invoice';
 import { Order, OrderItem } from '@/lib/types';
@@ -37,7 +38,7 @@ export async function GET(req: Request) {
       id: it.id,
       productId: it.product_id || '',
       productName: it.product_name,
-      image: it.image_url || '/images/loop-and-love-logo.jpg',
+      image: it.image_url || '/images/photo-coming-soon.svg',
       color: 'Standard',
       size: 'Standard',
       unitPrice: Number(it.unit_price),
@@ -50,7 +51,7 @@ export async function GET(req: Request) {
       orderNumber: dbOrder.order_number,
       userId: dbOrder.user_id || 'guest',
       customerName: dbOrder.shipping_full_name || 'Valued Customer',
-      customerEmail: 'contact@loopandlove.com',
+      customerEmail: siteConfig.contactEmail,
       customerPhone: dbOrder.shipping_phone || '',
       items,
       shippingAddress: {

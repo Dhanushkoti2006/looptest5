@@ -5,8 +5,7 @@ import { getProductBySlug, getActiveProducts } from '@/lib/supabase/queries';
 import ProductDetailClient from '@/components/ProductDetailClient';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const resolvedParams = await Promise.resolve(params);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { HeroSlide } from '@/lib/types';
 import {
@@ -10,43 +10,47 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
-  ExternalLink,
-  Image as ImageIcon,
+  Upload,
   CheckCircle2,
   AlertCircle,
   Eye,
+  Loader2,
 } from 'lucide-react';
 
 export default function AdminHeroBannerPage() {
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
   const [activePreview, setActivePreview] = useState(0);
 
-  useEffect(() => {
-    // Check localStorage first for instant client persistence
-    try {
-      const local = localStorage.getItem('loop_and_love_hero_slides');
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setSlides(parsed);
-          setLoading(false);
-        }
-      }
-    } catch {}
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
+  useEffect(() => {
     fetch('/api/hero', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.hero?.slides && data.hero.slides.length > 0) {
-          // If we haven't loaded local overrides, use server data
-          setSlides((prev) => (prev.length > 0 ? prev : data.hero.slides));
+          setSlides(data.hero.slides);
+        } else {
+          // If no slides exist in DB, provide one initial starter slide with brand logo
+          setSlides([
+            {
+              id: 'slide-1',
+              title: 'Welcome to Loop & Love Crochet',
+              subtitle: 'Handcrafted artisanal crochet pieces made with pure love and premium milk cotton.',
+              badge: '✨ Artisanal Crochet Collection',
+              ctaText: 'Explore Collection',
+              ctaLink: '/shop',
+              image: '/images/loop-and-love-logo.jpg',
+            },
+          ]);
         }
       })
       .catch((err) => {
         console.error('Failed to load hero banner from server:', err);
+        setMessage({ text: 'Failed to load existing slides from server.', isError: true });
       })
       .finally(() => setLoading(false));
   }, []);
@@ -59,7 +63,40 @@ export default function AdminHeroBannerPage() {
     });
   };
 
+  const handleFileUpload = async (index: number, file: File) => {
+    setUploadingIndex(index);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/admin/hero/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.url) {
+        handleUpdateSlide(index, 'image', data.url);
+        setMessage({ text: 'Image uploaded and optimized successfully!', isError: false });
+      } else {
+        setMessage({ text: data.message || 'Image upload failed.', isError: true });
+      }
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      setMessage({ text: 'Network error uploading image.', isError: true });
+    } finally {
+      setUploadingIndex(null);
+    }
+  };
+
   const handleAddSlide = () => {
+    if (slides.length >= 6) {
+      alert('A maximum of 6 active slides is permitted in the hero banner.');
+      return;
+    }
+
     const newSlide: HeroSlide = {
       id: `slide-${Date.now()}`,
       title: 'New Featured Collection',
@@ -67,8 +104,7 @@ export default function AdminHeroBannerPage() {
       badge: '✨ Exclusive Release',
       ctaText: 'Shop Now',
       ctaLink: '/shop',
-      image: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1400&q=85',
-      accentColor: 'from-brand-900/80 via-brand-900/60 to-transparent',
+      image: '/images/loop-and-love-logo.jpg',
     };
     setSlides((prev) => [...prev, newSlide]);
     setActivePreview(slides.length);
@@ -105,11 +141,27 @@ export default function AdminHeroBannerPage() {
     setSaving(true);
     setMessage(null);
 
-    // Save to localStorage immediately so storefront always shows the new banner
-    try {
-      localStorage.setItem('loop_and_love_hero_slides', JSON.stringify(slides));
-    } catch (e) {
-      console.warn('LocalStorage save failed:', e);
+    // Client-side quick validation before submission
+    for (let i = 0; i < slides.length; i++) {
+      const s = slides[i];
+      if (!s.title.trim()) {
+        setMessage({ text: `Slide #${i + 1} requires a headline title.`, isError: true });
+        setSaving(false);
+        return;
+      }
+      if (!s.image.trim()) {
+        setMessage({ text: `Slide #${i + 1} requires an image URL or uploaded file.`, isError: true });
+        setSaving(false);
+        return;
+      }
+      if (!s.ctaLink.startsWith('/') && !s.ctaLink.startsWith('https://')) {
+        setMessage({
+          text: `Slide #${i + 1} destination link must start with "/" (internal) or "https://"`,
+          isError: true,
+        });
+        setSaving(false);
+        return;
+      }
     }
 
     try {
@@ -119,29 +171,21 @@ export default function AdminHeroBannerPage() {
         body: JSON.stringify({ slides }),
       });
 
-      const text = await res.text();
-      let data: any = null;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        // Non-JSON response handled below
-      }
+      const data = await res.json();
 
-      if (res.ok && (!data || data.success)) {
+      if (res.ok && data.success) {
         setMessage({ text: '✨ Hero banner saved successfully! Homepage updated.', isError: false });
       } else {
-        // Even if server is cold, client storage is active
         setMessage({
-          text: data?.message || 'Banner saved locally & live storefront updated!',
-          isError: false,
+          text: data?.message || 'Failed to update hero banner.',
+          isError: true,
         });
       }
     } catch (err: any) {
       console.error('Save hero banner error:', err);
-      // Local storage saved it, so it will still be live on client
       setMessage({
-        text: '✨ Hero banner saved and applied to your storefront!',
-        isError: false,
+        text: 'Failed to communicate with server.',
+        isError: true,
       });
     } finally {
       setSaving(false);
@@ -175,9 +219,10 @@ export default function AdminHeroBannerPage() {
           <button
             onClick={handleAddSlide}
             type="button"
-            className="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-2 transition-colors"
+            disabled={slides.length >= 6}
+            className="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 disabled:opacity-40 text-slate-700 font-bold text-xs flex items-center gap-2 transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Slide
+            <Plus className="w-4 h-4" /> Add Slide ({slides.length}/6)
           </button>
           <button
             onClick={handleSave}
@@ -218,12 +263,13 @@ export default function AdminHeroBannerPage() {
             <span className="text-[11px] text-slate-400">Updates live as you type below</span>
           </div>
 
-          <div className="relative h-64 sm:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-inner border border-slate-200">
+          <div className="relative h-64 sm:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-inner border border-slate-200 bg-brand-900">
             {currentPreviewSlide.image ? (
               <Image
                 src={currentPreviewSlide.image}
-                alt={currentPreviewSlide.title}
+                alt={currentPreviewSlide.title || 'Slide Preview'}
                 fill
+                sizes="(max-width: 768px) 100vw, 1200px"
                 className="object-cover"
               />
             ) : (
@@ -233,18 +279,22 @@ export default function AdminHeroBannerPage() {
             )}
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/50 to-transparent flex items-center p-6 sm:p-12">
               <div className="max-w-xl text-white space-y-3">
-                <span className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-semibold tracking-wide">
-                  {currentPreviewSlide.badge}
-                </span>
+                {currentPreviewSlide.badge && (
+                  <span className="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-semibold tracking-wide">
+                    {currentPreviewSlide.badge}
+                  </span>
+                )}
                 <h2 className="text-xl sm:text-3xl font-serif font-bold leading-tight drop-shadow-sm">
-                  {currentPreviewSlide.title}
+                  {currentPreviewSlide.title || 'Untitled Slide'}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-200 line-clamp-2 leading-relaxed">
-                  {currentPreviewSlide.subtitle}
-                </p>
+                {currentPreviewSlide.subtitle && (
+                  <p className="text-xs sm:text-sm text-slate-200 line-clamp-2 leading-relaxed">
+                    {currentPreviewSlide.subtitle}
+                  </p>
+                )}
                 <div className="pt-2">
                   <span className="inline-block px-5 py-2.5 rounded-xl bg-purple-600 font-bold text-xs shadow-md">
-                    {currentPreviewSlide.ctaText} →
+                    {currentPreviewSlide.ctaText || 'Explore'} →
                   </span>
                 </div>
               </div>
@@ -319,10 +369,11 @@ export default function AdminHeroBannerPage() {
               {/* INPUT FIELDS */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Slide Title / Headline *</label>
+                  <label className="font-bold text-slate-700 block mb-1">Slide Title / Headline (Max 100) *</label>
                   <input
                     type="text"
                     required
+                    maxLength={100}
                     value={slide.title}
                     onChange={(e) => handleUpdateSlide(index, 'title', e.target.value)}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600"
@@ -340,9 +391,10 @@ export default function AdminHeroBannerPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="font-bold text-slate-700 block mb-1">Subtitle / Descriptive Text</label>
+                  <label className="font-bold text-slate-700 block mb-1">Subtitle / Descriptive Text (Max 250)</label>
                   <textarea
                     rows={2}
+                    maxLength={250}
                     value={slide.subtitle}
                     onChange={(e) => handleUpdateSlide(index, 'subtitle', e.target.value)}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600 resize-none"
@@ -350,23 +402,55 @@ export default function AdminHeroBannerPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="font-bold text-slate-700 block mb-1">Banner Background Image URL *</label>
-                  <div className="flex gap-2">
+                  <label className="font-bold text-slate-700 block mb-1">Banner Background Image *</label>
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
-                      type="url"
+                      type="text"
                       required
                       value={slide.image}
                       onChange={(e) => handleUpdateSlide(index, 'image', e.target.value)}
-                      placeholder="https://images.unsplash.com/..."
+                      placeholder="/images/... or https://..."
                       className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-purple-600"
                     />
+                    <input
+                      type="file"
+                      ref={(el) => {
+                        fileInputRefs.current[index] = el;
+                      }}
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(index, file);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRefs.current[index]?.click()}
+                      disabled={uploadingIndex === index}
+                      className="px-4 py-2.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors"
+                    >
+                      {uploadingIndex === index ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-3.5 h-3.5" /> Upload Image
+                        </>
+                      )}
+                    </button>
                   </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Upload JPEG, PNG, or WebP (max 5MB). Automatically compressed & converted to 1600px WebP.
+                  </p>
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">CTA Button Text</label>
+                  <label className="font-bold text-slate-700 block mb-1">CTA Button Text (Max 50)</label>
                   <input
                     type="text"
+                    maxLength={50}
                     value={slide.ctaText}
                     onChange={(e) => handleUpdateSlide(index, 'ctaText', e.target.value)}
                     placeholder="Explore Collection"
@@ -375,7 +459,7 @@ export default function AdminHeroBannerPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">CTA Destination Link</label>
+                  <label className="font-bold text-slate-700 block mb-1">CTA Destination Link (starts with / or https://)</label>
                   <input
                     type="text"
                     value={slide.ctaLink}

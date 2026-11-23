@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product, Category, ProductStatus, ProductVariant } from '@/lib/types';
+import { compressImageClient } from '@/lib/imageCompressor';
 import {
   Plus,
   Edit2,
@@ -118,7 +119,7 @@ export default function AdminProductsPage() {
     setIsBestseller(false);
     setIsNewArrival(true);
     setSku(`LL-PROD-${Date.now().toString().slice(-4)}`);
-    setImages(['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80']);
+    setImages([]);
     setNewImageUrl('');
     setVariants([
       {
@@ -265,8 +266,19 @@ export default function AdminProductsPage() {
 
         let url = '';
         try {
+          // Compress on client: max 1200px, WebP, ~200KB max, plus thumbnail
+          const compressed = await compressImageClient(file, {
+            maxDimension: 1200,
+            quality: 0.82,
+            generateThumbnail: true,
+          });
+
           const formData = new FormData();
-          formData.append('file', file);
+          formData.append('file', compressed.file);
+          if (compressed.thumbnailFile) {
+            formData.append('thumbnail', compressed.thumbnailFile);
+          }
+
           const res = await fetch('/api/upload', {
             method: 'POST',
             body: formData,
@@ -274,12 +286,10 @@ export default function AdminProductsPage() {
           const data = await res.json();
           if (data.success && data.url) {
             url = data.url;
+          } else if (compressed.previewUrl) {
+            url = compressed.previewUrl;
           }
         } catch {
-          // fallback to client compression
-        }
-
-        if (!url) {
           url = await compressAndProcessImage(file);
         }
 
@@ -340,6 +350,11 @@ export default function AdminProductsPage() {
       alert('Please enter a valid price.');
       return;
     }
+    if (!images || images.length === 0) {
+      alert('Please upload or provide at least one product photo before publishing.');
+      setActiveTab('images');
+      return;
+    }
 
     const finalSlug = slug.trim() ? autoGenerateSlug(slug) : autoGenerateSlug(name);
     const selectedCategory = category || categories[0]?.name || 'Flower Bouquets';
@@ -368,7 +383,7 @@ export default function AdminProductsPage() {
       prepTimeDays: Number(prepTimeDays || 2),
       materials: materials.trim() || '100% Premium Milk Cotton Yarn',
       dimensions: dimensions.trim() || 'Standard Handmade Dimension',
-      images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80'],
+      images: images,
       status: Number(stock) === 0 ? 'SOLD_OUT' : status,
       isFeatured,
       isBestseller,
@@ -598,7 +613,7 @@ export default function AdminProductsPage() {
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-slate-200">
-                        <Image src={prod.images[0] || '/images/loop-and-love-logo.jpg'} alt={prod.name} fill className="object-cover" />
+                        <Image src={prod.images[0] || '/images/photo-coming-soon.svg'} alt={prod.name} fill className="object-cover" />
                       </div>
                       <div>
                         <p className="font-bold text-slate-900 line-clamp-1">{prod.name}</p>
@@ -844,7 +859,7 @@ export default function AdminProductsPage() {
                     <div className="flex items-center gap-3">
                       <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-200 bg-white shrink-0">
                         <Image
-                          src={images[0] || '/images/loop-and-love-logo.jpg'}
+                          src={images[0] || '/images/photo-coming-soon.svg'}
                           alt="Cover"
                           fill
                           className="object-cover"

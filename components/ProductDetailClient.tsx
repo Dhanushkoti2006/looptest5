@@ -37,7 +37,7 @@ export default function ProductDetailClient({
   const [product] = useState<Product>(initialProduct);
   const [relatedProducts] = useState<Product[]>(initialRelatedProducts);
   const [selectedImage, setSelectedImage] = useState<string>(
-    initialProduct.images?.[0] || '/images/loop-and-love-logo.jpg'
+    initialProduct.images?.[0] || '/images/photo-coming-soon.svg'
   );
 
   const initialVariant = initialProduct.variants?.[0] || null;
@@ -161,7 +161,7 @@ export default function ProductDetailClient({
   const galleryImages =
     product.images && product.images.length > 0
       ? product.images
-      : ['/images/loop-and-love-logo.jpg'];
+      : ['/images/photo-coming-soon.svg'];
 
   const defaultHighlights = [
     '100% Hand-stitched with love by skilled women artisans',
@@ -215,6 +215,8 @@ export default function ProductDetailClient({
               alt={product.name}
               fill
               priority
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='%23F7F3FA'/%3E%3C/svg%3E"
               sizes="(max-width: 768px) 100vw, 50vw"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
             />
@@ -285,7 +287,7 @@ export default function ProductDetailClient({
                       : 'border-canvas-border hover:border-brand-400 opacity-80 hover:opacity-100'
                   }`}
                 >
-                  <Image src={img} alt={`Thumbnail ${i + 1}`} fill className="object-cover" />
+                  <Image src={img} alt={`Thumbnail ${i + 1}`} fill sizes="80px" loading="lazy" className="object-cover" />
                 </button>
               ))}
             </div>

@@ -1,8 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import ProductCard from '@/components/ProductCard';
-import HeroSlideshow from '@/components/HeroSlideshow';
+
+const HeroSlideshow = dynamic(() => import('@/components/HeroSlideshow'), {
+  ssr: true,
+  loading: () => (
+    <div className="w-full h-[360px] sm:h-[460px] md:h-[520px] rounded-2xl sm:rounded-3xl bg-brand-50 animate-pulse" />
+  ),
+});
 import { getActiveCategories, getActiveProducts, getHeroSlidesFromDB } from '@/lib/supabase/queries';
 import {
   Sparkles,
@@ -17,26 +24,25 @@ import {
   Wand2,
 } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function HomePage() {
-  const [categories, allProducts, fetchedFeatured, heroData] = await Promise.all([
+  const [categories, allProducts, heroData] = await Promise.all([
     getActiveCategories(),
     getActiveProducts({ limit: 16 }),
-    getActiveProducts({ isFeatured: true, limit: 8 }),
     getHeroSlidesFromDB(),
   ]);
 
-  // If no products were explicitly flagged as featured, showcase latest active products
-  const featuredProducts = fetchedFeatured.length > 0 ? fetchedFeatured : allProducts.slice(0, 8);
-  const trendingProducts = allProducts.length > 0 ? allProducts.slice(0, 8) : [];
+  // Derive featured & trending products from allProducts without duplicate queries
+  const explicitFeatured = allProducts.filter((p) => p.isFeatured);
+  const featuredProducts = explicitFeatured.length > 0 ? explicitFeatured.slice(0, 8) : allProducts.slice(0, 8);
+  const trendingProducts = allProducts.slice(0, 8);
 
   return (
     <div className="space-y-12 sm:space-y-20 pb-16">
       {/* 1. HERO SLIDESHOW */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4">
-        <HeroSlideshow initialSlides={heroData?.slides} />
+        <HeroSlideshow slides={heroData?.slides} />
       </section>
 
       {/* 2. VALUES / TRUST STRIP */}
@@ -112,6 +118,9 @@ export default async function HomePage() {
                     src={cat.imageUrl || '/images/loop-and-love-logo.jpg'}
                     alt={cat.name}
                     fill
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='%23F7F3FA'/%3E%3C/svg%3E"
                     sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 14vw"
                     className="object-cover"
                   />

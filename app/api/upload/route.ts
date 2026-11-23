@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
+import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAdmin();
+    if (!auth.authorized) {
+      return auth.errorResponse!;
+    }
+
     const contentType = req.headers.get('content-type') || '';
 
     if (contentType.includes('multipart/form-data')) {
@@ -30,6 +36,25 @@ export async function POST(req: Request) {
             upsert: true,
           });
 
+        let thumbnailUrl: string | undefined;
+        const thumbnailFile = formData.get('thumbnail') as File | null;
+        if (thumbnailFile) {
+          try {
+            const thumbBytes = await thumbnailFile.arrayBuffer();
+            const thumbBuffer = Buffer.from(thumbBytes);
+            const thumbName = `thumb-${filename}`;
+            const { data: thumbData } = await adminSupabase.storage
+              .from('product-images')
+              .upload(thumbName, thumbBuffer, {
+                contentType: thumbnailFile.type || 'image/webp',
+                upsert: true,
+              });
+            if (thumbData) {
+              thumbnailUrl = adminSupabase.storage.from('product-images').getPublicUrl(thumbName).data.publicUrl;
+            }
+          } catch (_) {}
+        }
+
         if (!uploadError && uploadData) {
           const { data: publicUrlData } = adminSupabase.storage
             .from('product-images')
@@ -38,6 +63,7 @@ export async function POST(req: Request) {
           return NextResponse.json({
             success: true,
             url: publicUrlData.publicUrl,
+            thumbnailUrl: thumbnailUrl || publicUrlData.publicUrl,
           });
         }
 
@@ -46,12 +72,12 @@ export async function POST(req: Request) {
         console.warn('Supabase storage exception, falling back:', storageErr);
       }
 
-      // 2. Fallback to data URL
+      // 2. Safe fallback: never emit uncompressed multi-megabyte strings
       const base64Data = `data:${mimeType};base64,${buffer.toString('base64')}`;
       return NextResponse.json({
         success: true,
         url: base64Data,
-        dataUrl: base64Data,
+        thumbnailUrl: base64Data,
       });
     }
 

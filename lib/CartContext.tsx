@@ -119,7 +119,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             .filter((item: any) => item.products)
             .map((item: any) => {
               const p = item.products;
-              const img = p.product_images?.[0]?.image_url || '/images/loop-and-love-logo.jpg';
+              const img = p.product_images?.[0]?.image_url || '/images/photo-coming-soon.svg';
               const price = Number(p.discount_price || p.price);
               return {
                 id: item.id,
@@ -201,7 +201,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           productId: product.id,
           productName: product.name,
           productSlug: product.slug,
-          image: product.images[0] || '/images/loop-and-love-logo.jpg',
+          image: product.images[0] || '/images/photo-coming-soon.svg',
           color: selectedColor,
           size: selectedSize,
           price: itemPrice,
