@@ -100,7 +100,7 @@ export default function Navbar() {
       {/* 2. MAIN HEADER - Fixed height: 56px mobile, 64px tablet, 68px desktop */}
       <header className="sticky top-0 z-50 bg-white border-b border-canvas-border shadow-xs">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 lg:h-[68px] flex items-center justify-between gap-2 sm:gap-4">
-          
+
           {/* LEFT: Mobile Menu Button + Brand Logo & Title */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Hamburger button (below 1024px) */}
@@ -191,7 +191,7 @@ export default function Navbar() {
 
           {/* RIGHT: Search, Wishlist, Cart, Account */}
           <div className="flex items-center gap-1 sm:gap-2">
-            
+
             {/* Inline search bar (1280px and up) */}
             <form onSubmit={handleSearchSubmit} className="hidden xl:flex relative items-center">
               <input
@@ -411,7 +411,7 @@ export default function Navbar() {
 
           {/* Drawer container with safe-area insets */}
           <div className="relative w-4/5 max-w-xs sm:max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] animate-in slide-in-from-left duration-200">
-            
+
             {/* Drawer Header */}
             <div className="p-4 border-b border-canvas-border flex items-center justify-between">
               <Link
@@ -444,7 +444,7 @@ export default function Navbar() {
 
             {/* Drawer Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              
+
               {/* Mobile Search */}
               <form onSubmit={handleSearchSubmit} className="relative">
                 <input

@@ -471,11 +471,10 @@ export default function AccountOrdersPage() {
 
               {cancelFeedback && (
                 <div
-                  className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
-                    cancelFeedback.isError
+                  className={`p-3 rounded-xl text-xs flex items-center gap-2 ${cancelFeedback.isError
                       ? 'bg-rose-50 border border-rose-200 text-rose-800'
                       : 'bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium'
-                  }`}
+                    }`}
                 >
                   {cancelFeedback.isError ? (
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
