@@ -756,5 +756,46 @@ CREATE POLICY "Admins can delete hero images"
     ON storage.objects FOR DELETE
     USING (bucket_id = 'hero-images' AND public.is_admin());
 
+-- ====================================================================
+-- 18. TOP ANNOUNCEMENT BAR (Single Source of Truth)
+-- ====================================================================
+CREATE TABLE IF NOT EXISTS public.site_announcements (
+    id TEXT PRIMARY KEY DEFAULT 'default',
+    text TEXT NOT NULL DEFAULT '🌸 Free Handcrafted Gift Box on orders above ₹999 • All India Express Delivery',
+    secondary_text TEXT DEFAULT '✨ 100% Milk Cotton',
+    link_text TEXT DEFAULT 'Request Custom Crochet',
+    link_url TEXT DEFAULT '/custom-orders',
+    bg_color TEXT NOT NULL DEFAULT '#2E1D36',
+    text_color TEXT NOT NULL DEFAULT '#FBF5E5',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Trigger for updated_at
+DROP TRIGGER IF EXISTS set_site_announcements_updated_at ON public.site_announcements;
+CREATE TRIGGER set_site_announcements_updated_at
+    BEFORE UPDATE ON public.site_announcements
+    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+-- Enable RLS
+ALTER TABLE public.site_announcements ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can view active announcements" ON public.site_announcements;
+CREATE POLICY "Public can view active announcements"
+    ON public.site_announcements FOR SELECT
+    USING (true);
+
+DROP POLICY IF EXISTS "Admins have full access to announcements" ON public.site_announcements;
+CREATE POLICY "Admins have full access to announcements"
+    ON public.site_announcements FOR ALL
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
+
+INSERT INTO public.site_announcements (id, text, secondary_text, link_text, link_url, bg_color, text_color, is_active)
+VALUES ('default', '🌸 Free Handcrafted Gift Box on orders above ₹999 • All India Express Delivery', '✨ 100% Milk Cotton', 'Request Custom Crochet', '/custom-orders', '#2E1D36', '#FBF5E5', true)
+ON CONFLICT (id) DO NOTHING;
+
+
 
 

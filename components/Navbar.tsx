@@ -29,6 +29,28 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
+  // Dynamic Announcement Bar
+  const [announcement, setAnnouncement] = useState({
+    text: '🌸 Free Handcrafted Gift Box on orders above ₹999 • All India Express Delivery',
+    secondary_text: '✨ 100% Milk Cotton',
+    link_text: 'Request Custom Crochet',
+    link_url: '/custom-orders',
+    bg_color: '#2E1D36',
+    text_color: '#FBF5E5',
+    is_active: true,
+  });
+
+  useEffect(() => {
+    fetch('/api/announcement', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.announcement) {
+          setAnnouncement(data.announcement);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -76,26 +98,33 @@ export default function Navbar() {
   return (
     <>
       {/* 1. TOP ANNOUNCEMENT BAR */}
-      <div className="bg-brand-900 text-cream-200 text-[11px] sm:text-xs font-medium py-1.5 px-3 sm:px-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 sm:gap-2 truncate">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-cream-400 shrink-0 animate-pulse" />
-            <span className="truncate">
-              🌸 <strong>Free Handcrafted Gift Box</strong> on orders above ₹999 • All India Express Delivery
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-3 text-[11px] text-cream-300 shrink-0">
-            <span>✨ 100% Milk Cotton</span>
-            <span>•</span>
-            <Link
-              href="/custom-orders"
-              className="hover:text-white underline underline-offset-2 whitespace-nowrap"
-            >
-              Request Custom Crochet
-            </Link>
+      {announcement.is_active && (
+        <div
+          style={{ backgroundColor: announcement.bg_color, color: announcement.text_color }}
+          className="text-[11px] sm:text-xs font-medium py-1.5 px-3 sm:px-4 transition-colors"
+        >
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-cream-400 shrink-0 animate-pulse" />
+              <span className="truncate">
+                {announcement.text}
+              </span>
+            </div>
+            <div className="hidden md:flex items-center gap-3 text-[11px] opacity-90 shrink-0">
+              {announcement.secondary_text && <span>{announcement.secondary_text}</span>}
+              {announcement.secondary_text && announcement.link_text && <span>•</span>}
+              {announcement.link_text && (
+                <Link
+                  href={announcement.link_url || '/custom-orders'}
+                  className="hover:opacity-100 underline underline-offset-2 whitespace-nowrap"
+                >
+                  {announcement.link_text}
+                </Link>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 2. MAIN HEADER - Fixed height: 56px mobile, 64px tablet, 68px desktop */}
       <header className="sticky top-0 z-50 bg-white border-b border-canvas-border shadow-xs">
