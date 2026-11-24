@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
 import { Address } from '@/lib/types';
+import { TAMIL_NADU_DISTRICTS } from '@/lib/delivery/tamilNaduPincodes';
 import {
   CreditCard,
   Truck,
@@ -67,9 +68,10 @@ export default function CheckoutPage() {
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [street, setStreet] = useState('');
+  const [area, setArea] = useState('');
   const [landmark, setLandmark] = useState('');
   const [city, setCity] = useState('');
-  const [state, setState] = useState('');
+  const [state, setState] = useState('Tamil Nadu');
   const [pincode, setPincode] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
 
@@ -149,9 +151,10 @@ export default function CheckoutPage() {
     setCustomerName(addr.full_name || user?.name || '');
     setCustomerPhone(addr.phone || user?.phone || '');
     setStreet(addr.line1 || '');
-    setLandmark(addr.line2 || '');
+    setArea(addr.line2 || addr.city || '');
+    setLandmark('');
     setCity(addr.city || '');
-    setState(addr.state || '');
+    setState('Tamil Nadu');
     setPincode(addr.pincode || '');
   };
 
@@ -165,9 +168,10 @@ export default function CheckoutPage() {
     setCustomerName(user?.name || '');
     setCustomerPhone(user?.phone || '');
     setStreet('');
+    setArea('');
     setLandmark('');
     setCity('');
-    setState('');
+    setState('Tamil Nadu');
     setPincode('');
   };
 
@@ -207,11 +211,26 @@ export default function CheckoutPage() {
       if (data.success && data.served && data.zone) {
         setDeliveryZone(data.zone);
         setIsUnservedPincode(false);
-        setZoneMessage(`✓ Delivers to ${data.zone.zoneName} (${data.zone.deliveryMethod === 'local_own' ? 'Local Hand Delivery' : 'Courier Delivery'} • Est. ${data.zone.estimatedDaysMin}-${data.zone.estimatedDaysMax} days)`);
+        const methodDesc =
+          data.zone.deliveryMethod === 'local_own'
+            ? 'Local Hand Delivery (1–2 days)'
+            : 'Express Courier Delivery (2–4 days)';
+        setZoneMessage(
+          `✓ Delivers to ${data.zone.district || data.zone.zoneName}, Tamil Nadu • ${methodDesc}`
+        );
+        if (data.district) {
+          setCity(data.district);
+        } else if (data.zone.district) {
+          setCity(data.zone.district);
+        }
+        if (data.city && !area) {
+          setArea(data.city);
+        }
+        setState('Tamil Nadu');
       } else {
         setDeliveryZone(null);
         setIsUnservedPincode(true);
-        setZoneMessage(data.message || `Sorry, we do not currently deliver to PIN code ${code}.`);
+        setZoneMessage(data.message || 'Sorry, we currently deliver only within Tamil Nadu.');
       }
     } catch {
       setDeliveryZone(null);
@@ -248,6 +267,22 @@ export default function CheckoutPage() {
     }
   };
 
+  // Real-time Field Validations
+  const cleanPhone = customerPhone.trim().replace(/\D/g, '');
+  const isNameValid = customerName.trim().length >= 3;
+  const isPhoneValid = /^[6-9]\d{9}$/.test(cleanPhone);
+  const isStreetValid = street.trim().length >= 5;
+  const isAreaValid = area.trim().length >= 2;
+  const isCityValid = city.trim().length >= 2;
+  const isPincodeValid = !isUnservedPincode && deliveryZone !== null && pincode.trim().length === 6;
+  const isFormValid =
+    isNameValid &&
+    isPhoneValid &&
+    isStreetValid &&
+    isAreaValid &&
+    isCityValid &&
+    isPincodeValid;
+
   // Dynamic fee calculation based on verified delivery zone
   let finalShippingCharge = 99;
   if (deliveryZone) {
@@ -279,13 +314,28 @@ export default function CheckoutPage() {
     e.preventDefault();
     setErrorMessage('');
 
-    if (!customerName.trim() || !customerPhone.trim() || !street.trim() || !city.trim() || !state.trim() || !pincode.trim()) {
-      setErrorMessage('Please fill in or select a complete delivery address to proceed.');
+    if (!isNameValid) {
+      setErrorMessage('Please enter a valid Full Name (minimum 3 characters).');
       return;
     }
-
-    if (isUnservedPincode || !deliveryZone) {
-      setErrorMessage('Please enter a serviceable 6-digit Indian PIN code to proceed with checkout.');
+    if (!isPhoneValid) {
+      setErrorMessage('Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.');
+      return;
+    }
+    if (!isPincodeValid) {
+      setErrorMessage(zoneMessage || 'Sorry, we currently deliver only within Tamil Nadu.');
+      return;
+    }
+    if (!isStreetValid) {
+      setErrorMessage('Please enter Flat / House No. / Building / Street (minimum 5 characters).');
+      return;
+    }
+    if (!isAreaValid) {
+      setErrorMessage('Please enter Area / Locality / Village.');
+      return;
+    }
+    if (!isCityValid) {
+      setErrorMessage('Please select or enter your City / District in Tamil Nadu.');
       return;
     }
 
@@ -300,11 +350,11 @@ export default function CheckoutPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               fullName: customerName,
-              phone: customerPhone,
+              phone: cleanPhone,
               line1: street,
-              line2: landmark,
+              line2: area + (landmark ? `, ${landmark}` : ''),
               city,
-              state,
+              state: 'Tamil Nadu',
               pincode: pincode.trim(),
               isDefault: savedAddresses.length === 0,
             }),
@@ -318,11 +368,11 @@ export default function CheckoutPage() {
         id: `addr-${Date.now()}`,
         userId: user?.id || 'guest',
         name: customerName,
-        phone: customerPhone,
+        phone: cleanPhone,
         street,
-        landmark,
+        landmark: area + (landmark ? `, ${landmark}` : ''),
         city,
-        state,
+        state: 'Tamil Nadu',
         pincode: pincode.trim(),
         isDefault: true,
         createdAt: new Date().toISOString(),
@@ -336,12 +386,15 @@ export default function CheckoutPage() {
           userId: user?.id,
           customerName,
           customerEmail,
-          customerPhone,
+          customerPhone: cleanPhone,
           items: cart,
           shippingAddress: {
             ...shippingAddress,
             line1: street,
-            line2: landmark,
+            line2: area + (landmark ? `, ${landmark}` : ''),
+            city,
+            state: 'Tamil Nadu',
+            pincode: pincode.trim(),
           },
           customerNote: specialInstructions,
           paymentMethod: `Razorpay (${paymentMethod})`,
@@ -506,18 +559,31 @@ export default function CheckoutPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">Full Name *</label>
+                <label className="text-xs font-bold text-gray-700 block mb-1">
+                  Full Name * <span className="font-normal text-gray-400">(min. 3 characters)</span>
+                </label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Priya Sharma"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
+                  className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none ${
+                    customerName.length > 0 && !isNameValid
+                      ? 'border-amber-400 focus:border-amber-500'
+                      : customerName.length >= 3
+                      ? 'border-emerald-500/80 focus:border-emerald-600'
+                      : 'border-canvas-border focus:border-brand-500'
+                  }`}
                 />
+                {customerName.length > 0 && !isNameValid && (
+                  <p className="text-[10px] text-amber-600 mt-1 font-medium">Full name must be at least 3 characters.</p>
+                )}
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">Email Address (for order updates) *</label>
+                <label className="text-xs font-bold text-gray-700 block mb-1">
+                  Email Address * <span className="font-normal text-gray-400">(for order receipts)</span>
+                </label>
                 <input
                   type="email"
                   required
@@ -528,15 +594,34 @@ export default function CheckoutPage() {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs font-bold text-gray-700 block mb-1">Mobile Number (for delivery coordination) *</label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="e.g. 9876543210"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
-                />
+                <label className="text-xs font-bold text-gray-700 block mb-1">
+                  Mobile Number * <span className="font-normal text-gray-400">(10-digit Indian mobile starting with 6–9)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-xs text-gray-500 font-bold">
+                    +91
+                  </span>
+                  <input
+                    type="tel"
+                    required
+                    maxLength={10}
+                    placeholder="9876543210"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, ''))}
+                    className={`w-full text-xs p-3 pl-12 bg-canvas-subtle border rounded-xl focus:outline-none font-mono ${
+                      cleanPhone.length > 0 && !isPhoneValid
+                        ? 'border-amber-400 focus:border-amber-500'
+                        : cleanPhone.length === 10 && isPhoneValid
+                        ? 'border-emerald-500/80 focus:border-emerald-600'
+                        : 'border-canvas-border focus:border-brand-500'
+                    }`}
+                  />
+                </div>
+                {cleanPhone.length > 0 && !isPhoneValid && (
+                  <p className="text-[10px] text-amber-600 mt-1 font-medium">
+                    Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -630,32 +715,41 @@ export default function CheckoutPage() {
             {(selectedAddressId === 'new' || savedAddresses.length === 0) && (
               <div className="space-y-4 pt-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-700">Enter Shipping Address:</span>
+                  <span className="text-xs font-bold text-gray-700">Enter Shipping Address (Tamil Nadu Only):</span>
                   <span className="text-xs font-semibold text-brand-600 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5" /> PIN Verified
                   </span>
                 </div>
 
+                {/* 1. PINCODE (REAL-TIME TAMIL NADU VALIDATION) */}
                 <div>
-                  <label className="text-xs font-bold text-gray-700 block mb-1">PIN Code (6 digits) *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-gray-700">
+                      PIN Code (6 digits) *
+                    </label>
+                    <span className="text-[10px] text-brand-700 font-medium">
+                      Tamil Nadu Postal Circles (60–64)
+                    </span>
+                  </div>
                   <div className="relative">
                     <input
                       type="text"
                       required
                       maxLength={6}
-                      placeholder="e.g. 560001"
+                      placeholder="e.g. 600001, 641001"
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                      className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none font-mono ${isUnservedPincode
-                          ? 'border-red-400 focus:border-red-500'
+                      className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none font-mono ${
+                        isUnservedPincode
+                          ? 'border-red-400 focus:border-red-500 bg-rose-50/20'
                           : deliveryZone
-                            ? 'border-emerald-500 focus:border-emerald-600'
-                            : 'border-canvas-border focus:border-brand-500'
-                        }`}
+                          ? 'border-emerald-500 focus:border-emerald-600 bg-emerald-50/20'
+                          : 'border-canvas-border focus:border-brand-500'
+                      }`}
                     />
                     {zoneChecking && (
                       <span className="absolute right-3 top-3 text-xs text-gray-400 flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5 animate-spin text-brand-500" /> Checking...
+                        <Sparkles className="w-3.5 h-3.5 animate-spin text-brand-500" /> Verifying PIN...
                       </span>
                     )}
                   </div>
@@ -663,10 +757,11 @@ export default function CheckoutPage() {
                   {/* ZONE STATUS FEEDBACK */}
                   {zoneMessage && (
                     <div
-                      className={`mt-2 p-3 rounded-xl text-xs flex items-center gap-2 ${isUnservedPincode
+                      className={`mt-2 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in ${
+                        isUnservedPincode
                           ? 'bg-rose-50 border border-rose-200 text-rose-800'
                           : 'bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium'
-                        }`}
+                      }`}
                     >
                       {isUnservedPincode ? (
                         <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
@@ -710,52 +805,117 @@ export default function CheckoutPage() {
                   )}
                 </div>
 
+                {/* 2. FLAT / HOUSE NO. / BUILDING / STREET */}
                 <div>
                   <label className="text-xs font-bold text-gray-700 block mb-1">
-                    House / Flat No., Street, Area (Line 1) *
+                    Flat / House No. / Building / Street * <span className="font-normal text-gray-400">(min. 5 characters)</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Flat 302, Sunflower Heights, 4th Main"
+                    placeholder="e.g. Door No. 12, 3rd Floor, Lotus Apartments, 1st Cross Street"
                     value={street}
                     onChange={(e) => setStreet(e.target.value)}
-                    className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
+                    className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none ${
+                      street.length > 0 && !isStreetValid
+                        ? 'border-amber-400 focus:border-amber-500'
+                        : isStreetValid
+                        ? 'border-emerald-500/80 focus:border-emerald-600'
+                        : 'border-canvas-border focus:border-brand-500'
+                    }`}
                   />
+                  {street.length > 0 && !isStreetValid && (
+                    <p className="text-[10px] text-amber-600 mt-1 font-medium">Please enter at least 5 characters.</p>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* 3. AREA / LOCALITY / VILLAGE & LANDMARK */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-gray-700 block mb-1">Apartment / Landmark (Line 2)</label>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">
+                      Area / Locality / Village *
+                    </label>
                     <input
                       type="text"
-                      placeholder="e.g. Near Metro Station"
+                      required
+                      placeholder="e.g. T. Nagar / Gandhipuram / Peelamedu"
+                      value={area}
+                      onChange={(e) => setArea(e.target.value)}
+                      className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none ${
+                        area.length > 0 && !isAreaValid
+                          ? 'border-amber-400 focus:border-amber-500'
+                          : isAreaValid
+                          ? 'border-emerald-500/80 focus:border-emerald-600'
+                          : 'border-canvas-border focus:border-brand-500'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">
+                      Landmark (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Near Murugan Temple or Opp. Bus Stand"
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
                       className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
                     />
                   </div>
+                </div>
+
+                {/* 4. CITY / DISTRICT & STATE */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-gray-700 block mb-1">City *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Bengaluru"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
-                    />
+                    <label className="text-xs font-bold text-gray-700 block mb-1">
+                      City / Town / District *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        list="tamil-nadu-districts-list"
+                        placeholder="Select or enter district"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className={`w-full text-xs p-3 bg-canvas-subtle border rounded-xl focus:outline-none ${
+                          city.length > 0 && !isCityValid
+                            ? 'border-amber-400 focus:border-amber-500'
+                            : isCityValid
+                            ? 'border-emerald-500/80 focus:border-emerald-600'
+                            : 'border-canvas-border focus:border-brand-500'
+                        }`}
+                      />
+                      <datalist id="tamil-nadu-districts-list">
+                        {TAMIL_NADU_DISTRICTS.map((d) => (
+                          <option key={d} value={d} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      Auto-filled from PIN or choose from 38 Tamil Nadu districts
+                    </p>
                   </div>
+
                   <div>
-                    <label className="text-xs font-bold text-gray-700 block mb-1">State *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Karnataka"
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      className="w-full text-xs p-3 bg-canvas-subtle border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500"
-                    />
+                    <label className="text-xs font-bold text-gray-700 block mb-1">
+                      State (Service Locked) *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        readOnly
+                        value={state || 'Tamil Nadu'}
+                        className="w-full text-xs p-3 bg-gray-100 border border-gray-300 text-gray-700 font-medium rounded-xl cursor-not-allowed select-none"
+                      />
+                      <span className="absolute right-3 top-3 text-[10px] bg-brand-100 text-brand-800 px-2 py-0.5 rounded font-bold">
+                        Tamil Nadu Only
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-emerald-700 mt-1 font-medium">
+                      ✓ Service exclusive to Tamil Nadu
+                    </p>
                   </div>
                 </div>
 
@@ -968,20 +1128,31 @@ export default function CheckoutPage() {
 
             <button
               type="submit"
-              disabled={isProcessing || isUnservedPincode || !deliveryZone}
-              className={`w-full py-3.5 px-4 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-soft transition-all flex items-center justify-center gap-2 ${isProcessing || isUnservedPincode || !deliveryZone
+              disabled={isProcessing || !isFormValid}
+              className={`w-full py-3.5 px-4 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-soft transition-all flex items-center justify-center gap-2 ${
+                isProcessing || !isFormValid
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-brand-600 hover:bg-brand-700 hover:shadow-hover'
-                }`}
+              }`}
             >
               {isProcessing ? (
                 <>
                   <Sparkles className="w-4 h-4 animate-spin" /> Processing Payment...
                 </>
               ) : isUnservedPincode ? (
-                'PIN Code Unserviceable'
+                'Delivery Not Available (TN Only)'
               ) : !deliveryZone ? (
-                'Enter Valid 6-Digit PIN'
+                'Enter Valid Tamil Nadu PIN'
+              ) : !isNameValid ? (
+                'Enter Full Name (Min 3 chars)'
+              ) : !isPhoneValid ? (
+                'Enter Valid 10-Digit Mobile'
+              ) : !isStreetValid ? (
+                'Enter Flat / Building / Street (Min 5)'
+              ) : !isAreaValid ? (
+                'Enter Area / Locality'
+              ) : !isCityValid ? (
+                'Select City / District'
               ) : (
                 <>
                   <Lock className="w-3.5 h-3.5" /> Pay ₹{calculatedTotal.toLocaleString('en-IN')} & Place Order

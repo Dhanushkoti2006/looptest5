@@ -19,6 +19,9 @@ import {
   Share2,
   CheckCircle2,
   Gift,
+  Truck,
+  MapPin,
+  AlertCircle,
 } from 'lucide-react';
 
 interface ProductDetailClientProps {
@@ -63,6 +66,45 @@ export default function ProductDetailClient({
   // Toasts
   const [addedToast, setAddedToast] = useState(false);
   const [shareToast, setShareToast] = useState(false);
+
+  // Delivery check state (Tamil Nadu)
+  const [deliveryPin, setDeliveryPin] = useState('');
+  const [checkingPin, setCheckingPin] = useState(false);
+  const [pinResult, setPinResult] = useState<{
+    served: boolean;
+    message: string;
+  } | null>(null);
+
+  const handleCheckPincode = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const clean = deliveryPin.trim().replace(/\D/g, '');
+    if (clean.length !== 6) return;
+
+    setCheckingPin(true);
+    setPinResult(null);
+    try {
+      const res = await fetch(`/api/delivery-zone/check?pincode=${clean}`);
+      const data = await res.json();
+      if (data.success && data.served && data.zone) {
+        setPinResult({
+          served: true,
+          message: `Delivery available to ${data.zone.district || data.zone.zoneName} (${data.zone.deliveryMethod === 'local_own' ? 'Local Hand Delivery • 1–2 days' : 'Express Courier Delivery • 2–4 days'})`,
+        });
+      } else {
+        setPinResult({
+          served: false,
+          message: data.message || 'Sorry, we currently deliver only within Tamil Nadu.',
+        });
+      }
+    } catch {
+      setPinResult({
+        served: false,
+        message: 'Could not verify PIN code. Please try again.',
+      });
+    } finally {
+      setCheckingPin(false);
+    }
+  };
 
   // Fetch approved reviews from Supabase
   useEffect(() => {
@@ -512,6 +554,64 @@ export default function ProductDetailClient({
               )}
             </div>
           )}
+
+          {/* TAMIL NADU DELIVERY PINCODE CHECKER */}
+          <div className="bg-canvas-subtle/70 border border-canvas-border rounded-2xl p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-brand-900">
+                <Truck className="w-4 h-4 text-brand-600" />
+                <span>Delivery Availability (Tamil Nadu)</span>
+              </div>
+              <span className="text-[10px] bg-brand-100 text-brand-800 px-2 py-0.5 rounded-full font-bold">
+                TN Exclusive
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-500">
+              Enter your 6-digit PIN code to check shipping & delivery across Tamil Nadu.
+            </p>
+            <form onSubmit={handleCheckPincode} className="flex gap-2 pt-0.5">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={deliveryPin}
+                  onChange={(e) => {
+                    setDeliveryPin(e.target.value.replace(/\D/g, ''));
+                    if (pinResult) setPinResult(null);
+                  }}
+                  placeholder="Enter 6-digit PIN code (e.g. 600001)"
+                  className="w-full px-3.5 py-2 text-xs bg-white border border-canvas-border rounded-xl focus:outline-none focus:border-brand-500 font-mono"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={checkingPin || deliveryPin.length !== 6}
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+                  deliveryPin.length === 6 && !checkingPin
+                    ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-xs'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {checkingPin ? 'Checking...' : 'Check'}
+              </button>
+            </form>
+            {pinResult && (
+              <div
+                className={`p-2.5 rounded-xl text-xs flex items-center gap-2 animate-in fade-in ${
+                  pinResult.served
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200 font-medium'
+                }`}
+              >
+                {pinResult.served ? (
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                )}
+                <span>{pinResult.message}</span>
+              </div>
+            )}
+          </div>
 
           {/* PRODUCT SPECIFICATIONS GRID */}
           <div className="grid grid-cols-2 gap-3 pt-4 border-t border-canvas-border text-xs">

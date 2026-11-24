@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth/requireAdmin';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { notifyAdminsNewOrder } from '@/lib/email/notifications';
+import { checkTamilNaduPincode } from '@/lib/delivery/tamilNaduPincodes';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -194,23 +195,36 @@ export async function POST(req: Request) {
     const cleanPincode = String(shippingAddress.pincode).trim().replace(/\D/g, '');
     const adminSupabase = createAdminClient();
 
-    // 1. PINCODE & DELIVERY ZONE VALIDATION (Server-side)
-    const { data: zone, error: zoneError } = await (adminSupabase.from('delivery_zones') as any)
-      .select('*')
-      .eq('pincode', cleanPincode)
-      .eq('is_active', true)
-      .maybeSingle();
-
-    if (zoneError || !zone) {
+    // 1. PINCODE & DELIVERY ZONE VALIDATION (Tamil Nadu Exclusive)
+    const tnCheck = checkTamilNaduPincode(cleanPincode, shippingAddress.city);
+    if (!tnCheck.served) {
       return NextResponse.json(
         {
           success: false,
           unservedPincode: true,
-          message: `Delivery is currently not available for PIN code ${cleanPincode}. We are expanding soon!`,
+          message: tnCheck.message || 'Sorry, we currently deliver only within Tamil Nadu.',
         },
         { status: 400 }
       );
     }
+
+    // Check if an explicit override exists in delivery_zones
+    let activeZone = tnCheck.zone!;
+    try {
+      const { data: dbZone } = await (adminSupabase.from('delivery_zones') as any)
+        .select('*')
+        .eq('pincode', cleanPincode)
+        .eq('is_active', true)
+        .maybeSingle();
+      if (dbZone) {
+        activeZone = {
+          ...activeZone,
+          deliveryFee: Number(dbZone.delivery_fee),
+          freeAbove: dbZone.free_above ? Number(dbZone.free_above) : 999,
+          deliveryMethod: dbZone.delivery_method,
+        };
+      }
+    } catch (_) {}
 
     // 2. SERVER-SIDE PRICE & INVENTORY RECALCULATION (Never trust client prices)
     let calculatedSubtotal = 0;
@@ -269,8 +283,8 @@ export async function POST(req: Request) {
     }
 
     // 3. SERVER-SIDE DELIVERY FEE CALCULATION
-    let calculatedDeliveryFee = Number(zone.delivery_fee) || 0;
-    if (zone.free_above && calculatedSubtotal >= Number(zone.free_above)) {
+    let calculatedDeliveryFee = Number(activeZone.deliveryFee) || 0;
+    if (activeZone.freeAbove && calculatedSubtotal >= Number(activeZone.freeAbove)) {
       calculatedDeliveryFee = 0;
     }
 
@@ -293,7 +307,7 @@ export async function POST(req: Request) {
         subtotal: calculatedSubtotal,
         delivery_fee: calculatedDeliveryFee,
         total: calculatedTotal,
-        delivery_method: zone.delivery_method, // 'local_own' | 'courier_manual'
+        delivery_method: activeZone.deliveryMethod, // 'local_own' | 'courier_manual'
         customer_email: customerEmail || shippingAddress.email || '',
         shipping_full_name: customerName || shippingAddress.name,
         shipping_phone: customerPhone || shippingAddress.phone,
@@ -301,8 +315,8 @@ export async function POST(req: Request) {
         shipping_apartment: shippingAddress.apartment || shippingAddress.landmark || shippingAddress.line2 || '',
         shipping_line1: shippingAddress.line1 || shippingAddress.street || '',
         shipping_line2: shippingAddress.line2 || shippingAddress.apartment || shippingAddress.landmark || '',
-        shipping_city: shippingAddress.city,
-        shipping_state: shippingAddress.state,
+        shipping_city: shippingAddress.city || activeZone.district || 'Tamil Nadu',
+        shipping_state: 'Tamil Nadu',
         shipping_pincode: cleanPincode,
         customer_note: customerNote || '',
       })
@@ -330,7 +344,7 @@ export async function POST(req: Request) {
     await (adminSupabase.from('order_status_history') as any).insert({
       order_id: newOrder.id,
       status: 'paid',
-      notes: `Order created and confirmed. Delivery method: ${zone.delivery_method === 'local_own' ? 'Local Hand Delivery' : 'Courier'}`,
+      notes: `Order created and confirmed. Delivery method: ${activeZone.deliveryMethod === 'local_own' ? 'Local Hand Delivery' : 'Courier'}`,
       changed_by: userId || null,
     });
 
