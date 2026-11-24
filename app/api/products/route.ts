@@ -24,13 +24,20 @@ export async function GET(req: Request) {
     const maxPrice = searchParams.get('maxPrice');
     const status = searchParams.get('status');
     const featured = searchParams.get('featured');
+    const includeAll = searchParams.get('all') === 'true' || status === 'all';
 
-    const supabase = await createClient();
+    let supabase: any;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = await createClient();
+    }
 
-    // 1. Fetch products without slow PostgREST nested joins for maximum speed (<50ms)
-    let query = (supabase.from('products') as any)
-      .select('*')
-      .eq('is_active', true);
+    // 1. Fetch products with optional inactive/draft inclusion for admin
+    let query = (supabase.from('products') as any).select('*');
+    if (!includeAll) {
+      query = query.eq('is_active', true);
+    }
 
     if (featured === 'true') {
       query = query.eq('is_featured', true);
@@ -53,7 +60,10 @@ export async function GET(req: Request) {
       const imagesByProduct: Record<string, string[]> = {};
       for (const img of (imagesRes.data || [])) {
         if (!imagesByProduct[img.product_id]) imagesByProduct[img.product_id] = [];
-        const url = img.url || img.image_url;
+        let url = img.url || img.image_url;
+        if (url && url.startsWith('data:') && url.length > 50000) {
+          url = '/images/photo-coming-soon.svg';
+        }
         if (url) imagesByProduct[img.product_id].push(url);
       }
 

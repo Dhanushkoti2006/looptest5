@@ -15,6 +15,7 @@ import {
   Calendar,
   ChevronRight,
   Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function AdminOverviewPage() {
@@ -24,7 +25,7 @@ export default function AdminOverviewPage() {
 
   const fetchMetrics = (p: string) => {
     setLoading(true);
-    fetch(`/api/analytics?period=${p}`)
+    fetch(`/api/analytics?period=${p}`, { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         if (data.metrics) setMetrics(data.metrics);
@@ -35,6 +36,16 @@ export default function AdminOverviewPage() {
 
   useEffect(() => {
     fetchMetrics(period);
+    // Auto-refresh analytics every 20 seconds for live store overview
+    const interval = setInterval(() => {
+      fetch(`/api/analytics?period=${period}`, { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.metrics) setMetrics(data.metrics);
+        })
+        .catch(() => {});
+    }, 20000);
+    return () => clearInterval(interval);
   }, [period]);
 
   return (
@@ -50,8 +61,18 @@ export default function AdminOverviewPage() {
           </p>
         </div>
 
-        {/* Date Filter */}
-        <div className="flex items-center gap-1 bg-white p-1 rounded-2xl border border-slate-200 shadow-2xs text-xs font-semibold">
+        {/* Date Filter & Refresh */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fetchMetrics(period)}
+            disabled={loading}
+            className="p-2 bg-white rounded-2xl border border-slate-200 text-slate-600 hover:text-purple-700 hover:border-purple-300 shadow-2xs transition-all disabled:opacity-50"
+            title="Refresh Live Data"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-purple-700' : ''}`} />
+          </button>
+
+          <div className="flex items-center gap-1 bg-white p-1 rounded-2xl border border-slate-200 shadow-2xs text-xs font-semibold">
           <button
             onClick={() => setPeriod('today')}
             className={`px-3 py-1.5 rounded-xl transition-all ${
@@ -86,6 +107,7 @@ export default function AdminOverviewPage() {
           </button>
         </div>
       </div>
+    </div>
 
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

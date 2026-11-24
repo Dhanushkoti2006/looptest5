@@ -77,8 +77,8 @@ export default function AdminProductsPage() {
     setLoading(true);
 
     Promise.all([
-      fetch('/api/products', { cache: 'no-store' }).then((r) => r.json()),
-      fetch('/api/categories', { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/products?all=true', { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/categories?all=true', { cache: 'no-store' }).then((r) => r.json()),
     ])
       .then(([prodData, catData]) => {
         if (prodData.products && Array.isArray(prodData.products)) {

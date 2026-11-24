@@ -62,6 +62,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           placeholder="blur"
           blurDataURL="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100%25' height='100%25' fill='%23F7F3FA'/%3E%3C/svg%3E"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          onError={() => setActiveImage('/images/photo-coming-soon.svg')}
           className={`object-cover object-center group-hover:scale-105 transition-transform duration-500 ${
             isSoldOut ? 'grayscale-30 opacity-80' : ''
           }`}

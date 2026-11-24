@@ -14,6 +14,14 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'okbgrlzknzautiotbcrm.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
+      {
+        protocol: 'https',
         hostname: '**.supabase.co',
       },
       {

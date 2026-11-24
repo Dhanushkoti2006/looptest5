@@ -324,12 +324,20 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION public.prevent_role_escalation()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.role <> OLD.role AND NOT public.is_admin() THEN
+    -- Allow direct database superusers (postgres / SQL Editor), service_role, and authenticated admins
+    IF current_user IN ('postgres', 'supabase_admin') 
+       OR auth.uid() IS NULL 
+       OR (auth.jwt() ->> 'role') = 'service_role' 
+       OR public.is_admin() THEN
+        RETURN NEW;
+    END IF;
+
+    IF NEW.role <> OLD.role THEN
         RAISE EXCEPTION 'Unauthorized: Regular users cannot modify their account role.';
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS check_role_escalation ON public.profiles;
 CREATE TRIGGER check_role_escalation
@@ -347,6 +355,12 @@ CREATE POLICY "Users can update own profile"
     ON public.profiles FOR UPDATE
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
+CREATE POLICY "Admins can update all profiles"
+    ON public.profiles FOR UPDATE
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 -- CATEGORIES RLS
 DROP POLICY IF EXISTS "Public can read active categories" ON public.categories;
@@ -504,12 +518,12 @@ CREATE POLICY "Admins can delete product images"
     USING (bucket_id = 'product-images' AND public.is_admin());
 
 -- ====================================================================
--- 11. PROMOTE MASTER ADMIN
+-- 11. PROMOTE MASTER ADMINS
 -- ====================================================================
 UPDATE public.profiles
-SET role = 'admin', full_name = 'Admin Dhanush', updated_at = NOW()
+SET role = 'admin', updated_at = NOW()
 WHERE id IN (
-    SELECT id FROM auth.users WHERE LOWER(email) = 'callmedhanush777@gmail.com'
+    SELECT id FROM auth.users WHERE LOWER(email) IN ('callmedhanush777@gmail.com', 'loopandlove77@gmail.com')
 );
 
 
