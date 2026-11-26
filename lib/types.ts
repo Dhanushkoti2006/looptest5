@@ -74,6 +74,7 @@ export interface Product {
   isFeatured: boolean;
   isBestseller: boolean;
   isNewArrival: boolean;
+  isMadeToOrder?: boolean;
   variants: ProductVariant[];
   highlights?: string[];
   customNotice?: string;
@@ -105,6 +106,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   maxStock: number;
+  isMadeToOrder?: boolean;
 }
 
 export interface Coupon {
@@ -165,6 +167,7 @@ export interface Order {
   totalAmount: number;
   paymentStatus: PaymentStatus;
   paymentMethod: string;
+  deliveryMethod?: string;
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;

@@ -24,7 +24,7 @@ export async function GET(req: Request) {
     const maxPrice = searchParams.get('maxPrice');
     const status = searchParams.get('status');
     const featured = searchParams.get('featured');
-    const includeAll = searchParams.get('all') === 'true' || status === 'all';
+    const includeInactive = searchParams.get('includeInactive') === 'true';
 
     let supabase: any;
     try {
@@ -33,9 +33,9 @@ export async function GET(req: Request) {
       supabase = await createClient();
     }
 
-    // 1. Fetch products with optional inactive/draft inclusion for admin
+    // 1. Fetch active products (exclude soft-deleted/inactive unless explicitly requested)
     let query = (supabase.from('products') as any).select('*');
-    if (!includeAll) {
+    if (!includeInactive) {
       query = query.eq('is_active', true);
     }
 
@@ -99,6 +99,7 @@ export async function GET(req: Request) {
           isNewArrival: p.created_at
             ? Date.now() - new Date(p.created_at).getTime() <= 14 * 24 * 60 * 60 * 1000
             : false,
+          isMadeToOrder: Boolean(p.is_made_to_order),
           variants: [],
           averageRating: p.average_rating ? Number(p.average_rating) : 0,
           reviewCount: p.review_count ? Number(p.review_count) : 0,
@@ -186,6 +187,7 @@ export async function POST(req: Request) {
     const price = Number(body.price);
     const stock = Number(body.stock ?? 10);
     const isFeatured = Boolean(body.isFeatured);
+    const isMadeToOrder = Boolean(body.isMadeToOrder);
     const materials = body.materials || '100% Milk Cotton Yarn';
     const dimensions = body.dimensions || '';
     const prepTimeDays = Number(body.prepTimeDays || 2);
@@ -242,7 +244,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Insert into products table
-    const productPayload = {
+    const productPayload: any = {
       name,
       slug,
       description,
@@ -251,6 +253,7 @@ export async function POST(req: Request) {
       category_id: categoryId,
       is_active: true,
       is_featured: isFeatured,
+      is_made_to_order: isMadeToOrder,
       materials,
       dimensions,
       prep_time_days: prepTimeDays,
@@ -261,6 +264,16 @@ export async function POST(req: Request) {
       .insert(productPayload)
       .select()
       .single();
+
+    if (prodError && (prodError.code === '42703' || prodError.message?.includes('is_made_to_order'))) {
+      const { is_made_to_order: _, ...fallbackPayload } = productPayload;
+      const retryColRes = await (adminSupabase.from('products') as any)
+        .insert(fallbackPayload)
+        .select()
+        .single();
+      newProd = retryColRes.data;
+      prodError = retryColRes.error;
+    }
 
     if (prodError && prodError.code === '42501' && user) {
       const retryRes = await (serverSupabase.from('products') as any)
@@ -345,6 +358,7 @@ export async function PUT(req: Request) {
     if (body.price !== undefined) updateFields.price = Number(body.price);
     if (body.stock !== undefined) updateFields.stock = Number(body.stock);
     if (body.isFeatured !== undefined) updateFields.is_featured = Boolean(body.isFeatured);
+    if (body.isMadeToOrder !== undefined) updateFields.is_made_to_order = Boolean(body.isMadeToOrder);
     if (body.materials !== undefined) updateFields.materials = body.materials;
     if (body.dimensions !== undefined) updateFields.dimensions = body.dimensions;
 
@@ -367,6 +381,17 @@ export async function PUT(req: Request) {
       .eq('id', body.id)
       .select()
       .single();
+
+    if (updateError && (updateError.code === '42703' || updateError.message?.includes('is_made_to_order'))) {
+      const { is_made_to_order: _, ...fallbackFields } = updateFields;
+      const retryColRes = await (adminSupabase.from('products') as any)
+        .update(fallbackFields)
+        .eq('id', body.id)
+        .select()
+        .single();
+      updated = retryColRes.data;
+      updateError = retryColRes.error;
+    }
 
     if (updateError && updateError.code === '42501' && user) {
       const retryRes = await (serverSupabase.from('products') as any)
@@ -429,11 +454,26 @@ export async function DELETE(req: Request) {
     }
 
     const adminSupabase = createAdminClient();
-    await (adminSupabase.from('products') as any).update({ is_active: false }).eq('id', id);
+    const { error: deleteErr } = await (adminSupabase.from('products') as any)
+      .delete()
+      .eq('id', id);
+
+    if (deleteErr) {
+      // Fallback to soft-delete if foreign key constraint prevents hard delete
+      const { error: softErr } = await (adminSupabase.from('products') as any)
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (softErr) {
+        console.error('Product delete error:', softErr);
+        return NextResponse.json({ success: false, message: softErr.message || 'Failed to delete product' }, { status: 500 });
+      }
+    }
 
     try {
       revalidatePath('/');
       revalidatePath('/shop');
+      revalidatePath('/admin/products');
     } catch (_) {}
 
     return NextResponse.json({ success: true, message: 'Product deleted' });

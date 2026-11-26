@@ -103,12 +103,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               quantity,
               product_id,
               products (
-                id,
-                name,
-                slug,
-                price,
-                discount_price,
-                stock,
+                *,
                 product_images (image_url, display_order)
               )
             `)
@@ -132,6 +127,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 price,
                 quantity: item.quantity,
                 maxStock: p.stock,
+                isMadeToOrder: Boolean(p.is_made_to_order),
               };
             });
 
@@ -207,6 +203,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           price: itemPrice,
           quantity: Math.min(product.stock, quantity),
           maxStock: product.stock,
+          isMadeToOrder: Boolean(product.isMadeToOrder),
         };
         return [...prev, newItem];
       }

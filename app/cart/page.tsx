@@ -144,6 +144,11 @@ export default function CartPage() {
                   <span className="text-xs font-bold text-brand-900 mt-1 block">
                     ₹{item.price.toLocaleString('en-IN')} each
                   </span>
+                  {item.isMadeToOrder && (
+                    <span className="inline-block mt-1.5 text-[10px] font-bold bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">
+                      🧶 Made to Order
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -220,6 +225,12 @@ export default function CartPage() {
                 <span>₹{totalAmount.toLocaleString('en-IN')}</span>
               </div>
             </div>
+
+            {cart.some((item) => item.isMadeToOrder) && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 leading-relaxed">
+                🕒 Note: Your cart includes made-to-order handmade items. Your order will be freshly crafted and dispatched within 3–5 business days.
+              </div>
+            )}
 
             {/* COUPON INPUT */}
             <div className="pt-2">

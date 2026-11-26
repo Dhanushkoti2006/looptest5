@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
     is_active BOOLEAN NOT NULL DEFAULT true,
     is_featured BOOLEAN NOT NULL DEFAULT false,
+    is_made_to_order BOOLEAN NOT NULL DEFAULT false,
     materials TEXT DEFAULT '100% Premium Milk Cotton Yarn',
     dimensions TEXT,
     prep_time_days INT NOT NULL DEFAULT 2,
@@ -761,7 +762,7 @@ CREATE POLICY "Admins can delete hero images"
 -- ====================================================================
 CREATE TABLE IF NOT EXISTS public.site_announcements (
     id TEXT PRIMARY KEY DEFAULT 'default',
-    text TEXT NOT NULL DEFAULT '🌸 Free Handcrafted Gift Box on orders above ₹999 • All India Express Delivery',
+    text TEXT NOT NULL DEFAULT '🧶 Fast 1–2 Day Delivery Across Tamil Nadu! Outside TN? DM us on Instagram @loop__nd__love ✨',
     secondary_text TEXT DEFAULT '✨ 100% Milk Cotton',
     link_text TEXT DEFAULT 'Request Custom Crochet',
     link_url TEXT DEFAULT '/custom-orders',
@@ -793,7 +794,7 @@ CREATE POLICY "Admins have full access to announcements"
     WITH CHECK (public.is_admin());
 
 INSERT INTO public.site_announcements (id, text, secondary_text, link_text, link_url, bg_color, text_color, is_active)
-VALUES ('default', '🌸 Free Handcrafted Gift Box on orders above ₹999 • All India Express Delivery', '✨ 100% Milk Cotton', 'Request Custom Crochet', '/custom-orders', '#2E1D36', '#FBF5E5', true)
+VALUES ('default', '🧶 Fast 1–2 Day Delivery Across Tamil Nadu! Outside TN? DM us on Instagram @loop__nd__love ✨', '✨ 100% Milk Cotton', 'Request Custom Crochet', '/custom-orders', '#2E1D36', '#FBF5E5', true)
 ON CONFLICT (id) DO NOTHING;
 
 

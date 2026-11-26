@@ -136,6 +136,7 @@ export interface Database {
           stock: number;
           is_active: boolean;
           is_featured: boolean;
+          is_made_to_order: boolean;
           materials: string | null;
           dimensions: string | null;
           prep_time_days: number;

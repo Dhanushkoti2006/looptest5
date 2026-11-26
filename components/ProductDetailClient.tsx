@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product, Review, ProductVariant } from '@/lib/types';
+import { siteConfig } from '@/src/config/site';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
 import ProductCard from '@/components/ProductCard';
@@ -552,6 +553,27 @@ export default function ProductDetailClient({
                   </Link>
                 </div>
               )}
+
+              {/* DELIVERY & PREPARATION TIMELINE INFO CARD */}
+              <div className={`rounded-2xl p-4 border space-y-2 ${product.isMadeToOrder ? 'bg-amber-50/70 border-amber-200' : 'bg-emerald-50/70 border-emerald-200'}`}>
+                <p className={`text-xs font-semibold leading-relaxed ${product.isMadeToOrder ? 'text-amber-900' : 'text-emerald-900'}`}>
+                  {product.isMadeToOrder
+                    ? '🧶 Made to Order: Handcrafted after you order (takes 1–2 days to prepare) + 1-5 days delivery across Tamil Nadu.'
+                    : '⚡ Ready to Ship: Dispatches in 1 day + 1–2 days delivery across Tamil Nadu.'}
+                </p>
+                <p className="text-[11px] text-gray-600 pt-1 border-t border-black/5">
+                  📍 Outside Tamil Nadu?{' '}
+                  <a
+                    href={siteConfig.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-brand-700 hover:text-brand-900 underline underline-offset-2"
+                  >
+                    DM us on Instagram {siteConfig.instagramHandle}
+                  </a>{' '}
+                  to order!
+                </p>
+              </div>
             </div>
           )}
 

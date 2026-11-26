@@ -328,6 +328,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Failed to create order record' }, { status: 500 });
     }
 
+    // Sync real collected customer name to user profile if missing or was an email prefix
+    const collectedName = (customerName || shippingAddress.name || '').trim();
+    if (userId && collectedName.length >= 3) {
+      try {
+        const { data: prof } = await (adminSupabase.from('profiles') as any)
+          .select('full_name')
+          .eq('id', userId)
+          .maybeSingle();
+        const emailPrefix = (customerEmail || '').split('@')[0]?.toLowerCase() || '';
+        const currentFullName = (prof?.full_name || '').trim().toLowerCase();
+        if (!currentFullName || (emailPrefix && currentFullName === emailPrefix)) {
+          await (adminSupabase.from('profiles') as any)
+            .update({ full_name: collectedName })
+            .eq('id', userId);
+        }
+      } catch (_) {}
+    }
+
     // 7. INSERT ORDER ITEMS SNAPSHOTS
     const itemRecords = validatedItems.map((vi) => ({
       order_id: newOrder.id,

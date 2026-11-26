@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useCart } from '@/lib/CartContext';
 import { useAuth } from '@/lib/AuthContext';
 import { Address } from '@/lib/types';
+import { siteConfig } from '@/src/config/site';
 import { TAMIL_NADU_DISTRICTS } from '@/lib/delivery/tamilNaduPincodes';
 import {
   CreditCard,
@@ -63,8 +64,20 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
   const [saveToAccount, setSaveToAccount] = useState(true);
 
+  const getRealUserName = (u: typeof user) => {
+    if (!u?.name) return '';
+    const emailPrefix = u.email ? u.email.split('@')[0].toLowerCase() : '';
+    if (emailPrefix && u.name.trim().toLowerCase() === emailPrefix) {
+      return '';
+    }
+    if (u.name.trim().toLowerCase() === 'handmade lover') {
+      return '';
+    }
+    return u.name;
+  };
+
   // Form states
-  const [customerName, setCustomerName] = useState(user?.name || '');
+  const [customerName, setCustomerName] = useState(() => getRealUserName(user));
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [street, setStreet] = useState('');
@@ -148,7 +161,7 @@ export default function CheckoutPage() {
   }, [user?.id]);
 
   const applyAddress = (addr: SavedAddressItem) => {
-    setCustomerName(addr.full_name || user?.name || '');
+    setCustomerName(addr.full_name || getRealUserName(user) || '');
     setCustomerPhone(addr.phone || user?.phone || '');
     setStreet(addr.line1 || '');
     setArea(addr.line2 || addr.city || '');
@@ -165,7 +178,7 @@ export default function CheckoutPage() {
 
   const handleSelectNewAddress = () => {
     setSelectedAddressId('new');
-    setCustomerName(user?.name || '');
+    setCustomerName(getRealUserName(user) || '');
     setCustomerPhone(user?.phone || '');
     setStreet('');
     setArea('');
@@ -178,7 +191,8 @@ export default function CheckoutPage() {
   // Sync user profile data when loaded
   useEffect(() => {
     if (user) {
-      if (!customerName && user.name) setCustomerName(user.name);
+      const realName = getRealUserName(user);
+      if (!customerName && realName) setCustomerName(realName);
       if (!customerEmail && user.email) {
         setCustomerEmail(user.email);
         setNotifyEmail(user.email);
@@ -919,6 +933,21 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                {/* OUTSIDE TAMIL NADU INSTAGRAM DM INFO BOX */}
+                <div className="p-4 rounded-2xl bg-brand-50/80 border border-brand-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <p className="text-xs text-brand-900 leading-relaxed">
+                    Currently, online checkout is available only for Tamil Nadu addresses. Living outside Tamil Nadu? Send us a DM on Instagram <strong>{siteConfig.instagramHandle}</strong> with a screenshot of your cart, and we&apos;ll help you place a custom order!
+                  </p>
+                  <a
+                    href={siteConfig.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shrink-0 text-center transition-colors shadow-xs"
+                  >
+                    DM on Instagram
+                  </a>
+                </div>
+
                 {user && (
                   <label className="flex items-center gap-2 cursor-pointer pt-1">
                     <input
@@ -1125,6 +1154,12 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
+
+            {cart.some((item) => item.isMadeToOrder) && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 leading-relaxed">
+                🕒 Note: Your cart includes made-to-order handmade items. Your order will be freshly crafted and dispatched within 3–5 business days.
+              </div>
+            )}
 
             <button
               type="submit"

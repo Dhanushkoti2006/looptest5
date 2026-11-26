@@ -29,7 +29,7 @@ export interface SiteAnnouncement {
 
 const DEFAULT_ANNOUNCEMENT: SiteAnnouncement = {
   id: 'default',
-  text: '🌸 Free Handcrafted Gift Box on orders above ₹999 • All India Express Delivery',
+  text: '🧶 Fast 1–2 Day Delivery Across Tamil Nadu! Outside TN? DM us on Instagram @loop__nd__love ✨',
   secondary_text: '✨ 100% Milk Cotton',
   link_text: 'Request Custom Crochet',
   link_url: '/custom-orders',

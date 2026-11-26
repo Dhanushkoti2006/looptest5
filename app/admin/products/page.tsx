@@ -51,6 +51,7 @@ export default function AdminProductsPage() {
   const [isFeatured, setIsFeatured] = useState(true);
   const [isBestseller, setIsBestseller] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
+  const [isMadeToOrder, setIsMadeToOrder] = useState(false);
   const [sku, setSku] = useState('');
 
   // Form Fields - Images
@@ -118,6 +119,7 @@ export default function AdminProductsPage() {
     setIsFeatured(true);
     setIsBestseller(false);
     setIsNewArrival(true);
+    setIsMadeToOrder(false);
     setSku(`LL-PROD-${Date.now().toString().slice(-4)}`);
     setImages([]);
     setNewImageUrl('');
@@ -157,6 +159,7 @@ export default function AdminProductsPage() {
     setIsFeatured(Boolean(p.isFeatured));
     setIsBestseller(p.isBestseller);
     setIsNewArrival(p.isNewArrival);
+    setIsMadeToOrder(Boolean(p.isMadeToOrder));
     setSku(p.sku || `LL-PROD-${p.id.slice(-4)}`);
     setImages(p.images && p.images.length > 0 ? [...p.images] : ['https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=800&q=80']);
     setNewImageUrl('');
@@ -388,6 +391,7 @@ export default function AdminProductsPage() {
       isFeatured,
       isBestseller,
       isNewArrival,
+      isMadeToOrder,
       sku: sku.trim() || `LL-PROD-${Date.now().toString().slice(-4)}`,
       careInstructions: careInstructions.trim() || 'Gentle hand wash. Lay flat to dry.',
       tags: tagsArray.length > 0 ? tagsArray : ['Handmade', 'Boutique'],
@@ -488,11 +492,23 @@ export default function AdminProductsPage() {
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      await fetch(`/api/products?id=${encodeURIComponent(id)}`, {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    try {
+      const res = await fetch(`/api/products?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
       });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.message || 'Failed to delete product.');
+        return;
+      }
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setSuccessToast('Product deleted successfully!');
+      setTimeout(() => setSuccessToast(''), 3500);
       fetchProducts();
+    } catch (err) {
+      console.error('Delete product error:', err);
+      alert('Error deleting product. Please try again.');
     }
   };
 
@@ -1013,6 +1029,15 @@ export default function AdminProductsPage() {
                         className="w-4 h-4 accent-purple-700"
                       />
                       <span>Mark as New Launch</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-900 bg-amber-100/70 px-3 py-1.5 rounded-xl border border-amber-300">
+                      <input
+                        type="checkbox"
+                        checked={isMadeToOrder}
+                        onChange={(e) => setIsMadeToOrder(e.target.checked)}
+                        className="w-4 h-4 accent-amber-700"
+                      />
+                      <span>🧶 Made to Order (Requires 2–4 days preparation)</span>
                     </label>
                   </div>
                 </div>

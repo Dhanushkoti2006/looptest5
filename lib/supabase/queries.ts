@@ -53,9 +53,9 @@ export async function getActiveProducts(options?: {
     const supabase = getPublicClient();
     const limit = options?.limit || 36;
 
-    // 1. Fetch active products with only necessary columns
+    // 1. Fetch active products
     let query = (supabase.from('products') as any)
-      .select('id, name, slug, description, price, discount_price, category_id, stock, is_featured, prep_time_days, materials, dimensions, highlights, created_at, updated_at')
+      .select('*')
       .eq('is_active', true);
 
     if (options?.categoryId) {
@@ -138,6 +138,7 @@ export async function getActiveProducts(options?: {
         isNewArrival: p.created_at
           ? Date.now() - new Date(p.created_at).getTime() <= 14 * 24 * 60 * 60 * 1000
           : false,
+        isMadeToOrder: Boolean(p.is_made_to_order),
         variants: [
           {
             id: `var-${p.id}-1`,
@@ -256,6 +257,7 @@ export const getProductBySlug = cache(async (slug: string): Promise<Product | nu
       isNewArrival: p.created_at
         ? Date.now() - new Date(p.created_at).getTime() <= 14 * 24 * 60 * 60 * 1000
         : false,
+      isMadeToOrder: Boolean(p.is_made_to_order),
       variants: [
         {
           id: `var-${p.id}-1`,
