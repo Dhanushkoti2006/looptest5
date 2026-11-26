@@ -101,12 +101,12 @@ export default function Navbar() {
       {announcement.is_active && (
         <div
           style={{ backgroundColor: announcement.bg_color, color: announcement.text_color }}
-          className="text-[11px] sm:text-xs font-medium py-1.5 px-3 sm:px-4 transition-colors"
+          className="text-[11px] sm:text-xs font-medium py-2 px-3 sm:px-4 transition-colors"
         >
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-1.5 md:gap-4">
+            <div className="flex items-center justify-center md:justify-start gap-2 w-full md:w-auto text-center md:text-left">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-cream-400 shrink-0 animate-pulse" />
-              <span className="truncate">
+              <span className="leading-snug break-words">
                 {announcement.text}
               </span>
             </div>
